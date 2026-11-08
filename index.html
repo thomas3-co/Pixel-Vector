@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<meta name="hm-build" content="studio-202611080814">
+<meta name="hm-build" content="studio-202611081020">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
@@ -2647,7 +2647,13 @@ window.HM_BAKED = {
  "site": {
   "stats": [],
   "tabs": {},
-  "brandSub": "Class of 2028 ✓"
+  "eyebrow": "Thomas",
+  "title": "Project of the month",
+  "intro": "Cc/.7,.<>",
+  "bannerOn": true,
+  "bannerText": "hi",
+  "bannerTone": "good",
+  "currentWeek": 8
  },
  "weeks": {
   "1": {
@@ -2776,26 +2782,1697 @@ window.HM_BAKED = {
     }
    ]
   },
-  "8": {
-   "title": "Week 8 — Portrait Retouching, Text Effects & Vanishing Point",
+  "3": {
+   "title": "Week 3 — Background Removal & Compositing (prepares the Week 7 project)",
    "days": [
     {
      "type": "lesson",
-     "title": "Day 1: Lip & Face Retouching + Spot Healing Brush",
-     "front": "Retouch the portrait subtly and naturally. Remove minor blemishes while preserving the person’s unique features, skin texture, pores, and natural complexion. Gently refine uneven areas without making the skin look blurred, overly smooth, or artificial. Enhance lip detail by clarifying the natural texture, edges, and color while keeping the original shape and expression. Preserve the lighting, facial structure, and overall realistic appearance.",
+     "title": "Day 5: Removing Backgrounds",
+     "front": "Remove the original background and prepare a clean subject edge for the new composition.",
+     "idea": "Even a clean selection often leaves a faint white line around the edges. Zoom in to 200%+ and use the Smudge Tool (or Defringe/Contract) to blend that line away so the cutout sits seamlessly against its new background.",
+     "vocab": [
+      {
+       "term": "Select Subject / Background Remover",
+       "def": "Automatically detects and separates the subject from its background."
+      },
+      {
+       "term": "Smudge Tool",
+       "def": "Pushes and blends pixels like wet paint — great for softening rough cutout edges."
+      },
+      {
+       "term": "Fringe / White Line",
+       "def": "A thin leftover strip of the old background color left behind around a cutout."
+      },
+      {
+       "term": "Defringe / Contract",
+       "def": "Shrinks a selection edge inward slightly to remove leftover background pixels."
+      },
+      {
+       "term": "Layer Mask",
+       "def": "Hides parts of a layer non-destructively so the cutout stays fully reversible."
+      }
+     ],
+     "links": []
+    },
+    {
+     "type": "lesson",
+     "title": "Day 6: Smudge Tool + Minimum + Gaussian Blur",
+     "front": "Use the Smudge Tool to refine edges, Filter → Other → Minimum to remove a white fringe, then place the subject into the world composition and use Gaussian Blur for realistic depth.",
+     "idea": "A convincing composite depends on more than a clean cut-out. Match scale, lighting, color and sharpness, then apply Gaussian Blur selectively so distant parts of the scene feel farther away and the subject belongs in the new world.",
+     "vocab": [
+      {
+       "term": "Background Removal",
+       "def": "Separates the main subject cleanly from the original background."
+      },
+      {
+       "term": "Compositing",
+       "def": "Moves a cut-out subject into a new image or environment and blends it with the scene."
+      },
+      {
+       "term": "Gaussian Blur",
+       "def": "A soft blur that reduces detail and simulates depth or distance."
+      },
+      {
+       "term": "Depth of Field",
+       "def": "The visual relationship between foreground, subject and background elements in a composite."
+      },
+      {
+       "term": "Layer Mask",
+       "def": "Adjusts the edges and mask of a cut-out so the subject blends naturally into its new environment."
+      }
+     ],
+     "links": []
+    }
+   ]
+  },
+  "4": {
+   "title": "Week 4 — Advanced Portrait Editing",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: Creating a Passport Size Photo",
+     "front": "Crop, retouch and format a professional passport-size photo from start to finish.",
+     "idea": "Passport photos follow strict formatting rules — exact size, plain background, even lighting, natural expression — so precision matters more here than creativity.",
+     "vocab": [
+      {
+       "term": "Crop Tool",
+       "def": "Trims the canvas down to an exact size and ratio."
+      },
+      {
+       "term": "Passport Size (2x2 in)",
+       "def": "The standard 2x2 inch dimension required for most ID and passport photos."
+      },
+      {
+       "term": "Solid Color Fill",
+       "def": "Replaces the background with a flat, regulation color — usually plain white."
+      },
+      {
+       "term": "Dodge & Burn",
+       "def": "Lightens or darkens areas to even out skin tone and lighting."
+      },
+      {
+       "term": "Resolution (DPI)",
+       "def": "Passport photos are typically saved at 300 DPI for sharp, print-quality results."
+      }
+     ],
+     "links": []
+    },
+    {
+     "type": "lesson",
+     "title": "Day 2: Transform & Puppet Warp",
+     "front": "Practice Transform controls and Puppet Warp to reposition, reshape, and refine portrait elements while keeping the edit flexible.",
+     "idea": "Use Transform for controlled size, position, rotation, and perspective changes. Use Puppet Warp when you need more flexible, pin-based reshaping. Work non-destructively so the portrait can be adjusted again.",
+     "vocab": [
+      {
+       "term": "Transform",
+       "def": "Changes an object's size, position, rotation, or perspective."
+      },
+      {
+       "term": "Puppet Warp",
+       "def": "Pin-based tool for flexible distortion."
+      },
+      {
+       "term": "Control Points",
+       "def": "Mesh points used to control a Puppet Warp transformation."
+      },
+      {
+       "term": "Transform Controls",
+       "def": "The handles and controls used to resize, rotate, and reposition an object."
+      },
+      {
+       "term": "Non-Destructive Workflow",
+       "def": "An editing approach that keeps the original information available for later changes."
+      }
+     ],
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo",
+       "label": "Puppet Warp Tool"
+      }
+     ]
+    }
+   ]
+  },
+  "5": {
+   "title": "Week 5 — Revision & Skills Check",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: Revision — Foundations & Photo Editing",
+     "front": "Review Weeks 1–3: file handling, raster images, non-destructive editing, background removal, smudge cleanup, and depth with Gaussian Blur.",
+     "idea": "**Self-check:** Can you explain each step, undo safely, and keep the original image available? Revisit the Read Me or screencast for any step that feels uncertain.",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "practice",
+     "label": "PRACTICE DAY",
+     "title": "Day 2: Practice — Transform, Puppet Warp & Export",
+     "front": "Use the Week 4 skills in an independent practice task and check your file before submitting.",
+     "idea": "**Exit reflection:** Name one tool you can use confidently, one step you need to practise, and your next learning goal. Check the Read Me and screencasts before moving on.",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "6": {
+   "title": "Week 6 — Face Retouch, Lip Retouch & Dress Change",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: Eyes & Clothing Colour",
+     "front": "Make the eyes sharper and more alive, then change the colour of clothing while keeping the folds, highlights and shadows.",
+     "idea": "Real eyes have texture, contrast and a small catchlight, but never a glassy glow. A good colour change keeps the original highlights, shadows and fabric detail.",
+     "vocab": [
+      {
+       "term": "Iris Texture",
+       "def": "The fine pattern of lines and fibres in the coloured part of the eye."
+      },
+      {
+       "term": "Catchlight",
+       "def": "The small bright reflection of light in the eyes that makes them look alive."
+      },
+      {
+       "term": "Glass-Eye Look",
+       "def": "The fake over-bright result you get from brightening the eyes too much."
+      },
+      {
+       "term": "Select Subject",
+       "def": "A tool that automatically selects the main person or object."
+      },
+      {
+       "term": "Color Range",
+       "def": "A selection method that picks pixels by colour."
+      },
+      {
+       "term": "Adjustment Layer",
+       "def": "A non-destructive layer that changes the look of the layers beneath it."
+      },
+      {
+       "term": "Specular Highlights",
+       "def": "The bright shiny spots on fabric that must be rebuilt after a big colour change."
+      }
+     ],
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1",
+       "label": "Eyes & Reflections 1"
+      },
+      {
+       "kind": "screencast",
+       "ref": "1T5-Q5M56LtTljcvAnAjURpwmWguRN80o",
+       "label": "Clothing Colour 2"
+      },
+      {
+       "kind": "screencast",
+       "ref": "1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD",
+       "label": "Clothing Colour 1"
+      },
+      {
+       "kind": "note",
+       "ref": "readme-week6",
+       "label": "Read Me"
+      }
+     ]
+    },
+    {
+     "type": "lesson",
+     "title": "Day 2: Eyes, Reflections & Teeth",
+     "front": "Add realistic reflections to the eyes, whiten teeth naturally, then put it all into one finishing workflow.",
+     "idea": "Add light only where the light in the photo would fall. Whiten teeth by removing yellow, not by painting them white, and stop before the person looks artificial.",
+     "vocab": [
+      {
+       "term": "Environmental Reflection",
+       "def": "A reflection of the surroundings, such as a window, that makes eyes look alive."
+      },
+      {
+       "term": "Iris Depth",
+       "def": "The sense of dimension in the iris created by light and shadow."
+      },
+      {
+       "term": "Over-Processing",
+       "def": "Retouching so much that the person looks artificial."
+      },
+      {
+       "term": "Layer Mask",
+       "def": "Hides parts of an adjustment so it only affects the teeth."
+      },
+      {
+       "term": "Warm Tone Removal",
+       "def": "Reducing yellow and warm colour from teeth with Hue/Saturation."
+      },
+      {
+       "term": "Selective Brightness",
+       "def": "Brightening only the chosen area while keeping natural texture and gloss."
+      },
+      {
+       "term": "Skin Color Grading",
+       "def": "Adjusting the colour and tone of skin so it looks even and natural."
+      }
+     ],
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1Pc0NNb3xMy_vXsri7keAP28856xXsEP5",
+       "label": "Eyes & Reflections 2"
+      },
+      {
+       "kind": "screencast",
+       "ref": "1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6",
+       "label": "Teeth Whitening"
+      },
+      {
+       "kind": "screencast",
+       "ref": "1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj",
+       "label": "Teeth & Eye Workflow"
+      },
+      {
+       "kind": "note",
+       "ref": "readme-week6",
+       "label": "Read Me"
+      }
+     ]
+    }
+   ]
+  },
+  "7": {
+   "title": "Week 7 — Around the World with a Twist (Project Week)",
+   "days": [
+    {
+     "type": "lesson",
+     "label": "PROJECT DAY",
+     "title": "Day 1: Choose Your City & Remove the Background",
+     "front": "Pick your city and cut your subject out cleanly.",
+     "idea": "**Objective:** Prepare a clean cut-out of yourself for the city scene.\n- Choose one of the city options on the Group Projects page.\n- Remove the background and clean the white fringe (Smudge Tool, Filter → Other → Minimum).\n- Keep a layer mask so the cut-out stays reversible.",
+     "vocab": [],
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ",
+       "label": "Screencast: Change Background & Smudge Tool"
+      },
+      {
+       "kind": "project",
+       "ref": "world",
+       "label": "Open the project page"
+      }
+     ]
+    },
+    {
+     "type": "lesson",
+     "title": "Day 2: Composite, Add Depth & Submit",
+     "front": "Place the subject in the city, blend it and submit.",
+     "idea": "**Objective:** Make the subject look like it belongs in the city.\n- Match scale, light and colour with the background.\n- Use **Gaussian Blur** on the far background for depth.\n- Submit via Group Projects tab → “Week 7 · Around the World with a Twist”.",
+     "vocab": [],
+     "links": [
+      {
+       "kind": "project",
+       "ref": "world",
+       "label": "Open the project page"
+      }
+     ]
+    }
+   ]
+  },
+  "8": {
+   "title": "Week 8 — practice",
+   "days": [
+    {
+     "type": "practice",
+     "label": "PROJECT DAY",
+     "title": "Day 1:",
+     "vocab": [],
+     "links": [
+      {
+       "kind": "project",
+       "ref": "world",
+       "label": "Open the project page"
+      }
+     ]
+    },
+    {
+     "type": "practice",
+     "label": "PROJECT DAY",
+     "title": "Day 2: Final Polish & Submit",
+     "front": "Finish, export and submit your Phase One project.",
+     "idea": "**Objective:** Hand in your finished Phase One project.\n- Do a last check at 100% zoom and zoom out to judge the whole image.\n- Save your editable PSD and export a high-resolution JPG or PNG.\n- Submit it from the Projects tab (Week 7 · Around the World with a Twist).",
+     "vocab": [],
+     "links": [
+      {
+       "kind": "project",
+       "ref": "world",
+       "label": "Open the project page"
+      }
+     ]
+    }
+   ]
+  },
+  "9": {
+   "title": "Week 9 — Phone / iPad Mockup (Project Week)",
+   "days": [
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 1: Mockup Project",
+     "front": "Create a mobile or poster mockup using smart objects.",
+     "idea": "**Objective:** Build a professional presentation mockup using smart objects.\n\n- Import your design into a pre-made PSD mockup file.\n- Use **Smart Object** layers to replace the placeholder.\n- Adjust lighting and shadows using **Levels** and **Drop Shadow**.\n- Save as high-quality JPEG for presentation.\n\nFull brief: Group Projects tab → \"Week 9 · Phone / iPad Mockup\".",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 2: Practice Variations & Mockup Submission",
+     "front": "Practice extra mockup types, then finalize and submit your mockup.",
+     "idea": "**Objective:** Strengthen mockup editing skills, then craft glowing, metallic, or embossed text effects using blending and texture overlays.\n\n- Try 2–3 different mockup templates; refine placement and lighting.\n- Apply **Bevel & Emboss**, **Drop Shadow**, and **Gradient Overlay**.\n- Submit via Group Projects tab → \"Week 9 · Phone / iPad Mockup\".",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "10": {
+   "title": "Week 10 — Gojo Pop-Out Project",
+   "days": [
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 1: Neon Text Effect",
+     "front": "Create glowing neon text with light blending.",
+     "idea": "**Objective:** Glow, contrast, color blending.",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 2: Neon Sign + Wall Effect & Submission",
+     "front": "Make a realistic glowing wall-mounted neon sign, then finalize and submit your Gojo pop-out project.",
+     "idea": "- Create metal frame; add realistic wall texture; use glow layers.\n- Brush glow edges; blend mode lighten; color dodge for highlights.\n- Submit via Group Projects tab → \"Week 10 · Gojo Pop-Out Project\".",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "11": {
+   "title": "Week 11 — Text on Any Surface with Vanishing Point",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: Text on Any Surface (Vanishing Point)",
+     "front": "Apply realistic text on walls, floors, or objects using the Vanishing Point filter.",
+     "idea": "**Objective:** Learn to map and blend text realistically to perspective planes.\n\n- Open your background image and create a new layer for text.\n- Go to **Filter → Vanishing Point** and define perspective grids.\n- Paste or drag your text layer into the vanishing point plane.\n- Adjust lighting, opacity, and blending mode (**Multiply** or **Overlay**).",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 2: Refine Vanishing Point Text & 3D Pop-Out Effect",
+     "front": "Refine lighting and texture, then create an illusion of objects or text popping out of the frame.",
+     "idea": "**Objective:** Refine realism from Day 1, then combine layer masking and 3D perspective to make subjects break out of the photo boundaries.\n\n- Use **Clone Stamp Tool** or **Healing Brush** to merge edges; match lighting with **Curves** and **Hue/Saturation**.\n- Import an image and add a white frame around it using **Rectangle Tool**.\n- Duplicate the image layer and mask parts that should appear outside the frame; add **Drop Shadows** for depth.\n- Use **3D Text** with **Bevel & Emboss** to complement the effect.\n\nFinal look: your subject or text appears to pop out from the image into real space.",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "12": {
+   "title": "Week 12 — Double Exposure & Poster Design",
+   "days": [
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 1: Double Exposure – Basics",
+     "front": "Learn how to merge two images creatively.",
+     "idea": "- Use layer masks\n- Soft brushes\n- Black/white balance",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "project",
+     "label": "PROJECT DAY",
+     "title": "Day 2: Advanced Double Exposure & Poster Design",
+     "front": "Combine shapes, forests, cities, portraits, then build a full poster blending photography + typography.",
+     "idea": "- Gradient mask control; blend multiple textures; color grading.\n- Cinematic color grading; strong layout; title placement rules.",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "13": {
+   "title": "Week 13 — Independent Study & Vintage Photo Editing",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: Independent Study & Practice",
+     "front": "Spend today refining your previous Photoshop projects.",
+     "idea": "**Focus Areas:**\n\n- Revisit your Week 4, 5, 6 and 7 projects.\n- Enhance details, lighting, and text alignment.\n- Experiment with extra effects: **Outer Glow**, **Color Balance**, or **Gradient Maps**.\n\nSelf-paced session for mastery and creativity.",
      "vocab": [],
      "links": []
     },
     {
      "type": "lesson",
-     "title": "Day 2: Text Effect & Vanishing Point",
-     "front": "Build dimensional typography, then place text realistically on a perspective surface.",
+     "title": "Day 2: More Independent Study & Vintage Photo Editing",
+     "front": "Keep refining projects, then explore how to give your photos a timeless, vintage feel.",
+     "idea": "**Focus Areas:**\n\n- Continue polishing Week 4–7 projects: details, lighting, text alignment.\n- Apply sepia tones and faded color effects.\n- Use **Film Grain** or **Noise** filters for an aged texture.\n- Experiment with **Vignette** and **Curves Adjustment** for mood enhancement.\n- Try blending overlays like **Dust & Scratches** for authenticity.\n\nBring a nostalgic aesthetic to your modern photos through creative vintage effects.",
      "vocab": [],
      "links": []
     }
    ]
+  },
+  "14": {
+   "title": "Week 14 — Coming Soon",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: To be added",
+     "front": "Lesson content for this day hasn't been added yet.",
+     "idea": "Placeholder — check back once this week's lesson is published.",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "lesson",
+     "title": "Day 2: To be added",
+     "front": "Lesson content for this day hasn't been added yet.",
+     "idea": "Placeholder — check back once this week's lesson is published.",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "15": {
+   "title": "Week 15 — Coming Soon",
+   "days": [
+    {
+     "type": "lesson",
+     "title": "Day 1: To be added",
+     "front": "Lesson content for this day hasn't been added yet.",
+     "idea": "Placeholder — check back once this week's lesson is published.",
+     "vocab": [],
+     "links": []
+    },
+    {
+     "type": "lesson",
+     "title": "Day 2: To be added",
+     "front": "Lesson content for this day hasn't been added yet.",
+     "idea": "Placeholder — check back once this week's lesson is published.",
+     "vocab": [],
+     "links": []
+    }
+   ]
+  },
+  "16": {
+   "title": "Week 16 — Elemental Portraits (Final Project)",
+   "days": [
+    {
+     "type": "project",
+     "label": "FINAL PROJECT · DAY 1",
+     "title": "Day 1: Concept & Base Portrait",
+     "front": "Choose your element and prepare your portrait.",
+     "idea": "**Objective:** Plan a surreal Elemental Being and prepare the portrait you will fuse with it.\n- Pick one elemental force (fire, water, air, earth…).\n- Prepare a clean, well-lit portrait and collect reference images.",
+     "vocab": [],
+     "links": [
+      {
+       "kind": "project",
+       "ref": "elemental",
+       "label": "Open the project page"
+      }
+     ]
+    },
+    {
+     "type": "project",
+     "label": "FINAL PROJECT · DAY 2",
+     "title": "Day 2: Fusion, Finish & Submit",
+     "front": "Blend the portrait with the element so it feels real.",
+     "idea": "**Objective:** Finish the capstone project of Class of 2028.\n- Fuse the element with the portrait using masks and blend modes.\n- Add your character name and a short origin story.\n- Submit via Group Projects tab → “Week 16 · Elemental Portraits”.",
+     "vocab": [],
+     "links": [
+      {
+       "kind": "project",
+       "ref": "elemental",
+       "label": "Open the project page"
+      }
+     ]
+    }
+   ]
   }
  },
+ "screencasts": {
+  "items": [
+   {
+    "id": "1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ",
+    "title": "Change Background & Smudge Tool Basics",
+    "desc": "Extract complex subjects smoothly and replace plain backgrounds effortlessly. Learn how to use the Smudge Tool with custom brush dynamics to softly paint, blend, and restore fine hair or fur edges for seamless background integration.",
+    "group": "grp1",
+    "released": true,
+    "graded": true,
+    "phase": 1,
+    "removed": false,
+    "order": 0,
+    "vocab": [
+     {
+      "term": "Background Removal",
+      "def": "Isolating a subject from its original background so it can be placed into another scene."
+     },
+     {
+      "term": "Smudge Tool",
+      "def": "A tool used to blend, soften, and restore small areas of pixels around fine edges."
+     },
+     {
+      "term": "Brush Dynamics",
+      "def": "Brush settings that control how a brush responds while you paint or smudge."
+     },
+     {
+      "term": "Hair or Fur Edges",
+      "def": "Fine subject details that require careful edge refinement during background removal."
+     },
+     {
+      "term": "White Fringe",
+      "def": "A light outline that can remain around a subject after its old background is removed."
+     },
+     {
+      "term": "Subject Edge",
+      "def": "The boundary separating the subject from the removed background."
+     },
+     {
+      "term": "Background Integration",
+      "def": "Making the isolated subject look naturally connected to the replacement scene."
+     }
+    ]
+   },
+   {
+    "id": "1I2VJv2bLE7w0t_2ITY8XMzHBSGR1-UCg",
+    "title": "How to Create a Passport Size Image (1.5 x 2 in)",
+    "desc": "Set exact crop ratios, align photo grid guidelines, and format standard passport layout prints correctly.",
+    "group": "grp1",
+    "released": true,
+    "graded": true,
+    "phase": 1,
+    "removed": false,
+    "order": 1,
+    "vocab": [
+     {
+      "term": "Passport Size Image",
+      "def": "A precisely formatted photo prepared to meet a required passport or ID size."
+     },
+     {
+      "term": "Crop Ratio",
+      "def": "The proportional relationship between the width and height of the crop."
+     },
+     {
+      "term": "Photo Grid Guides",
+      "def": "Guides used to align the photo and maintain consistent placement."
+     },
+     {
+      "term": "Resolution",
+      "def": "The amount of image detail represented for the final output."
+     },
+     {
+      "term": "Print Layout",
+      "def": "The arrangement of the finished photo for the required physical print."
+     },
+     {
+      "term": "Exact Dimensions",
+      "def": "The required width and height that the final passport image must meet."
+     },
+     {
+      "term": "Alignment",
+      "def": "Positioning the image elements consistently within the required format."
+     }
+    ]
+   },
+   {
+    "id": "1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo",
+    "title": "Puppet Warp Tool",
+    "desc": "Unlock the creative power of Puppet Warp to adjust pose, fix clothing wrinkles, and reshape elements with pinpoint accuracy. Learn how to place control pins, adjust mesh density, and bend subjects non-destructively without distorting surrounding areas.",
+    "group": "grp1",
+    "released": true,
+    "graded": true,
+    "phase": 1,
+    "removed": false,
+    "order": 2,
+    "vocab": [
+     {
+      "term": "Puppet Warp",
+      "def": "Reshapes part of an image with a mesh and control pins so it bends without distorting the area around it."
+     },
+     {
+      "term": "Control Pin",
+      "def": "A point placed on the Puppet Warp mesh to hold an area still or to bend it."
+     },
+     {
+      "term": "Mesh Density",
+      "def": "How many mesh points cover the object; a denser mesh gives finer control."
+     },
+     {
+      "term": "Pose Adjustment",
+      "def": "Changing the position of an arm, leg or body part using the warp mesh."
+     },
+     {
+      "term": "Clothing Wrinkles",
+      "def": "Folds in fabric that Puppet Warp can smooth or reshape."
+     },
+     {
+      "term": "Non-Destructive Warp",
+      "def": "Warping a Smart Object so the original pixels are never damaged."
+     },
+     {
+      "term": "Pin Placement",
+      "def": "Choosing where pins go so only the wanted area moves."
+     }
+    ]
+   },
+   {
+    "id": "1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1",
+    "title": "Portrait Perfection: Eyes and Reflections for Realistic Results (Part 1)",
+    "desc": "Enhance portrait eyes naturally by sharpening iris textures, boosting contrast, and clearing up red veins. Learn how to highlight natural catchlights and brighten dull eyes without creating a fake \"glass eye\" look.",
+    "group": "grp2",
+    "released": true,
+    "graded": true,
+    "phase": 2,
+    "removed": false,
+    "order": 3,
+    "vocab": [
+     {
+      "term": "Iris Texture",
+      "def": "The fine pattern of lines and fibres in the coloured part of the eye."
+     },
+     {
+      "term": "Catchlight",
+      "def": "The small bright reflection of light in the eyes that makes them look alive."
+     },
+     {
+      "term": "Eye Contrast",
+      "def": "The difference between light and dark in the eye that makes it look sharp."
+     },
+     {
+      "term": "Red Vein Clearing",
+      "def": "Softly removing red lines in the white of the eye without making it look fake."
+     },
+     {
+      "term": "Dull Eyes",
+      "def": "Eyes that look flat because they lack contrast and light."
+     },
+     {
+      "term": "Glass-Eye Look",
+      "def": "The fake over-bright result you get from brightening the eyes too much."
+     },
+     {
+      "term": "Selective Brightening",
+      "def": "Brightening only the chosen part of the eye."
+     }
+    ]
+   },
+   {
+    "id": "1T5-Q5M56LtTljcvAnAjURpwmWguRN80o",
+    "title": "How to Change the Color of Clothing (Part 2)",
+    "desc": "Take color editing to an advanced level by tackling difficult color transformations, such as converting dark garments to bright shades or shifting to pure white and deep black. Learn how to manually reconstruct contrast curves, specular highlights, and ambient bounce light.",
+    "group": "grp2",
+    "released": true,
+    "graded": true,
+    "phase": 2,
+    "removed": false,
+    "order": 4,
+    "vocab": [
+     {
+      "term": "Dark to Bright Colours",
+      "def": "A harder change that needs extra steps because dark fabric has little colour information."
+     },
+     {
+      "term": "Luminosity",
+      "def": "The brightness of a colour."
+     },
+     {
+      "term": "Colorize",
+      "def": "A Hue/Saturation option that tints an area with one chosen colour."
+     },
+     {
+      "term": "Selective Colour",
+      "def": "An adjustment that changes specific colour ranges."
+     },
+     {
+      "term": "Colour Fringing",
+      "def": "Unwanted coloured edges left around a selection."
+     },
+     {
+      "term": "Refine Edge / Mask",
+      "def": "Tools that clean the selection edge for a natural result."
+     },
+     {
+      "term": "Fabric Detail",
+      "def": "Folds and texture that must stay visible after the colour change."
+     }
+    ]
+   },
+   {
+    "id": "1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD",
+    "title": "How to Change the Color of Clothing (Part 1)",
+    "desc": "Master precise selection tools like Select Subject and Color Range to isolate fabric layers cleanly. You'll learn how to shift base hues using Adjustment Layers while completely preserving natural highlights, soft shadows, and subtle texture details.",
+    "group": "grp2",
+    "released": true,
+    "graded": true,
+    "phase": 2,
+    "removed": false,
+    "order": 5,
+    "vocab": [
+     {
+      "term": "Select Subject",
+      "def": "A tool that automatically selects the main person or object."
+     },
+     {
+      "term": "Color Range",
+      "def": "A selection method that picks pixels by colour."
+     },
+     {
+      "term": "Hue/Saturation",
+      "def": "An adjustment that changes colour (hue) and colour strength (saturation)."
+     },
+     {
+      "term": "Adjustment Layer",
+      "def": "A non-destructive layer that changes the colour of what is beneath it."
+     },
+     {
+      "term": "Layer Mask",
+      "def": "Limits the colour change to the clothing only."
+     },
+     {
+      "term": "Selection Edge",
+      "def": "The boundary of the selection, which must be clean to avoid colour spill."
+     },
+     {
+      "term": "Hue Shift",
+      "def": "Moving the colour around the colour wheel, for example red to blue."
+     }
+    ]
+   },
+   {
+    "id": "1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6",
+    "title": "Advanced Portrait Retouching: Teeth Whitening",
+    "desc": "Isolate teeth cleanly using precise layer masks and learn to remove unwanted yellow and warm tones using Hue/Saturation adjustments. Boost brightness selectively while preserving natural tooth surface texture and gloss.",
+    "group": "grp3",
+    "released": true,
+    "graded": true,
+    "phase": 2,
+    "removed": false,
+    "order": 6,
+    "vocab": [
+     {
+      "term": "Teeth Isolation",
+      "def": "Selecting only the teeth with a precise layer mask."
+     },
+     {
+      "term": "Layer Mask",
+      "def": "Hides parts of an adjustment so it only affects the teeth."
+     },
+     {
+      "term": "Hue/Saturation",
+      "def": "An adjustment that changes colour (hue) and colour strength (saturation)."
+     },
+     {
+      "term": "Warm Tone Removal",
+      "def": "Reducing yellow and warm colour from teeth."
+     },
+     {
+      "term": "Selective Brightness",
+      "def": "Brightening only the chosen area while keeping natural texture."
+     },
+     {
+      "term": "Tooth Texture",
+      "def": "The fine surface detail of the teeth that must stay visible."
+     },
+     {
+      "term": "Natural Gloss",
+      "def": "The soft shine on teeth that makes them look real."
+     }
+    ]
+   },
+   {
+    "id": "1Pc0NNb3xMy_vXsri7keAP28856xXsEP5",
+    "title": "Portrait Perfection: Eyes and Reflections for Realistic Results (Part 2)",
+    "desc": "Master advanced eye retouching by adding realistic light catchlights and environmental reflections to irises. Learn blending techniques that increase iris depth, dimension, and realism without making the eyes look artificial or over-processed.",
+    "group": "grp3",
+    "released": true,
+    "graded": true,
+    "phase": 2,
+    "removed": false,
+    "order": 7,
+    "vocab": [
+     {
+      "term": "Environmental Reflection",
+      "def": "A reflection of the surroundings, such as a window, that makes eyes look alive."
+     },
+     {
+      "term": "Iris Depth",
+      "def": "The sense of dimension in the iris created by light and shadow."
+     },
+     {
+      "term": "Realistic Catchlight",
+      "def": "A light reflection placed where the light in the photo would really fall."
+     },
+     {
+      "term": "Blending Technique",
+      "def": "A way of mixing a new layer into the photo so it looks natural."
+     },
+     {
+      "term": "Dimension",
+      "def": "The feeling of depth and shape in the eyes."
+     },
+     {
+      "term": "Over-Processing",
+      "def": "Retouching so much that the person looks artificial."
+     },
+     {
+      "term": "Natural Realism",
+      "def": "A retouched result that still looks like a real photograph."
+     }
+    ]
+   },
+   {
+    "id": "1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj",
+    "title": "Advanced Portrait Retouching: Teeth Whitening & Eye Enhancement",
+    "desc": "Put your retouching skills together into a complete professional workflow. Learn how to combine eye enhancement, teeth whitening, skin color grading, and global contrast adjustments into a fast, repeatable editing process.",
+    "group": "grp3",
+    "released": true,
+    "graded": true,
+    "phase": 2,
+    "removed": false,
+    "order": 8,
+    "vocab": [
+     {
+      "term": "Eye Enhancement",
+      "def": "Sharpening iris detail, boosting contrast and brightening eyes while keeping them natural."
+     },
+     {
+      "term": "Teeth Whitening",
+      "def": "Removing yellow and warm tones from teeth with a masked Hue/Saturation adjustment."
+     },
+     {
+      "term": "Skin Color Grading",
+      "def": "Adjusting the colour and tone of skin so it looks even and natural."
+     },
+     {
+      "term": "Global Contrast",
+      "def": "A contrast change applied to the whole image at the end of the edit."
+     },
+     {
+      "term": "Repeatable Workflow",
+      "def": "A set order of steps you can use again and again on any portrait."
+     },
+     {
+      "term": "Layer Mask",
+      "def": "Hides parts of an adjustment so it only affects the teeth or eyes."
+     },
+     {
+      "term": "Natural Texture",
+      "def": "The fine surface detail that must stay visible after retouching."
+     }
+    ]
+   },
+   {
+    "id": "1FQby71jwqu5vc3ZFLa551cwsL2-Fr1JL",
+    "title": "Uneven Eye Enhancement (Part 1)",
+    "desc": "helleleleleleleleleleleThe Clone Stamp Tool copies pixels from one area of an image and paints them onto another. In graphic design, it can be used to correct uneven eyes by copying details from one eye and carefully blending them into the other to create a more balanced and natural appearance.",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 2,
+    "removed": false,
+    "order": 2,
+    "vocab": [
+     {
+      "term": "Liquify Filter",
+      "def": "A filter that pushes and pulls pixels to gently reshape features such as eyelids and eyebrows."
+     },
+     {
+      "term": "Facial Asymmetry",
+      "def": "The small natural differences between the left and right sides of a face."
+     },
+     {
+      "term": "Scaling Transform",
+      "def": "Resizing a selected area to balance one eye against the other."
+     },
+     {
+      "term": "Guide Lines",
+      "def": "Straight lines used to check that both eyes and eyebrows sit at the same height."
+     },
+     {
+      "term": "Eyelid Alignment",
+      "def": "Making both eyelids sit at a matching level and shape."
+     },
+     {
+      "term": "Eyebrow Height",
+      "def": "The vertical position of the eyebrows, which is often uneven."
+     },
+     {
+      "term": "Natural Appearance",
+      "def": "Keeping the correction subtle so the person still looks like themselves."
+     }
+    ]
+   },
+   {
+    "id": "10IGHEvSRSe2bnd2LXC1wwh3MXu8wmg1g",
+    "title": "Uneven Eye Enhancement (Part 2)",
+    "desc": "The Clone Stamp Tool helps fix uneven eyes by duplicating parts of one eye and applying them to another area, creating a more symmetrical and balanced facial appearance while maintaining natural details.",
+    "group": "grp3",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 10,
+    "vocab": [
+     {
+      "term": "Lighting Direction",
+      "def": "The side the light comes from, which must match on both eyes."
+     },
+     {
+      "term": "Shadow Density",
+      "def": "How dark or light the shadows are around the eyes."
+     },
+     {
+      "term": "Eyelid Alignment",
+      "def": "Placing both eyelids at matching positions for a balanced face."
+     },
+     {
+      "term": "Balanced Portrait",
+      "def": "A face whose features look even without looking artificial."
+     },
+     {
+      "term": "Highlight Matching",
+      "def": "Making the bright reflections on both sides look the same."
+     },
+     {
+      "term": "Fine-Tuning",
+      "def": "Small last adjustments that polish the result."
+     },
+     {
+      "term": "Asymmetrical Features",
+      "def": "Facial features that differ slightly from left to right."
+     }
+    ]
+   },
+   {
+    "id": "1MuJkKq7MsJtB-WRZ_8oHmi5X-f0up7h5",
+    "title": "Lip & Face Retouching (Dodge & Burn, Healing Brush, Frequency Separation)",
+    "desc": "Dive into professional high-end skin retouching techniques. Discover how to separate texture from tone using Frequency Separation, clean up blemishes non-destructively with the Healing Brush, and carve out soft facial contours using strategic Dodge and Burn layers.",
+    "group": "grp4",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 11,
+    "vocab": [
+     {
+      "term": "Healing Brush",
+      "def": "A tool that samples nearby pixels and blends them in to remove blemishes."
+     },
+     {
+      "term": "Frequency Separation",
+      "def": "Splitting an image into a colour/tone layer and a texture layer so each can be retouched separately."
+     },
+     {
+      "term": "Dodge & Burn",
+      "def": "Lightening (dodge) and darkening (burn) small areas to shape light and shadow."
+     },
+     {
+      "term": "Texture Layer",
+      "def": "The layer that holds fine skin detail such as pores."
+     },
+     {
+      "term": "Colour Layer",
+      "def": "The layer that holds colour and tone with the fine detail removed."
+     },
+     {
+      "term": "Lip Retouching",
+      "def": "Smoothing lip texture and balancing colour and highlights for a natural finish."
+     },
+     {
+      "term": "Non-Destructive Retouching",
+      "def": "Editing on separate layers so the original photo is never damaged."
+     }
+    ]
+   },
+   {
+    "id": "1u3xzfCcBGat9p5z7Vk08Pye5pVdoXowM",
+    "title": "How To Easily Add Design on Dress in Photoshop (Part 1)",
+    "desc": "Learn how to project graphic artwork, logos, and patterns onto clothing fabric realistically. Use basic displacement maps and layer blending modes so design elements naturally conform to the curves and folds of the shirt.",
+    "group": "grp4",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 12,
+    "vocab": [
+     {
+      "term": "Displacement Map",
+      "def": "A greyscale image that makes a design bend and wrap around the folds of the fabric."
+     },
+     {
+      "term": "Clothing Fabric",
+      "def": "The surface the design is applied to, which has its own folds, shadows and texture."
+     },
+     {
+      "term": "Pattern / Logo",
+      "def": "The graphic artwork placed onto the clothing."
+     },
+     {
+      "term": "Warp",
+      "def": "A transform that bends artwork to follow the shape of the dress."
+     },
+     {
+      "term": "Layer Mask",
+      "def": "Hides parts of the design so it stays inside the dress edges."
+     },
+     {
+      "term": "Smart Object",
+      "def": "A layer that keeps the original artwork editable after scaling or warping."
+     },
+     {
+      "term": "Realistic Placement",
+      "def": "Making the artwork follow the fabric so it does not look pasted on."
+     }
+    ]
+   },
+   {
+    "id": "1EsXq8eZ_IXs79tvvjKxfozooqOwCUQeT",
+    "title": "How To Easily Add Design on Dress in Photoshop (Part 2)",
+    "desc": "Take fabric design application further by matching ambient lighting, shadow folds, and micro-textures. Learn advanced masking and blend-if settings so your custom graphic overlays look authentically printed onto fabric fibers.",
+    "group": "grp4",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 13,
+    "vocab": [
+     {
+      "term": "Ambient Lighting",
+      "def": "The overall light in the scene that the design must match."
+     },
+     {
+      "term": "Shadow Folds",
+      "def": "The dark creases in the fabric that must show through the design."
+     },
+     {
+      "term": "Micro-Texture",
+      "def": "Fine fabric detail that makes the design feel printed on the cloth."
+     },
+     {
+      "term": "Blend Mode",
+      "def": "A setting that controls how the design layer mixes with the layers below."
+     },
+     {
+      "term": "Multiply",
+      "def": "A blend mode that darkens and lets shadows show through."
+     },
+     {
+      "term": "Overlay",
+      "def": "A blend mode that adds contrast while keeping texture."
+     },
+     {
+      "term": "Highlights",
+      "def": "The bright areas of the fabric that should stay visible over the design."
+     }
+    ]
+   },
+   {
+    "id": "17AFMI2mDOhpH-geevQRCJfCK7R4sjrQh",
+    "title": "Text Effect",
+    "desc": "Elevate your typography game using Photoshop's non-destructive Layer Styles. Learn how to combine multi-stroke borders, gradient overlays, custom bevel and emboss parameters, and drop shadows to make bold text jump off the canvas.",
+    "group": "grp5",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 14,
+    "vocab": []
+   },
+   {
+    "id": "169tqSKyd_TyYctbJE6Iq2mMHr0quyX29",
+    "title": "Text Effect by Cutting & Adding Shadow",
+    "desc": "Discover how to slice and dice typography into dynamic geometric shapes using vector masks and selection tools. Learn to build custom, realistic drop shadows with realistic blur angles and distance falloffs to give flat text a tangible 3D feel.",
+    "group": "grp5",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 15,
+    "vocab": []
+   },
+   {
+    "id": "1atg0WcM04qpfIUYZt8wgvX-Qpc3LEmUQ",
+    "title": "3D Text Effect & Pop-Out Image",
+    "desc": "Combine depth maps, perspective transformations, and layer masking to create stunning 3D visual illusions. Learn how to make text appear fully 3D and have subjects seamlessly \"break out\" of frame boundaries for high-impact social media graphics.",
+    "group": "grp5",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 16,
+    "vocab": []
+   },
+   {
+    "id": "1Gp2uTObLUigJkqLkvbweigLd6Yj-lf1f",
+    "title": "Neon Text Effect",
+    "desc": "Build glowing neon sign typography from scratch using multi-layered outer glow layer styles, light bleed brush techniques, and atmospheric ambient light reflections on nearby background surfaces.",
+    "group": "grp5",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 17,
+    "vocab": []
+   },
+   {
+    "id": "1PhTdscHTCnjoCJ6Q-k7wBo8HsmXhgOxu",
+    "title": "Vintage Photo Editing",
+    "desc": "Transform modern high-res photos into authentic vintage masterpieces. Master color grading with Curves, add organic film grain, craft muted color palettes, and apply warm light leak overlays for an authentic throwback vibe.",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 18,
+    "vocab": []
+   },
+   {
+    "id": "1S2IWx1R1whsPW53Bth8fsEP7I0fkbsMK",
+    "title": "Double Exposure & Poster Making (Beginner Level)",
+    "desc": "Step into photo manipulation by combining two distinct images into a single creative composition. Learn how layer blend modes, opacity tweaks, and basic layer masks work together to build clean double-exposure movie posters.",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 19,
+    "vocab": []
+   },
+   {
+    "id": "10xSYahhd1fEb6YO4ckW_6hq7rhZ2YWdE",
+    "title": "Creative Poster Making with Double Exposure",
+    "desc": "Combine advanced double exposure techniques with high-end graphic layout elements, custom typography, textures, and color grading to produce a print-ready promotional poster.",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 20,
+    "vocab": []
+   },
+   {
+    "id": "10WmX1xYIRWtgzbLgUDJJb3E9fZ8rKh25",
+    "title": "Advanced Double Exposure Techniques",
+    "desc": "Push your photo manipulation skills by blending complex textures, detailed silhouettes, and multi-layered landscape elements. Master advanced masking and color harmonization for dramatic, artistic compositions.",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 21,
+    "vocab": []
+   },
+   {
+    "id": "1y13t7n5nTN_3oppd_Nx7AJ1Yfd7nSwdE",
+    "title": "How to Create Realistic T-Shirt Mockups",
+    "desc": "Build custom, fully editable apparel mockups using Smart Objects and Displacement Maps. Learn how to set up reusable template files where graphics instantly conform to garment folds, highlights, and shadow layers with a single click.",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 22,
+    "vocab": []
+   }
+  ],
+  "groups": [
+   {
+    "id": "grp2",
+    "title": "Week 6 · Day 1 · Eyes & clothing colour",
+    "sub": "Eye reflections, then changing the colour of clothing",
+    "color": "#f97316",
+    "badge": "Week 6 · Day 1",
+    "bonus": false
+   },
+   {
+    "id": "grp3",
+    "title": "Week 6 · Day 2 · Eyes, reflections & teeth",
+    "sub": "Realistic eye reflections, teeth whitening and the full workflow",
+    "color": "#ec4899",
+    "badge": "Week 6 · Day 2",
+    "bonus": false
+   },
+   {
+    "id": "grp4",
+    "title": "More portrait & clothing",
+    "sub": "Lip & face, uneven eyes and dress design · bonus",
+    "color": "#0ea5e9",
+    "badge": "Bonus",
+    "bonus": false
+   },
+   {
+    "id": "grp5",
+    "title": "Text & 3D effects",
+    "sub": "Text effects, shadows, neon and pop-out · bonus",
+    "color": "#8b5cf6",
+    "badge": "Bonus",
+    "bonus": true
+   },
+   {
+    "id": "grp6",
+    "title": "Vintage, double exposure & mockups",
+    "sub": "Creative edits and mockups · bonus",
+    "color": "#10b981",
+    "badge": "Bonus",
+    "bonus": true
+   }
+  ]
+ },
+ "notes": [
+  {
+   "id": "readme-week1",
+   "week": 1,
+   "badge": "WEEK 1",
+   "title": "Open · Save · Export",
+   "intro": "Week 1 builds the file-handling habits you need before editing: create or open the correct document, save an editable working file, and export a finished copy in the format your project requires.",
+   "cards": [
+    {
+     "title": "How to Open",
+     "text": "Use **File → Open** to bring an existing image or Photoshop document into the workspace. You can also open a file from the start screen or drag a supported file into the editor.\n\n1. Choose the file you actually intend to edit.\n2. Check the image dimensions and resolution before doing detailed work.\n3. Confirm that the document opens with the expected layers or image content.",
+     "links": []
+    },
+    {
+     "title": "How to Save",
+     "text": "**Save** protects your editable working file. For Photoshop projects, save the working version as a **PSD** so layers and editability remain available.\n\n1. Use **File → Save As** when creating the first named working copy.\n2. Choose a clear filename and a folder you can find again.\n3. Save repeatedly while working so your latest edits are preserved.",
+     "links": []
+    },
+    {
+     "title": "How to Export",
+     "text": "**Export** creates a delivery copy for a specific use. Use **File → Export → Export As** when you need a JPG, PNG, or another final image format.\n\n1. Keep the PSD as the editable master.\n2. Choose the format that matches the destination.\n3. Check dimensions, transparency, quality, and filename before confirming the export.",
+     "links": []
+    }
+   ],
+   "vocab": [
+    {
+     "term": "PSD",
+     "def": "An editable Photoshop document that preserves layers and other working information."
+    },
+    {
+     "term": "Open",
+     "def": "Opening an existing file so it becomes the document you can edit."
+    },
+    {
+     "term": "Save",
+     "def": "Writing the current working document to a saved file so the editable work is preserved."
+    },
+    {
+     "term": "Export",
+     "def": "Creating a final-use copy of the design in a selected output format such as JPG or PNG."
+    },
+    {
+     "term": "Folder",
+     "def": "The physical or digital location where the working file is stored."
+    }
+   ],
+   "tip": "**Quick tip:** Think **PSD = master working file** and **export = delivery copy**. Do not replace your editable master with a flattened delivery image.",
+   "quiz": true,
+   "hidden": false
+  },
+  {
+   "id": "readme-week2",
+   "week": 2,
+   "badge": "WEEK 2",
+   "title": "Destructive vs. Non-Destructive Editing",
+   "intro": "Week 2 explains what happens when an edit changes the original pixels directly, why that can become difficult to undo later, and how a non-destructive workflow keeps the original information available.",
+   "cards": [
+    {
+     "title": "Destructive Editing",
+     "text": "A **destructive edit** permanently changes the pixels or content you are working on. If you later need the original detail, you may have to undo many steps or reopen an earlier version.\n**Example:** painting directly on the only copy of a raster layer and then saving over the original can remove information from that working layer.",
+     "links": []
+    },
+    {
+     "title": "Non-Destructive Editing",
+     "text": "A **non-destructive workflow** keeps the original information available while edits are applied through layers, masks, adjustment layers, smart objects, or other reversible methods.\n**Goal:** make an edit, inspect the result, and still be able to change or remove that edit without rebuilding the entire image.",
+     "links": []
+    },
+    {
+     "title": "Raster Images & Pixels",
+     "text": "A **raster image** is built from a grid of tiny picture elements called **pixels**. Each pixel stores color information that contributes to the complete photograph or graphic.\n**Important:** when a raster image is enlarged too far, individual pixels become more visible and the image can lose apparent sharpness.",
+     "links": []
+    }
+   ],
+   "vocab": [
+    {
+     "term": "Destructive Editing",
+     "def": "An edit that directly changes original image information or pixels and can be difficult to reverse later."
+    },
+    {
+     "term": "Non-Destructive Editing",
+     "def": "An editing workflow that preserves original information so changes can be adjusted or removed later."
+    },
+    {
+     "term": "Raster Image",
+     "def": "A digital image made from a grid of colored picture elements rather than mathematical paths."
+    },
+    {
+     "term": "Pixel",
+     "def": "A tiny picture element in a raster image that stores color information."
+    },
+    {
+     "term": "Reversible Workflow",
+     "def": "A way of applying an edit while keeping the source information available for later changes."
+    }
+   ],
+   "tip": "**Why it matters:** non-destructive editing gives you more control. You can compare versions, correct mistakes, change your mind, and keep the original image information available.",
+   "quiz": true,
+   "hidden": false
+  },
+  {
+   "id": "readme-week3",
+   "week": 3,
+   "badge": "WEEK 3",
+   "title": "Remove · Refine · Place · Blur",
+   "intro": "Week 3 turns background removal into a complete composition workflow: isolate the subject, clean the edge, remove a white fringe, place the subject into the world scene, and create realistic depth with Gaussian Blur.",
+   "cards": [],
+   "vocab": [
+    {
+     "term": "Background Removal",
+     "def": "The process of isolating a subject from the original background so it can be placed into another composition."
+    },
+    {
+     "term": "Smudge Tool",
+     "def": "A Photoshop tool that blends pixels by dragging color and texture from one area into another."
+    },
+    {
+     "term": "White Fringe",
+     "def": "A visible light-colored outline left around a subject after the old background has been removed."
+    },
+    {
+     "term": "Minimum",
+     "def": "A Photoshop filter found under Filter → Other that contracts an edge by a chosen amount."
+    },
+    {
+     "term": "Gaussian Blur",
+     "def": "A blur filter used to soften image detail and simulate reduced focus or depth of field."
+    },
+    {
+     "term": "World Composition",
+     "def": "The visual arrangement where the isolated subject is integrated into a new scene or environment."
+    },
+    {
+     "term": "Subject Edge",
+     "def": "A controlled layer or selection edge that separates the subject from its previous background."
+    }
+   ],
+   "tip": "**Pro tip:** clean the edge before adding blur. Gaussian Blur should help establish depth in the final scene, not hide a poorly removed background.",
+   "quiz": true,
+   "hidden": false
+  },
+  {
+   "id": "readme-week4",
+   "week": 4,
+   "badge": "WEEK 4",
+   "title": "Transform & Puppet Warp",
+   "intro": "Week 4 Day 2 focuses only on Transform and Puppet Warp. Use these tools to reposition, resize, rotate, reshape, and refine portrait elements while keeping the edit flexible and non-destructive.",
+   "cards": [
+    {
+     "title": "Transform",
+     "text": "Use Transform controls to change an object's **size, position, rotation, and perspective**. Work carefully with scale and placement so the subject remains believable.\n1. Select the correct layer or object before transforming.\n2. Check proportions and alignment while resizing or repositioning.\n3. Review the result at 100% before committing to the next edit.",
+     "links": []
+    },
+    {
+     "title": "Puppet Warp",
+     "text": "Use **Puppet Warp** when you need more flexible, pin-based reshaping. Control points let you adjust a pose, clothing area, or selected subject detail with more precision than a simple transform.\n1. Place control points where you need the strongest anchors.\n2. Move only the points needed for the intended change.\n3. Inspect nearby areas for unwanted distortion before finishing.\n▶ Puppet Warp Tool",
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo",
+       "label": "Puppet Warp Tool"
+      }
+     ]
+    },
+    {
+     "title": "Keep the Edit Flexible",
+     "text": "Transform and Puppet Warp work best when the source information remains available. Use layers, smart objects, or other reversible methods when possible so you can refine the result later.**Practice focus:** Week 4 Day 2 is only Transform + Puppet Warp. Do not add unrelated techniques to this class practice.",
+     "links": []
+    }
+   ],
+   "vocab": [
+    {
+     "term": "Transform",
+     "def": "Changes an object's size, position, rotation, or perspective."
+    },
+    {
+     "term": "Puppet Warp",
+     "def": "A pin-based tool for flexible distortion and reshaping."
+    },
+    {
+     "term": "Control Points",
+     "def": "Mesh points used to control a Puppet Warp transformation."
+    },
+    {
+     "term": "Transform Controls",
+     "def": "The handles and controls used to resize, rotate, and reposition an object."
+    },
+    {
+     "term": "Non-Destructive Workflow",
+     "def": "An editing approach that keeps original information available for later changes."
+    }
+   ],
+   "tip": "**Week 4 focus:** Transform gives you controlled movement and scaling; Puppet Warp gives you flexible reshaping. Practice both deliberately and inspect the surrounding pixels after every major adjustment.",
+   "quiz": true,
+   "hidden": false
+  },
+  {
+   "id": "readme-week5",
+   "week": 5,
+   "badge": "WEEK 5",
+   "title": "Revision · Weeks 1–4 Released",
+   "intro": "Week 5 is a revision week. This note pulls together everything from Weeks 1–4 so you can check your understanding before the skills check: file handling, raster images, non-destructive editing, background removal and blur, then Transform and Puppet Warp. There is no quiz on this note — when you finish, choose **Mark as Read** and send a short note to your instructor.",
+   "cards": [
+    {
+     "title": "Week 1 — Open · Save · Export",
+     "text": "Open an existing file with **File → Open**, save your editable **PSD** as the master working file, and use **File → Export → Export As** for a delivery copy such as JPG or PNG. Never replace your editable master with a flattened export.",
+     "links": []
+    },
+    {
+     "title": "Week 2 — Destructive vs. Non-Destructive",
+     "text": "A **destructive** edit permanently changes pixels; a **non-destructive** edit keeps the original available through layers, masks, adjustment layers and smart objects. A **raster image** is a grid of pixels, so work reversibly whenever you can.",
+     "links": []
+    },
+    {
+     "title": "Week 3 — Remove · Refine · Place · Blur",
+     "text": "Isolate the subject, use the **Smudge Tool** carefully on fine edges, remove the **white fringe** with **Filter → Other → Minimum**, place the subject in the new scene, then add **Gaussian Blur** to the background for depth. Clean the edge before adding blur.",
+     "links": []
+    },
+    {
+     "title": "Week 4 — Transform & Puppet Warp",
+     "text": "**Transform** controls size, position, rotation and perspective. **Puppet Warp** uses pins (control points) for flexible reshaping. Keep the edit flexible with layers or smart objects and inspect surrounding pixels after each adjustment.",
+     "links": []
+    }
+   ],
+   "vocab": [],
+   "tip": "**Revision checklist:** Can you save a PSD and export a JPG? Can you explain destructive vs. non-destructive? Can you remove a background, clean the white fringe and add depth with Gaussian Blur? Can you use Transform and Puppet Warp without damaging the original? Note anything unsure in your feedback to the instructor.",
+   "quiz": false,
+   "hidden": false
+  },
+  {
+   "id": "readme-week6",
+   "week": 6,
+   "badge": "WEEK 6",
+   "title": "Face Retouch, Lip Retouch & Dress Change",
+   "intro": "Week 6 has two lesson days. Day 1: bring the eyes to life, then change the colour of clothing. Day 2: add realistic reflections to the eyes, whiten teeth, and put the whole finishing workflow together. Work on separate layers so every edit can be undone.",
+   "cards": [
+    {
+     "title": "Day 1 · Eyes and Reflections (Part 1)",
+     "text": "Enhance the eyes naturally by sharpening the **iris texture**, boosting contrast and softly clearing red veins. Highlight the natural **catchlights** and brighten dull eyes without creating a fake **glass-eye look**.▶ Eyes & Reflections 1",
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1",
+       "label": "Eyes & Reflections 1"
+      }
+     ]
+    },
+    {
+     "title": "Day 1 · Change the Colour of Clothing (Parts 1 and 2)",
+     "text": "Isolate the fabric with **Select Subject** and **Color Range**, then shift the hue with an **adjustment layer** while keeping the natural highlights, soft shadows and texture. For difficult changes, such as dark to bright or to pure white or black, rebuild the contrast curves, **specular highlights** and bounce light by hand.▶ Clothing Colour 2▶ Clothing Colour 1",
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1T5-Q5M56LtTljcvAnAjURpwmWguRN80o",
+       "label": "Clothing Colour 2"
+      },
+      {
+       "kind": "screencast",
+       "ref": "1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD",
+       "label": "Clothing Colour 1"
+      }
+     ]
+    },
+    {
+     "title": "Day 2 · Eyes and Reflections (Part 2)",
+     "text": "Add realistic light catchlights and **environmental reflections** to the irises. Use blending techniques that increase **iris depth** and dimension without **over-processing** the eyes.▶ Eyes & Reflections 2",
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1Pc0NNb3xMy_vXsri7keAP28856xXsEP5",
+       "label": "Eyes & Reflections 2"
+      }
+     ]
+    },
+    {
+     "title": "Day 2 · Teeth Whitening and the Finishing Workflow",
+     "text": "Isolate the teeth with a precise **layer mask**, remove yellow and warm tones with Hue/Saturation (**warm tone removal**) and brighten **selectively** while keeping the tooth texture and gloss. Then combine eye enhancement, teeth whitening, **skin color grading** and a global contrast adjustment into one fast, repeatable workflow.▶ Teeth Whitening▶ Teeth & Eye Workflow",
+     "links": [
+      {
+       "kind": "screencast",
+       "ref": "1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6",
+       "label": "Teeth Whitening"
+      },
+      {
+       "kind": "screencast",
+       "ref": "1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj",
+       "label": "Teeth & Eye Workflow"
+      }
+     ]
+    }
+   ],
+   "vocab": [
+    {
+     "term": "Iris Texture",
+     "def": "The fine pattern of lines and fibres in the coloured part of the eye."
+    },
+    {
+     "term": "Catchlight",
+     "def": "The small bright reflection of light in the eyes that makes them look alive."
+    },
+    {
+     "term": "Glass-Eye Look",
+     "def": "The fake over-bright result you get from brightening the eyes too much."
+    },
+    {
+     "term": "Select Subject",
+     "def": "A tool that automatically selects the main person or object."
+    },
+    {
+     "term": "Color Range",
+     "def": "A selection method that picks pixels by colour."
+    },
+    {
+     "term": "Adjustment Layer",
+     "def": "A non-destructive layer that changes the look of the layers beneath it."
+    },
+    {
+     "term": "Specular Highlights",
+     "def": "The bright shiny spots on fabric that must be rebuilt after a big colour change."
+    },
+    {
+     "term": "Environmental Reflection",
+     "def": "A reflection of the surroundings, such as a window, that makes eyes look alive."
+    },
+    {
+     "term": "Iris Depth",
+     "def": "The sense of dimension in the iris created by light and shadow."
+    },
+    {
+     "term": "Over-Processing",
+     "def": "Retouching so much that the person looks artificial."
+    },
+    {
+     "term": "Layer Mask",
+     "def": "Hides parts of an adjustment so it only affects the teeth."
+    },
+    {
+     "term": "Warm Tone Removal",
+     "def": "Reducing yellow and warm colour from teeth with Hue/Saturation."
+    },
+    {
+     "term": "Selective Brightness",
+     "def": "Brightening only the chosen area while keeping natural texture and gloss."
+    },
+    {
+     "term": "Skin Color Grading",
+     "def": "Adjusting the colour and tone of skin so it looks even and natural."
+    }
+   ],
+   "tip": "**Week 6 focus:** good retouching is invisible. Make small changes on separate layers, zoom in to check them, then zoom out to see whether the whole picture still looks natural.",
+   "quiz": true,
+   "hidden": false
+  }
+ ],
+ "projects": [
+  {
+   "id": "w6-individual-city-composition",
+   "week": 7,
+   "phase": 1,
+   "title": "Phase 1 — Week 7 Around the World (Individual City Composition)",
+   "desc": "Create an individual portrait composition using one of 50 city choices. Remove the background, integrate the subject into the city scene, refine the edge, redesign clothing patterns, and use realistic depth.",
+   "skills": [
+    "Background Removal",
+    "Smudge Tool",
+    "Minimum",
+    "Gaussian Blur",
+    "Portrait Retouching"
+   ],
+   "checks": [
+    "Subject isolated",
+    "City background integrated",
+    "Clothing pattern redesigned",
+    "Final PSD + JPG/PNG ready"
+   ],
+   "section": "Section B",
+   "classroomUrl": "https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd",
+   "marks": 15,
+   "graded": true,
+   "hidden": true
+  },
+  {
+   "id": "w6-phone-mockup",
+   "week": 9,
+   "phase": 2,
+   "title": "Phase 2 — Week 9 Phone / iPad Mockup Studio",
+   "desc": "Create a polished device mockup using the techniques taught in the released lessons and practice files.",
+   "skills": [
+    "Layers",
+    "Masks",
+    "Composition",
+    "Export"
+   ],
+   "checks": [
+    "Mockup built",
+    "Layers organized",
+    "Final export ready"
+   ],
+   "section": "Section C",
+   "classroomUrl": "https://classroom.google.com/c/ODg5MDA0NTM0Mjc5?cjc=547gadfs",
+   "marks": 15,
+   "graded": true,
+   "hidden": false
+  },
+  {
+   "id": "w9-gojo-popout",
+   "week": 10,
+   "phase": 3,
+   "title": "Phase 3 — Week 10 Gojo Pop-Out Project",
+   "desc": "Build the assigned pop-out composition with clean masking, depth, and a presentation-ready final export.",
+   "skills": [
+    "Selection",
+    "Masking",
+    "Depth",
+    "Export"
+   ],
+   "checks": [
+    "Subject isolated",
+    "Depth created",
+    "Final export ready"
+   ],
+   "section": "Section D",
+   "classroomUrl": "https://classroom.google.com/c/ODg5MDAzNjk4NTky?cjc=f7ese2pk",
+   "marks": 15,
+   "graded": true,
+   "hidden": false
+  }
+ ],
  "profile": {
   "side": "left",
   "accents": [
