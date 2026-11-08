@@ -527,4 +527,117 @@ go('publish');if(LS.o&&LS.r&&LS.t)pull().then(()=>go('site'));
  const oldGo=go;go=function(k){if(k==='quizzes')return quizView();if(k==='assessments')return assessmentView();if(k==='groups')return groupsView();return oldGo(k)};
 })();
 
+
+/* ===== Course Studio 2027: command centre, taxonomy, site explorer & exports ===== */
+(()=>{
+ const css=`
+ .cs27-brand{padding:14px 12px 10px;border-bottom:1px solid #343945;margin-bottom:12px}
+ .cs27-brand small{display:block;color:#aeb6c6;font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+ .cs27-brand strong{display:block;color:#fff;font:700 19px Poppins;margin-top:3px}
+ .cs27-search{padding:0 8px 12px}.cs27-search input{background:#222631;border:1px solid #3a4150;color:#fff;border-radius:10px;padding:10px;width:100%;font:12px Inter}
+ .cs27-group{padding:8px 8px 3px}.cs27-group-label{color:#8993a5;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:8px 10px 5px}
+ .cs27-group button{font-size:12.5px;padding:9px 11px;display:flex;align-items:center;gap:9px}
+ .cs27-group button:before{content:attr(data-icon);width:18px;text-align:center;color:#aab5c8}
+ .cs27-group button.on{box-shadow:0 5px 18px #0003}
+ .cs27-hero{background:linear-gradient(120deg,#101828,#253d68 58%,#4259a8);color:#fff;border-radius:20px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+ .cs27-hero:after{content:"";position:absolute;width:260px;height:260px;border:1px solid #ffffff20;border-radius:50%;right:-80px;top:-110px;box-shadow:0 0 0 35px #ffffff08,0 0 0 70px #ffffff06}
+ .cs27-hero small{letter-spacing:.16em;text-transform:uppercase;color:#c7d2fe;font-weight:700;font-size:10px}
+ .cs27-hero h2{font:700 clamp(24px,4vw,34px) Poppins;margin:8px 0}.cs27-hero p{color:#dbe4f5;max-width:760px;margin:0}
+ .cs27-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0 18px}
+ .cs27-metric{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;cursor:pointer;transition:.18s}
+ .cs27-metric:hover,.cs27-action:hover,.cs27-hit:hover{transform:translateY(-2px);border-color:var(--acc);box-shadow:0 8px 22px #17255412}
+ .cs27-metric b{font:700 25px Poppins;display:block}.cs27-metric span{font-size:12px;color:var(--mut)}
+ .cs27-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+ .cs27-action{display:block;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;color:var(--ink);cursor:pointer;transition:.18s}
+ .cs27-action b{display:block;font:600 14px Poppins;margin:5px 0}.cs27-action small{color:var(--mut);line-height:1.5}
+ .cs27-action .ico{font-size:19px}
+ .cs27-toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:12px 0}
+ .cs27-toolbar>*{flex:1;min-width:160px}
+ .cs27-hit{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:7px 0;cursor:pointer;transition:.18s}
+ .cs27-hit b{display:block}.cs27-hit small{color:var(--mut)}
+ .cs27-tag{display:inline-block;font-size:10px;background:#e8edff;color:#3449a5;padding:3px 8px;border-radius:20px;margin-right:7px}
+ .cs27-source{width:100%;min-height:330px;font:12px/1.5 ui-monospace,monospace}
+ .cs27-callout{padding:12px 14px;border-radius:12px;background:var(--bg);border:1px solid var(--line);font-size:12px;color:var(--mut);margin:10px 0}
+ @media(max-width:800px){.cs27-group{display:flex;flex-wrap:wrap}.cs27-group-label{width:100%}.cs27-group button{width:auto!important}.cs27-search{max-width:360px}}
+ `;
+ document.head.append(E('style',{},css));
+ const categories=[
+  ['Overview',['dashboard']],
+  ['Course content',['weeks','notes','items','groups','quizzes','assessments','projects','materials','practice']],
+  ['Site experience',['site','profile','access','theme','deadlines','resources','faq','explorer']],
+  ['Student operations',['students','progressReset','records']],
+  ['Data & deployment',['import','source','publish']]
+ ];
+ const names={dashboard:'Command centre',weeks:'Curriculum & daily lessons',notes:'Read Me library',items:'Screencast library',groups:'Screencast groups',quizzes:'Pop-out quiz studio',assessments:'Phase assessment bank',projects:'Projects & assignments',materials:'Released materials',practice:'Practice files',site:'Home & navigation',profile:'Student profile & badges',access:'Login & session rules',theme:'Brand & colour system',deadlines:'Calendar & deadlines',resources:'Resource links',faq:'Student FAQ',explorer:'Live site explorer',students:'Student directory',progressReset:'Progress reset & recovery',records:'Announcements & activity',import:'Import & data centre',source:'Advanced HTML editor',publish:'Connect & publish'};
+ const icons={dashboard:'⌂',weeks:'▦',notes:'▤',items:'▶',groups:'▥',quizzes:'✎',assessments:'✓',projects:'◇',materials:'▣',practice:'⌘',site:'⌂',profile:'◎',access:'⌑',theme:'◐',deadlines:'◷',resources:'↗',faq:'?',explorer:'⌕',students:'♙',progressReset:'↺',records:'▤',import:'⇧',source:'</>',publish:'⇧'};
+ // Keep the existing navigation buttons and handlers; reorganise them into clear, discoverable groups.
+ const nav=$('#nav');const existing={};nav.querySelectorAll('button[data-k]').forEach(b=>existing[b.dataset.k]=b);
+ nav.innerHTML='';
+ const brand=E('div',{className:'cs27-brand'});brand.innerHTML='<small>HMA · ADMIN WORKSPACE</small><strong>Course Studio</strong>';nav.append(brand);
+ const searchWrap=E('div',{className:'cs27-search'});searchWrap.innerHTML='<input id="cs27-navsearch" type="search" placeholder="Find a page or feature…">';nav.append(searchWrap);
+ categories.forEach(([label,keys])=>{const g=E('div',{className:'cs27-group'});g.append(E('div',{className:'cs27-group-label',textContent:label}));keys.forEach(k=>{let b=existing[k];if(!b){b=E('button',{textContent:names[k]||k});b.dataset.k=k;b.onclick=()=>go(k)}b.textContent=names[k]||SECT[k]?.t||k;b.dataset.icon=icons[k]||'·';b.title='Open '+b.textContent;g.append(b)});nav.append(g)});
+ const navSearch=$('#cs27-navsearch');navSearch.oninput=()=>{const q=navSearch.value.toLowerCase();nav.querySelectorAll('button[data-k]').forEach(b=>{b.hidden=!!q&&!b.textContent.toLowerCase().includes(q)})};
+ // Additional section metadata makes the dashboard available to the original routing system.
+ SECT.dashboard={t:'Command centre'};SECT.explorer={t:'Live site explorer'};
+ const oldGo27=go;
+ function go27(k){if(k==='dashboard')return dashboard();if(k==='explorer')return explorer();return oldGo27(k)}
+ go=go27;
+ function navOn(k){nav.querySelectorAll('button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))}
+ function metric(n,label,k){const c=E('button',{className:'cs27-metric'});c.innerHTML='<b>'+n+'</b><span>'+label+'</span>';c.onclick=()=>go(k);return c}
+ function action(icon,title,desc,k){const b=E('button',{className:'cs27-action'});b.innerHTML='<span class="ico">'+icon+'</span><b>'+title+'</b><small>'+desc+'</small>';b.onclick=()=>go(k);return b}
+ function dashboard(){
+  cur='dashboard';navOn('dashboard');$('#ttl').textContent='Command centre';const v=$('#view');v.innerHTML='';
+  const hero=E('section',{className:'cs27-hero'});hero.innerHTML='<small>COURSE OPERATIONS · CONTROL ROOM</small><h2>Everything in one place.</h2><p>Manage the student experience from curriculum and media to assessments, student progress, announcements and publishing. Import the live site first, then review and edit each category.</p>';v.append(hero);
+  const m=E('div',{className:'cs27-metrics'});
+  const metrics=[['weeks','Curriculum weeks'],['notes','Read Me pages'],['items','Screencasts'],['groups','Media groups'],['quizzes','Quiz sets'],['assessments','Assessment questions'],['projects','Projects'],['materials','Materials'],['practice','Practice files']];
+  metrics.forEach(([k,l])=>m.append(metric((D[k]||[]).length,l,k)));m.append(metric(Object.keys(ST||{}).length,'Imported students','students'));m.append(metric((EX.ann||[]).length,'Announcements','records'));m.append(metric((EX.help||[]).length,'Student help requests','records'));v.append(m);
+  const top=E('div',{className:'cs27-grid'});
+  top.append(action('⇧','Import the complete student site','Load the current index.html. Structured course content is mapped into editors; the full source remains available in Site Explorer.','import'));
+  top.append(action('♙','Student management','Search students, pull full progress from Apps Script, inspect marks, export and reset selected records.','students'));
+  top.append(action('▶','Screencast library','Edit every recording, group, release flag, phase and assignment.','groups'));
+  top.append(action('✎','Quiz & assessment studio','Reveal questions, options and correct answers; edit source vocabulary and assessment banks.','quizzes'));
+  top.append(action('↺','Progress recovery','Preview historical data and reset one item or the selected student.','progressReset'));
+  top.append(action('⇧','Publish changes','Validate and publish the edited student-site HTML.','publish'));v.append(top);
+  const sec=E('div',{className:'card'});sec.innerHTML='<h3>Workspace readiness</h3><p class="hint">The admin editor works on the imported copy until you publish. Student accounts and live progress are pulled separately from the Apps Script backend.</p>';
+  const status=E('div',{className:'cs27-callout'});status.textContent='Site HTML: '+(src?'Loaded · '+Math.round(src.length/1024)+' KB':'Not loaded')+'  |  Draft: '+(dirty?'Unpublished changes':'No pending changes')+'  |  Backend: '+(TK?'Authenticated':'Not authenticated')+'  |  Students cached: '+Object.keys(ST||{}).length;sec.append(status);
+  const row=E('div',{className:'row'});const b=E('button',{className:'b p',textContent:'Open site explorer'});b.onclick=()=>go('explorer');const b2=E('button',{className:'b',textContent:'Open import centre'});b2.onclick=()=>go('import');row.append(b,b2);sec.append(row);v.append(sec);
+ }
+ function elementRange(id){
+  if(!src||!id)return null;
+  const safeId=id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const re=new RegExp("<([a-z][\\\\w:-]*)\\\\b(?=[^>]*\\\\bid=(?:\\\""+safeId+"\\\"|'"+safeId+"'))[^>]*>","i");const m=re.exec(src);if(!m)return null;
+  const tag=m[1],start=m.index,token=new RegExp('<\\/?'+tag+'\\b[^>]*>','gi');token.lastIndex=re.lastIndex;let depth=1,x;
+  while((x=token.exec(src))){if(/^<\//.test(x[0]))depth--;else if(!/\/>$/.test(x[0]))depth++;if(depth===0)return[start,token.lastIndex]}
+  return null;
+ }
+ function download(name,data,type='application/json'){const a=E('a',{href:URL.createObjectURL(new Blob([data],{type})),download:name});a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+ function explorer(){
+  cur='explorer';navOn('explorer');$('#ttl').textContent='Live site explorer';const v=$('#view');v.innerHTML='';
+  const c=E('div',{className:'card'});c.innerHTML='<h3>Student-site inventory</h3><p class="hint">This scans the imported student-site HTML for sections, page anchors, headings, links, forms, media and embedded data blocks. Select any identified element to open its source for direct editing. Dynamic content created only after a student signs in must be edited through its matching data editor or backend record.</p>';
+  const tools=E('div',{className:'cs27-toolbar'});const q=E('input',{placeholder:'Search IDs, headings, links or text…'});const type=E('select');[['all','All elements'],['section','Sections & containers'],['heading','Headings'],['link','Links'],['form','Forms'],['script','Embedded scripts'],['media','Images & media']].forEach(x=>type.append(E('option',{value:x[0],textContent:x[1]})));tools.append(q,type);c.append(tools);const list=E('div');c.append(list);
+  const doc=new DOMParser().parseFromString(src||'<html></html>','text/html');const records=[];
+  doc.querySelectorAll('[id]').forEach(el=>{const tag=el.tagName.toLowerCase(),id=el.id;records.push({id,tag,kind:/^(script)$/.test(tag)?'script':/^(img|video|audio|iframe|source)$/.test(tag)?'media':/^(form|input|select|textarea|button)$/.test(tag)?'form':/^(h1|h2|h3|h4|h5|h6)$/.test(tag)?'heading':'section',label:(el.innerText||el.getAttribute('aria-label')||el.getAttribute('title')||el.getAttribute('src')||'').trim().replace(/\s+/g,' ').slice(0,130)})});
+  doc.querySelectorAll('a[href]').forEach((el,i)=>records.push({id:'',tag:'a',kind:'link',label:(el.innerText||el.textContent||'Link').trim().replace(/\s+/g,' ').slice(0,100)+' → '+el.getAttribute('href'),href:el.getAttribute('href'),index:i}));
+  doc.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(el=>{if(!el.id)records.push({id:'',tag:el.tagName.toLowerCase(),kind:'heading',label:(el.textContent||'').trim().slice(0,130)})});
+  const scripts=[...doc.querySelectorAll('script[id]')];const stats=E('div',{className:'tg'});[['Elements with IDs',records.filter(x=>x.id).length],['Headings',records.filter(x=>x.kind==='heading').length],['Links',records.filter(x=>x.kind==='link').length],['Embedded data blocks',scripts.length]].forEach(([l,n])=>{const z=E('div');z.innerHTML='<b>'+n+'</b>'+l;stats.append(z)});c.append(stats);
+  const draw=()=>{list.innerHTML='';const query=q.value.toLowerCase();let shown=0;records.forEach((r,i)=>{if(type.value!=='all'&&r.kind!==type.value)return;const hay=(r.id+' '+r.label+' '+r.tag).toLowerCase();if(query&&!hay.includes(query))return;shown++;const b=E('button',{className:'cs27-hit'});b.innerHTML='<span class="cs27-tag">'+r.kind+'</span><b>'+(r.id?('#'+r.id):r.tag.toUpperCase())+'</b><small>'+safeText(r.label||'(No visible text)')+'</small>';b.onclick=()=>{if(r.href){window.open(r.href,'_blank','noopener');return}if(!r.id){alert('This item has no stable ID. Use Advanced HTML editor to locate it in the source.');return}editElement(r.id)};list.append(b)});if(!shown)list.append(E('p',{className:'hint',textContent:'No matching elements.'}))};
+  q.oninput=draw;type.onchange=draw;draw();v.append(c);
+  const ex=E('div',{className:'card'});ex.innerHTML='<h3>Whole-site export</h3><p class="hint">Download a byte-for-byte copy of the currently loaded student-site HTML, or a structured workspace bundle containing editable content, imported student records and local admin metadata. Password hashes and live login tokens are not included in spreadsheet imports.</p>';
+  const row=E('div',{className:'row'});const htmlBtn=E('button',{className:'b p',textContent:'Export full student-site HTML'});htmlBtn.onclick=()=>download('student-site-export.html',src,'text/html');const jsonBtn=E('button',{className:'b',textContent:'Export complete admin workspace JSON'});jsonBtn.onclick=()=>download('course-studio-full-export.json',JSON.stringify({exportedAt:new Date().toISOString(),content:D,students:ST,extra:EX,sourceHtml:src},null,2));const contentBtn=E('button',{className:'b',textContent:'Export structured course content only'});contentBtn.onclick=()=>download('course-content.json',JSON.stringify({exportedAt:new Date().toISOString(),content:D},null,2));row.append(htmlBtn,jsonBtn,contentBtn);ex.append(row);v.append(ex);
+ }
+ function editElement(id){
+  const r=elementRange(id);if(!r){alert('Could not safely locate #'+id+' in the source. Open Advanced HTML editor for manual editing.');return}
+  const v=$('#view');v.innerHTML='';const c=E('div',{className:'card'});c.innerHTML='<h3>Direct site element editor</h3><p class="hint">Editing #'+safeText(id)+' in the original HTML. Preserve required IDs and scripts. This is a source-level edit; review Preview before publishing.</p>';
+  const ta=E('textarea',{className:'cs27-source'});ta.value=src.slice(r[0],r[1]);c.append(ta);const row=E('div',{className:'row'});const apply=E('button',{className:'b p',textContent:'Apply element changes'});apply.onclick=()=>{if(!confirm('Apply source changes to #'+id+'?'))return;src=src.slice(0,r[0])+ta.value+src.slice(r[1]);D=load(src);mark(true);alert('Element updated in the local draft. Preview and publish when ready.');explorer()};const cancel=E('button',{className:'b',textContent:'Back to site explorer'});cancel.onclick=explorer;row.append(apply,cancel);c.append(row);v.append(c)
+ }
+ function safeText(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+ // Upgrade import view with a visible full-site inventory and clear all-data export shortcuts.
+ const oldImp=impView;
+ impView=function(v){oldImp(v);const c=E('div',{className:'card'});c.innerHTML='<h3>Import coverage & full-site transfer</h3><p class="hint">The main-site HTML import preserves the entire original HTML as the publishing source, while mapping supported data blocks into their dedicated editors. Use Site Explorer for other identified sections and Advanced HTML editor for source-level changes. Pull live student progress separately from the Apps Script backend.</p>';
+  const row=E('div',{className:'row'});const scan=E('button',{className:'b',textContent:'Scan imported student site'});scan.onclick=()=>go('explorer');const all=E('button',{className:'b p',textContent:'Export full site + admin data'});all.onclick=()=>{if(!src)return alert('Load the student-site HTML first.');download('course-studio-complete-export.json',JSON.stringify({exportedAt:new Date().toISOString(),content:D,students:ST,extra:EX,sourceHtml:src},null,2))};row.append(scan,all);c.append(row);v.append(c)};
+ // Make all section names human-readable in the page title.
+ const oldShellTitle=$('#ttl');if(oldShellTitle)oldShellTitle.title='Current admin workspace section';
+ dashboard();
+})();
+
 </script></body></html>
