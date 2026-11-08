@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<meta name="hm-build" content="2026-11-08-v24">
+<meta name="hm-build" content="2026-11-08-v25">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
@@ -1075,7 +1075,8 @@ img,video,canvas,svg,iframe{max-width:100%}
 <!--
  =====================================================================
   FIND-IT GUIDE  -  press Ctrl+F (Cmd+F on Mac) and paste the word in CAPITALS
-  EASIEST WAY: search  EDIT-ME  - every editable spot has a plain-English note
+  NO-CODE WAY: LIVE EDITOR - press Ctrl+Shift+E (Cmd+Shift+E on Mac) or add ?edit=1 to the site address
+  EASIEST CODE WAY: search  EDIT-ME  - every editable spot has a plain-English note
   that starts with EDIT-ME :: (press Enter to jump to the next one)
   ---------------------------------------------------------------------
   EDIT THIS                         SEARCH FOR THIS WORD
@@ -2639,6 +2640,22 @@ window.HM_LOGIN = {
   brandLine:"Graphic Design & Photoshop  \u00b7  Class of 2028",
   notes:["Your progress is saved to your account","Works on iPad, phone and laptop"]
 };
+</script>
+<!-- EDIT-ME :: LIVE EDITOR SAVED CHANGES (content centre block 9 - the Live Editor writes here when you click Download updated site file) -->
+<script id="cc-9-live">
+window.HM_BAKED = {};
+</script>
+<script id="hm-live-merge">
+/* Merges saved Live Editor changes (baked into the file, then this browser's unpublished edits) over the Content Center. */
+(function(){
+  var B=window.HM_BAKED||{}, O={}; try{ O=JSON.parse(localStorage.getItem('hm_live')||'{}')||{}; }catch(e){}
+  window.HM_LIVE_O=O; window.HM_LIVE_B=B;
+  function pick(k){ return O[k]!==undefined?O[k]:B[k]; }
+  var C=window.HM_CONTENT=window.HM_CONTENT||{};
+  ['weeks','screencasts','notes','quizzes','projects','materials','practice','site'].forEach(function(k){ var v=pick(k); if(v!==undefined) C[k]=v; });
+  var P=pick('profile'); if(P){ var H=window.HM_PROFILE=window.HM_PROFILE||{}; Object.keys(P).forEach(function(k){ if(k==='labels'||k==='themes') H[k]=Object.assign({},H[k],P[k]); else H[k]=P[k]; }); }
+  ['session','login'].forEach(function(k){ var v=pick(k); if(v){ var n='HM_'+k.toUpperCase(); window[n]=Object.assign(window[n]||{},v); } });
+})();
 </script>
 <!-- ########## END CONTENT CENTER ########## -->
 <script id="hm-content-js">
@@ -8740,16 +8757,140 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 })();
 </script>
 <script id="hm-site-text-js">
-/* Applies CC-7 SITE TEXT (Home words, brand, tab names). Empty values change nothing. */
+/* Applies CC-7 SITE TEXT (Home words, brand, tab names, page titles). Empty values change nothing. */
 (function(){
   function apply(){
     var S=(window.HM_CONTENT&&HM_CONTENT.site)||{}, q=function(sel){return document.querySelector(sel);};
     function set(sel,v){ if(v){ var e=q(sel); if(e) e.textContent=v; } }
     set('.brand .name',S.brandName); set('.brand .sub',S.brandSub); set('.hero-eyebrow',S.heroEyebrow); set('.hero h1',S.heroTitle); set('.hero > p',S.heroText);
-    (S.stats||[]).slice(0,4).forEach(function(st,i){ var box=document.querySelectorAll('.stat-row .stat')[i]; if(!box) return; if(st.num!=null&&st.num!=='') box.querySelector('b').textContent=st.num; if(st.label) box.querySelector('span').textContent=st.label; });
+    (S.stats||[]).slice(0,4).forEach(function(st,i){ if(!st) return; var box=document.querySelectorAll('.stat-row .stat')[i]; if(!box) return; if(st.num!=null&&st.num!=='') box.querySelector('b').textContent=st.num; if(st.label) box.querySelector('span').textContent=st.label; });
     Object.keys(S.tabs||{}).forEach(function(k){ var t=q('#mainTabs [data-tab="'+k+'"]'); if(t&&S.tabs[k]) t.textContent=S.tabs[k]; });
+    Object.keys(S.views||{}).forEach(function(id){ var v=S.views[id]||{}; set('#'+id+' .view-head h2',v.title); set('#'+id+' .view-head p',v.desc); });
   }
-  apply(); window.addEventListener('load',function(){ setTimeout(apply,1200); });
+  window.hmApplySite=apply; apply(); window.addEventListener('load',function(){ setTimeout(apply,1200); });
+})();
+</script>
+<style id="hm-live-css">
+/* EDIT-ME :: LIVE EDITOR LOOK (the floating editing panel) */
+#hmLive{position:fixed;right:14px;bottom:14px;width:min(440px,calc(100vw - 28px));max-height:82vh;display:none;flex-direction:column;background:#10131c;color:#e8ebf3;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.55);z-index:999990;font:13px Inter,Arial,sans-serif;border:1px solid #262b3a}
+#hmLive.open{display:flex}#hmLive.min .lv-t,#hmLive.min .lv-b{display:none}
+#hmLive .lv-h{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #262b3a}
+#hmLive .lv-h button{background:#1d2232;color:#fff;border:0;border-radius:8px;width:30px;height:30px;margin-left:6px;cursor:pointer}
+#hmLive .lv-t{display:flex;gap:4px;padding:8px 10px;border-bottom:1px solid #262b3a;overflow-x:auto}
+#hmLive .lv-t button{flex:1;min-height:36px;border:0;border-radius:9px;background:transparent;color:#9aa2b1;font:700 12px Inter,Arial,sans-serif;cursor:pointer;white-space:nowrap}
+#hmLive .lv-t button.on{background:#2f6fed;color:#fff}
+#hmLive .lv-b{padding:12px 14px 16px;overflow:auto}
+#hmLive label{display:block;margin:10px 0 4px;font-weight:700;font-size:11.5px;color:#9aa2b1}
+#hmLive input,#hmLive textarea,#hmLive select{width:100%;background:#181c28;color:#fff;border:1px solid #2c3246;border-radius:9px;padding:9px 10px;font:inherit}
+#hmLive textarea{min-height:260px;font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+#hmLive input[type=color]{padding:2px;height:36px;min-width:36px}
+#hmLive h4{margin:16px 0 4px;font:700 13px Poppins,Arial,sans-serif;color:#fff}
+#hmLive .lv-r{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;margin-top:6px;align-items:center}
+#hmLive .lv-hint,#hmLive .lv-msg{font-size:11.5px;color:#9aa2b1;margin-top:6px;line-height:1.4}
+#hmLive .lv-p,#hmLive .lv-s{margin-top:12px;width:100%;min-height:42px;border:0;border-radius:10px;background:#2f6fed;color:#fff;font:700 13px Inter,Arial,sans-serif;cursor:pointer}
+#hmLive .lv-s{background:#232940}
+#hmLive .lv-n{display:block;width:100%;text-align:left;margin-top:6px;padding:9px 10px;border:1px solid #262b3a;border-radius:9px;background:#151926;color:#e8ebf3;font:inherit;cursor:pointer}
+#hmLive .lv-n small{color:#ff9d5c;margin-left:6px}
+.hm-flash{outline:3px solid #ff7a2d!important;outline-offset:4px}
+</style>
+<script id="hm-live-editor-js">
+/* LIVE EDITOR - open with Ctrl+Shift+E (Cmd+Shift+E on Mac) or add ?edit=1 to the site address.
+   Text edits change the page instantly; Design/Content edits apply after a quick refresh.
+   Edits stay in THIS browser until you click "Download updated site file" on the Publish tab and upload that file. */
+(function(){
+  var O=window.HM_LIVE_O||{}, B=window.HM_LIVE_B||{}, panel, body, TG=[];
+  var q=function(s){return document.querySelector(s);};
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function clone(x){ return JSON.parse(JSON.stringify(x==null?{}:x)); }
+  function save(){ try{ localStorage.setItem('hm_live',JSON.stringify(O)); }catch(e){ alert('This browser would not save the edit.'); } }
+  function setPath(o,p,v){ p=[].concat(p); for(var i=0;i<p.length-1;i++){ var k=p[i]; if(o[k]==null) o[k]=(typeof p[i+1]==='number')?[]:{}; o=o[k]; } o[p[p.length-1]]=v; }
+  function site(){ if(!O.site) O.site=clone(window.HM_CONTENT&&HM_CONTENT.site); return O.site; }
+  function targets(){
+    TG=[['Brand name','brandName','.brand .name'],['Brand subtitle','brandSub','.brand .sub'],['Home small line','heroEyebrow','.hero-eyebrow'],['Home big title','heroTitle','.hero h1'],['Home paragraph','heroText','.hero > p',1]];
+    for(var i=0;i<4;i++){ TG.push(['Home box '+(i+1)+' number',['stats',i,'num'],'.stat-row .stat:nth-child('+(i+1)+') b']); TG.push(['Home box '+(i+1)+' label',['stats',i,'label'],'.stat-row .stat:nth-child('+(i+1)+') span']); }
+    document.querySelectorAll('#mainTabs .tab').forEach(function(t){ TG.push(['Menu tab: '+t.textContent.trim(),['tabs',t.dataset.tab],t]); });
+    document.querySelectorAll('section.view').forEach(function(v){ var h=v.querySelector('.view-head h2'), p=v.querySelector('.view-head p'); if(h) TG.push(['Page title ('+v.id+')',['views',v.id,'title'],h]); if(p) TG.push(['Page intro ('+v.id+')',['views',v.id,'desc'],p,1]); });
+  }
+  function el(t){ return typeof t[2]==='string'?q(t[2]):t[2]; }
+  function tText(){
+    targets(); var h='<div class="lv-hint">Type here - the site changes instantly.</div>';
+    TG.forEach(function(t,i){ var e=el(t); if(!e) return; var v=e.textContent.trim().replace(/\s+/g,' ');
+      h+='<label>'+esc(t[0])+'</label>'+(t[3]?'<textarea style="min-height:70px" data-i="'+i+'">'+esc(v)+'</textarea>':'<input data-i="'+i+'" value="'+esc(v)+'">'); });
+    body.innerHTML=h; body.querySelectorAll('[data-i]').forEach(function(f){ f.addEventListener('input',function(){ var t=TG[f.dataset.i], e=el(t); if(!e) return; e.textContent=f.value; setPath(site(),t[1],f.value); save(); }); });
+  }
+  var DEF={weeks:{},screencasts:{items:[],groups:[]},notes:[],quizzes:[],projects:[],materials:[],practice:[]};
+  var EX={weeks:{"6":{title:"Week 6 - Title",days:[{type:"lesson",title:"Day 1 - Topic",front:"Front text",idea:"Back text",vocab:[{term:"Term",def:"Meaning"}],links:[]}]}},screencasts:{items:[{id:"DRIVE_FILE_ID",title:"New recording",desc:"Short description",order:1,released:true}],groups:[]},notes:[{id:"readme-week6",week:6,badge:"WEEK 6",title:"Title",intro:"Intro text",quiz:true,cards:[{title:"Card title",text:"Card text"}]}],quizzes:[{type:"reading",key:"readme-week6",questions:[{q:"Question?",options:["A","B","C","D"],answer:0}]}],projects:[{id:"world",week:7,title:"Title",desc:"Brief",skills:[],checks:[]}],materials:[{id:"DRIVE_FILE_ID",label:"Material name"}],practice:[{id:"DRIVE_FILE_ID",label:"Practice file"}]};
+  var NAMES={weeks:'Curriculum weeks',screencasts:'Screencasts',notes:'Read Me notes',quizzes:'Quizzes (Read Me + Screencast)',projects:'Projects',materials:'Additional materials',practice:'Practice files'};
+  function tContent(){
+    var h='<label>What do you want to edit?</label><select id="cSel">'+Object.keys(NAMES).map(function(k){ return '<option value="'+k+'">'+NAMES[k]+'</option>'; }).join('')+'</select><textarea id="cTa" spellcheck="false"></textarea><div class="lv-msg" id="cMsg">Edit the list, then press Apply. Quizzes need at least 5 questions each.</div><button class="lv-p" id="cApply">Apply and refresh</button><button class="lv-s" id="cEx">Show an example to copy</button><button class="lv-s" id="cClr">Undo my edits for this list</button>';
+    body.innerHTML=h; var sel=q('#cSel'), ta=q('#cTa');
+    function load(){ var k=sel.value, cur=(window.HM_CONTENT&&HM_CONTENT[k]!==undefined)?HM_CONTENT[k]:DEF[k]; ta.value=JSON.stringify(cur,null,2); }
+    sel.onchange=load; load();
+    q('#cEx').onclick=function(){ ta.value=JSON.stringify(EX[sel.value],null,2); q('#cMsg').textContent='Example loaded - change it, then press Apply. (Same ids replace existing items; new ids are added.)'; };
+    q('#cApply').onclick=function(){ try{ O[sel.value]=JSON.parse(ta.value); save(); location.reload(); }catch(e){ q('#cMsg').textContent='There is a typing mistake: '+e.message; } };
+    q('#cClr').onclick=function(){ delete O[sel.value]; save(); location.reload(); };
+  }
+  function tDesign(){
+    var P=window.HM_PROFILE||{}, S=window.HM_SESSION||{};
+    var h='<label>Profile side</label><select id="dSide"><option>left</option><option>right</option></select><label>Auto sign-out after (minutes with no activity)</label><input id="dIdle" type="number" min="5" value="'+(S.idleMinutes||60)+'"><h4>The 5 badges</h4><div class="lv-hint">name - colour - progress % - result % - visits</div>';
+    (P.badges||[]).forEach(function(b,i){ h+='<div class="lv-r"><input data-b="'+i+'.name" value="'+esc(b.name)+'"><input type="color" data-b="'+i+'.color" value="'+b.color+'"><input type="number" data-b="'+i+'.progress" value="'+b.progress+'"><input type="number" data-b="'+i+'.result" value="'+b.result+'"><input type="number" data-b="'+i+'.visits" value="'+b.visits+'"></div>'; });
+    h+='<h4>Accent colours</h4><div class="lv-hint">Separate with commas, e.g. #2f6fed,#8b5cf6</div><input id="dAcc" value="'+esc((P.accents||[]).join(','))+'"><h4>Card colours</h4><div class="lv-hint">background - text - small text - borders - boxes</div>';
+    Object.keys(P.themes||{}).forEach(function(k){ var t=P.themes[k]; h+='<label>'+esc(t.name||k)+'</label><div class="lv-r">'+['bg','fg','muted','line','surface'].map(function(f){ return '<input type="color" data-th="'+k+'.'+f+'" value="'+t[f]+'">'; }).join('')+'</div>'; });
+    h+='<button class="lv-p" id="dApply">Apply and refresh</button>'; body.innerHTML=h; q('#dSide').value=P.side==='right'?'right':'left';
+    q('#dApply').onclick=function(){
+      var bd=clone(P.badges||[]); body.querySelectorAll('[data-b]').forEach(function(f){ var a=f.dataset.b.split('.'), i=+a[0], k=a[1]; bd[i][k]=(k==='name'||k==='color')?f.value:Number(f.value)||0; });
+      var th=clone(P.themes||{}); body.querySelectorAll('[data-th]').forEach(function(f){ var a=f.dataset.th.split('.'); th[a[0]][a[1]]=f.value; });
+      O.profile={side:q('#dSide').value,badges:bd,themes:th,accents:q('#dAcc').value.split(',').map(function(x){return x.trim();}).filter(Boolean)};
+      O.session={idleMinutes:Math.max(5,Number(q('#dIdle').value)||60)}; save(); location.reload(); };
+  }
+  function allNotes(){
+    var out=[], w=document.createTreeWalker(document,NodeFilter.SHOW_COMMENT), n, re=new RegExp('^\\s*EDIT-ME'+' :: ([\\s\\S]*?)\\s*$');
+    while((n=w.nextNode())){ var m=re.exec(n.nodeValue); if(m){ var e=n.nextSibling; while(e&&e.nodeType!==1) e=e.nextSibling; out.push({t:m[1].replace(/\s+/g,' '),el:e}); } }
+    var src=document.documentElement.outerHTML, r2=new RegExp('/\\*\\s*EDIT-ME'+' :: ([\\s\\S]*?)\\*/','g'), m2;
+    while((m2=r2.exec(src))) out.push({t:m2[1].replace(/\s+/g,' ').trim(),code:1});
+    return out;
+  }
+  function jump(e){
+    if(!e) return; var v=e.closest&&e.closest('section.view'); if(v&&!v.classList.contains('active')){ try{ goTab(v.id); }catch(x){} }
+    setTimeout(function(){ try{ e.scrollIntoView({behavior:'smooth',block:'center'}); }catch(x){} e.classList.add('hm-flash'); setTimeout(function(){ e.classList.remove('hm-flash'); },2600); },250);
+  }
+  function tNotes(){
+    var L=allNotes(); body.innerHTML='<label>Find a note (type a word)</label><input id="nQ" placeholder="e.g. week 6, badge, footer"><div class="lv-hint">'+L.length+' notes. Tap one to jump to it on the page. Notes marked "in file" are inside the code - search that exact text in the file.</div><div id="nL"></div>';
+    function draw(){ var f=q('#nQ').value.toLowerCase(), h=''; L.forEach(function(x,i){ if(f&&x.t.toLowerCase().indexOf(f)<0) return; h+='<button class="lv-n" data-i="'+i+'">'+esc(x.t.length>110?x.t.slice(0,108)+'...':x.t)+(x.code||!x.el?'<small>in file</small>':'')+'</button>'; }); q('#nL').innerHTML=h;
+      q('#nL').querySelectorAll('.lv-n').forEach(function(b){ b.onclick=function(){ var x=L[b.dataset.i]; if(x.el) jump(x.el); else { try{ navigator.clipboard.writeText('EDIT-ME'+' :: '+x.t.slice(0,40)); }catch(e){} b.querySelector('small')&&(b.querySelector('small').textContent='copied - search it in the file'); } }; }); }
+    q('#nQ').oninput=draw; draw();
+  }
+  function tPublish(){
+    var has=Object.keys(O).length;
+    body.innerHTML='<div class="lv-hint" style="font-size:12.5px">'+(has?'You have <b>unpublished edits</b> in this browser (students cannot see them yet).':'No unpublished edits in this browser.')+'</div><button class="lv-p" id="pDl">Download updated site file</button><div class="lv-hint">Upload the downloaded file as index.html (GitHub). Students then get your changes on their next refresh.</div><button class="lv-s" id="pCopy">Copy the changes as code instead</button><textarea id="pTa" style="display:none;min-height:140px" readonly></textarea><button class="lv-s" id="pRst">Throw away my unpublished edits</button><div class="lv-msg" id="pMsg"></div>';
+    function merged(){ return Object.assign({},B,O); }
+    function code(){ return 'window.HM_BAKED = '+JSON.stringify(merged(),null,1).replace(/<\//g,'<\\/')+';'; }
+    q('#pCopy').onclick=function(){ var t=q('#pTa'); t.style.display='block'; t.value=code(); t.select(); try{ document.execCommand('copy'); q('#pMsg').textContent='Copied. In the file, search cc-9-live and paste it in place of the line window.HM_BAKED = {};'; }catch(e){ q('#pMsg').textContent='Select the code above and copy it. In the file, search cc-9-live and replace window.HM_BAKED = {};'; } };
+    q('#pDl').onclick=function(){
+      var u=location.href.split('#')[0].split('?')[0]; q('#pMsg').textContent='Preparing...';
+      fetch(u+'?_='+Date.now(),{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(t){
+        var re=/<script id="cc-9-live">[\s\S]*?<\/script>/; if(!re.test(t)) throw 0;
+        t=t.replace(re,function(){ return '<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(merged(),null,1).replace(/<\//g,'<\\/')+';\n<\/script>'; });
+        var d=new Date(), id='live-'+d.toISOString().replace(/[-:T]/g,'').slice(0,12);
+        t=t.replace(/(<meta name="hm-build" content=")[^"]*(")/,function(a,b,c){ return b+id+c; });
+        var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/html'})); a.download='index.html'; document.body.appendChild(a); a.click(); a.remove();
+        q('#pMsg').textContent='Downloaded index.html with your changes. Upload it to publish.'; }).catch(function(){ q('#pMsg').textContent='Could not read the site file from here (open the live website, not a saved copy). Use "Copy the changes as code" instead.'; }); };
+    q('#pRst').onclick=function(){ if(confirm('Remove all edits that are not yet published?')){ localStorage.removeItem('hm_live'); location.reload(); } };
+  }
+  var TABS={text:tText,design:tDesign,content:tContent,notes:tNotes,publish:tPublish};
+  function show(t){ panel.querySelectorAll('.lv-t button').forEach(function(b){ b.classList.toggle('on',b.dataset.t===t); }); TABS[t](); }
+  function build(){
+    panel=document.createElement('div'); panel.id='hmLive';
+    panel.innerHTML='<div class="lv-h"><b>Live Editor</b><span><button data-x="min" title="Minimise">_</button><button data-x="off" title="Close">&times;</button></span></div><div class="lv-t"><button data-t="text" class="on">Text</button><button data-t="design">Design</button><button data-t="content">Content</button><button data-t="notes">Notes</button><button data-t="publish">Publish</button></div><div class="lv-b" id="lvB"></div>';
+    document.body.appendChild(panel); body=q('#lvB');
+    panel.querySelectorAll('.lv-t button').forEach(function(b){ b.onclick=function(){ show(b.dataset.t); }; });
+    panel.querySelector('[data-x=min]').onclick=function(){ panel.classList.toggle('min'); };
+    panel.querySelector('[data-x=off]').onclick=function(){ toggle(false); };
+  }
+  function toggle(f){ if(!panel) build(); var on=(f===undefined)?!panel.classList.contains('open'):f; panel.classList.toggle('open',on); try{ sessionStorage.setItem('hm_edit_on',on?'1':''); }catch(e){} if(on) show('text'); }
+  document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='E'||e.key==='e')){ e.preventDefault(); toggle(); } });
+  var auto=/[?&]edit=1/.test(location.search); try{ auto=auto||sessionStorage.getItem('hm_edit_on')==='1'; }catch(e){}
+  if(auto) setTimeout(function(){ toggle(true); },600);
 })();
 </script>
 </body>
