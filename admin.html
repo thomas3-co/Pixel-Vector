@@ -342,40 +342,90 @@ function pubView(v){const c=E('div',{className:'card'});
  const ck=()=>{if(!src)return;const w=check();$('#ck').innerHTML=w.length?'<span class="warn">Warning: '+w.map(esc).join('<br>Warning: ')+'</span>':'<span class="ok">No problems found.</span>'};ck()}
 /* ===== dedicated student progress reset page ===== */
 function progressResetView(root){
- const scopes=[
-  ['curriculum','Curriculum / daily lessons','Clears completed lessons and week-finished markers.'],
-  ['readme','Read Me progress','Clears Read Me opened status and Read Me pop-out quiz results.'],
-  ['screencasts','Screencast progress','Clears watched/confirmed screencasts and screencast pop-out quiz results.'],
-  ['popoutquizzes','Pop-out quiz results only','Clears pop-out quiz attempts without clearing viewed status.'],
-  ['assessments','Weekly + Phase assessments','Clears weekly quiz and Phase assessment results.'],
-  ['projects','Project progress','Clears project submission/status progress.'],
-  ['all','General reset — this selected student only','Clears all course progress for this one selected student. Never resets other students or account credentials.']
- ];
- const intro=E('div',{className:'card'});intro.innerHTML='<h3>Student Progress Reset</h3><p class="hint">Select one student, load their latest saved record from the spreadsheet, and review the previous data before choosing a reset. Every reset creates a fresh backup immediately before changing the record, writes to the activity log, and sends a student notification. No bulk reset is available here.</p><div class="row"><button class="b p" id="rpull" style="flex:none">Load student list from backend</button><button class="b" id="rrefresh" style="flex:none">Refresh local list</button><span class="hint" id="rmsg">Connect and sign in, then load the student list.</span></div>';
+ const intro=E('div',{className:'card'});
+ intro.innerHTML='<h3>Student Progress Reset</h3><p class="hint">Choose one student, load the latest record from Google Sheets, and inspect each previous mark before resetting. Each individual reset creates a server-side backup, logs the action and notifies that student. General reset affects only the selected student.</p><div class="row"><button class="b p" id="rpull" style="flex:none">Load student list from backend</button><button class="b" id="rrefresh" style="flex:none">Refresh local list</button><span class="hint" id="rmsg">Connect and sign in, then load the student list.</span></div>';
  root.append(intro);
- const panel=E('div',{className:'card'});panel.innerHTML='<label>Search student by name or email</label><input id="rsearch" type="text" placeholder="Start typing a name or email…"><label>Select one student (resets apply only to this selection)</label><select id="rstudent"><option value="">Select a student</option></select><div id="rprofile"></div>';
+ const panel=E('div',{className:'card'});
+ panel.innerHTML='<label>Search student by name or email</label><input id="rsearch" type="text" placeholder="Start typing a name or email…"><label>Select one student (all actions below apply only to this student)</label><select id="rstudent"><option value="">Select a student</option></select><div id="rprofile"></div>';
  root.append(panel);
  const msg=t=>$('#rmsg').textContent=t;
- let preview=null, previewEmail='';
- const count=(o)=>Object.keys(o||{}).length;
- const show=()=>{const email=$('#rstudent').value,box=$('#rprofile');box.innerHTML='';preview=null;previewEmail='';if(!email)return;
-  const st=ST[email]||{},card=E('div',{style:'margin-top:16px'});
-  card.innerHTML='<div class="hint">Selected student: <b>'+esc(st.name||'Student')+'</b> · '+esc(email)+'</div><p class="hint">First load the live record. Reset buttons remain unavailable until the server preview succeeds.</p><button class="b p" id="rpreview" style="flex:none">Load previous data / preview</button><div id="rprevstate" class="hint" style="margin-top:8px">No live preview loaded yet.</div><div id="rprevdata"></div><div id="rscopes" style="margin-top:16px"></div>';
-  box.append(card);
-  $('#rpreview',card).onclick=async()=>{if(!TK){msg('Connect to the backend first.');return}const b=$('#rpreview',card);b.disabled=true;b.textContent='Loading previous data…';$('#rprevstate',card).textContent='Reading the latest saved student record from Google Sheets…';try{const j=await bk('adminResetPreview',{email});if(!j.ok)throw new Error(j.message||j.error||'Could not load the previous record');preview=j;previewEmail=email;const r=j.record||{},summary=j.summary||{};
-    $('#rprevstate',card).textContent='Live data loaded from the backend · Last saved: '+(j.updatedAt||'not available')+'. This is the data that will be backed up before reset.';
-    const data=$('#rprevdata',card);data.innerHTML='<div class="tg"><div><b>'+Number(summary.completed||0)+'</b>Completed lessons</div><div><b>'+Number(summary.weekQuizzes||0)+'</b>Weekly quiz records</div><div><b>'+Number(summary.readingSeen||0)+'</b>Read Me items viewed</div><div><b>'+Number(summary.screencasts||0)+'</b>Screencasts viewed</div><div><b>'+Number(summary.popoutQuizzes||0)+'</b>Pop-out quiz results</div><div><b>'+Number(summary.assessments||0)+'</b>Phase assessments</div><div><b>'+Number(summary.projects||0)+'</b>Project statuses</div><div><b>'+Number(summary.recordBytes||0)+'</b>Record size (bytes)</div></div><details style="margin-top:12px"><summary><span>Review full previous progress data</span></summary><div class="in"><pre id="rjson" style="white-space:pre-wrap;overflow:auto;max-height:360px;font:11px/1.4 ui-monospace,monospace"></pre><button class="b" id="rdownload" style="flex:none;margin-top:8px">Download previous data JSON</button></div></details>';
-    $('#rjson',data).textContent=JSON.stringify(r,null,2);$('#rdownload',data).onclick=()=>{const blob=new Blob([JSON.stringify({email,name:st.name||'',savedAt:j.updatedAt||'',record:r},null,2)],{type:'application/json'});const a=E('a',{href:URL.createObjectURL(blob),download:'student-progress-before-reset-'+email.replace(/[^a-z0-9@._-]/gi,'_')+'.json'});a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
-    const scopeBox=$('#rscopes',card);scopeBox.innerHTML='<h3 style="margin-bottom:6px">Choose a specific reset</h3><p class="hint">The preview above is read-only. A fresh server-side backup is created immediately before each reset.</p>';
-    scopes.forEach(([key,title,desc])=>{const row=E('div',{className:'row',style:'padding:12px 0;border-bottom:1px solid var(--line)'});row.innerHTML='<div style="min-width:240px"><b>'+esc(title)+'</b><div class="hint">'+esc(desc)+'</div></div><button class="b '+(key==='all'?'d':'')+'" data-scope="'+key+'" style="flex:none">'+(key==='all'?'General reset (selected student)':'Reset this category')+'</button>';scopeBox.append(row)});
-    scopeBox.querySelectorAll('[data-scope]').forEach(btn=>btn.onclick=async()=>{const scope=btn.dataset.scope,label=scopes.find(x=>x[0]===scope)[1];if(!TK){msg('Connect to the backend first.');return}if(previewEmail!==email||!preview){msg('Reload the previous data preview before resetting.');return}const confirmText='You are about to reset '+label+' for '+(st.name||email)+' ('+email+').\n\nThe currently displayed previous data will be backed up on the server immediately before reset. Continue?';if(!confirm(confirmText))return;btn.disabled=true;btn.textContent='Resetting…';msg('Backing up previous data and applying reset…');try{const j=await bk('adminReset',{email,scope});if(!j.ok)throw new Error(j.message||j.error||'Reset failed');msg(label+' reset successfully for '+email+'. A fresh backup was saved and the student was notified.');preview=null;previewEmail='';$('#rprevstate',card).textContent='Reset complete. Reload the preview to see the new current record; the previous record remains in the Backups sheet.';scopeBox.innerHTML='<p class="ok">Reset completed. Previous data was backed up before the change.</p><button class="b p" id="rpreviewAgain" style="flex:none">Load current data again</button>';$('#rpreviewAgain',scopeBox).onclick=()=>$('#rpreview',card).click();
-      const local=ST[email]||(ST[email]={email,name:st.name||''});local.rec=local.rec||{};const rr=local.rec;if(scope==='all'){local.rec={};}else if(scope==='curriculum'){rr.completed=[];rr.weekFinished={};}else if(scope==='readme'){rr.readingSeen=[];rr.contentQuizzes=rr.contentQuizzes||{};rr.contentQuizzes.reading={};}else if(scope==='screencasts'){rr.videoConfirmed={};rr.seenScreencasts=[];rr.contentQuizzes=rr.contentQuizzes||{};rr.contentQuizzes.screencasts={};}else if(scope==='popoutquizzes'){rr.contentQuizzes={reading:{},screencasts:{}};}else if(scope==='assessments'){rr.weekQuizzes={};rr.phaseAssessments={};}else if(scope==='projects'){rr.assignmentStatus={};}await saveST();
-    }catch(e){msg('Reset failed: '+e.message+'. No success was reported.');btn.disabled=false;btn.textContent=scope==='all'?'General reset (selected student)':'Reset this category'}});
-   }catch(e){$('#rprevstate',card).textContent='Could not load previous data: '+e.message;msg('Preview failed. No reset was performed.')}finally{b.disabled=false;b.textContent='Reload previous data / preview'}};
+ let preview=null,previewEmail='';
+ const obj=x=>x&&typeof x==='object'?x:{};
+ const scoreText=x=>x&&x.completedAt!==undefined?(String(x.score??0)+' / '+String(x.total??'?')+' marks'):'Not taken';
+ const escText=x=>esc(String(x??''));
+ const makeSection=(box,title,desc,items)=>{
+   const sec=E('section',{style:'margin-top:16px'});
+   sec.innerHTML='<h3 style="font-size:15px">'+esc(title)+'</h3><p class="hint">'+esc(desc)+'</p>';
+   if(!items.length){sec.append(E('p',{className:'hint'},'No saved marks or progress items found in this category.'));box.append(sec);return;}
+   items.forEach(it=>{
+     const row=E('div',{className:'row',style:'padding:10px 0;border-bottom:1px solid var(--line);gap:12px'});
+     const info=E('div',{style:'flex:1;min-width:220px'});
+     info.innerHTML='<b>'+esc(it.title)+'</b><div class="hint">Previous mark/status: <strong>'+esc(it.previous)+'</strong></div>';
+     const b=E('button',{className:'b d',style:'flex:none'});b.textContent='Reset this item';
+     b.onclick=async()=>{
+       if(!TK)return msg('Connect to the backend first.');
+       if(previewEmail!==$('#rstudent').value||!preview)return msg('Load the latest previous-data preview first.');
+       if(!confirm('Reset '+it.title+' for '+preview.name+'?\n\nPrevious result: '+it.previous+'\n\nA backup will be saved before the reset.'))return;
+       b.disabled=true;b.textContent='Resetting…';
+       try{const j=await bk('adminResetItem',{email:previewEmail,type:it.type,key:it.key});if(!j.ok)throw new Error(j.message||j.error||'Reset failed');
+         msg('Reset completed: '+it.title+'. Previous data is backed up. Reload the preview to verify.');
+         await loadPreview(previewEmail);
+       }catch(e){msg('Reset failed: '+e.message);b.disabled=false;b.textContent='Reset this item';}
+     };
+     row.append(info,b);sec.append(row);
+   });
+   box.append(sec);
  };
- const fill=()=>{const q=$('#rsearch').value.toLowerCase().trim(),sel=$('#rstudent'),old=sel.value;const arr=Object.values(ST||{}).filter(x=>(!q||String(x.name||'').toLowerCase().includes(q)||String(x.email||'').toLowerCase().includes(q))).sort((a,b)=>String(a.name||a.email).localeCompare(String(b.name||b.email)));sel.innerHTML='<option value="">Select a student ('+arr.length+')</option>'+arr.map(x=>'<option value="'+esc(String(x.email||'').toLowerCase())+'">'+esc((x.name||'Student')+' — '+x.email)+'</option>').join('');if(arr.some(x=>String(x.email).toLowerCase()===old))sel.value=old;show()};
+ const loadPreview=async email=>{
+   const card=$('#rprofile'),state=$('#rprevstate',card),data=$('#rprevdata',card),scopes=$('#rscopes',card);
+   state.textContent='Loading latest student data…';data.innerHTML='';scopes.innerHTML='';
+   const j=await bk('adminResetPreview',{email});if(!j.ok)throw new Error(j.message||j.error||'Could not load previous data');
+   preview=j;previewEmail=email;const r=obj(j.record),summary=obj(j.summary),cq=obj(r.contentQuizzes),rd=obj(cq.reading),casts=obj(cq.screencasts),wq=obj(r.weekQuizzes),pa=obj(r.phaseAssessments),asg=obj(r.assignmentStatus);
+   state.textContent='Live record loaded · Last saved: '+(j.updatedAt||'not available')+'. This is the current previous data.';
+   data.innerHTML='<div class="tg"><div><b>'+Number(summary.completed||0)+'</b>Completed days</div><div><b>'+Object.keys(wq).length+'</b>Weekly quiz marks</div><div><b>'+Object.keys(rd).length+'</b>Read Me quiz marks</div><div><b>'+Object.keys(casts).length+'</b>Screencast quiz marks</div><div><b>'+Number(summary.assessments||0)+'</b>Assessments</div><div><b>'+Number(summary.projects||0)+'</b>Project statuses</div></div><details style="margin-top:12px"><summary><span>Review full previous record</span></summary><div class="in"><pre id="rjson" style="white-space:pre-wrap;overflow:auto;max-height:300px;font:11px/1.4 ui-monospace,monospace"></pre><button class="b" id="rdownload" style="flex:none;margin-top:8px">Download previous data JSON</button></div></details>';
+   $('#rjson',data).textContent=JSON.stringify(r,null,2);
+   $('#rdownload',data).onclick=()=>{const blob=new Blob([JSON.stringify({email,name:j.name||'',savedAt:j.updatedAt||'',record:r},null,2)],{type:'application/json'});const a=E('a',{href:URL.createObjectURL(blob),download:'student-before-reset-'+email.replace(/[^a-z0-9@._-]/gi,'_')+'.json'});a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+   const dayItems=[],weekItems=[],readQuizItems=[],castQuizItems=[],readItems=[],castItems=[],phaseItems=[];
+   const dayMap={};
+   (Array.isArray(D.weeks)?D.weeks:[]).forEach(w=>(w.days||[]).forEach((d,i)=>{const k=String(w.n)+'-'+(i+1);dayMap[k]=d.title||('Week '+w.n+' Day '+(i+1));}));
+   (r.completed||[]).forEach(k=>{if(!dayMap[k])dayMap[k]='Day '+k;});
+   Object.keys(dayMap).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(k=>dayItems.push({title:dayMap[k]+' ('+k+')',previous:(r.completed||[]).includes(k)?'Completed':'Not completed',type:'lesson',key:k}));
+   const quizWeeks=[...new Set([...(Array.isArray(D.assessments)?D.assessments.map(x=>String(x.week||'')):[]),...Object.keys(wq)])].filter(Boolean).sort((a,b)=>Number(a)-Number(b));
+   quizWeeks.forEach(k=>weekItems.push({title:'Week '+k+' quiz',previous:wq[k]?scoreText(wq[k]):'Not taken',type:'weekQuiz',key:k}));
+   const notes=Array.isArray(D.notes)?D.notes:[];
+   const castsList=Array.isArray(D.items)?D.items:[];
+   const quizDefs=Array.isArray(D.quizzes)?D.quizzes:[];
+   const readQuizKeys=[...new Set([...quizDefs.filter(x=>x.type==='reading').map(x=>x.key),...Object.keys(rd)])].filter(Boolean);
+   const castQuizKeys=[...new Set([...quizDefs.filter(x=>x.type==='video').map(x=>x.key),...Object.keys(casts)])].filter(Boolean);
+   readQuizKeys.forEach(k=>{const n=notes.find(x=>x.id===k);readQuizItems.push({title:(n&&n.title)||('Read Me quiz · '+k),previous:rd[k]?scoreText(rd[k]):'Not taken',type:'readQuiz',key:k});});
+   castQuizKeys.forEach(k=>{const n=castsList.find(x=>x.id===k);castQuizItems.push({title:(n&&n.title)||('Screencast quiz · '+k),previous:casts[k]?scoreText(casts[k]):'Not taken',type:'castQuiz',key:k});});
+   const readKeys=[...new Set([...notes.map(x=>x.id),...(r.readingSeen||[])])].filter(Boolean);
+   readKeys.forEach(k=>{const n=notes.find(x=>x.id===k);readItems.push({title:(n&&n.title)||('Read Me · '+k),previous:(r.readingSeen||[]).includes(k)?'Viewed':'Not viewed',type:'read',key:k});});
+   const castKeys=[...new Set([...castsList.map(x=>x.id),...Object.keys(obj(r.videoConfirmed)).filter(k=>r.videoConfirmed[k]),...(r.seenScreencasts||[])])].filter(Boolean);
+   castKeys.forEach(k=>{const n=castsList.find(x=>x.id===k);castItems.push({title:(n&&n.title)||('Screencast · '+k),previous:(r.videoConfirmed||{})[k]||(r.seenScreencasts||[]).includes(k)?'Watched / confirmed':'Not watched',type:'cast',key:k});});
+   Object.keys(pa).forEach(k=>phaseItems.push({title:k+' assessment',previous:scoreText(pa[k]),type:'phase',key:k}));
+   makeSection(scopes,'Daily lesson progress','Reset one specific day without clearing other days.',dayItems);
+   makeSection(scopes,'Weekly quiz marks','Reset a weekly quiz attempt and its previous mark.',weekItems);
+   makeSection(scopes,'Read Me quizzes','Reset an individual Read Me pop-out quiz mark while keeping its viewed status.',readQuizItems);
+   makeSection(scopes,'Screencast quizzes','Reset an individual screencast pop-out quiz mark while keeping watched status.',castQuizItems);
+   makeSection(scopes,'Read Me viewed status','Reset one Read Me completion and its attached quiz result.',readItems);
+   makeSection(scopes,'Screencast watched status','Reset one screencast completion and its attached quiz result.',castItems);
+   makeSection(scopes,'Phase assessments','Reset one phase assessment and its previous mark.',phaseItems);
+   const danger=E('div',{className:'card',style:'margin-top:18px;border-color:#ef9a9a'});
+   danger.innerHTML='<h3 style="font-size:15px">General reset · selected student only</h3><p class="hint">Clears all course progress for '+esc(email)+'. It does not delete the student account, profile or password.</p><button class="b d" id="rgeneral">Reset all course progress for this student</button> <button class="b d" id="rpassword">Reset this student’s password</button>';
+   scopes.append(danger);
+   $('#rgeneral',danger).onclick=async()=>{if(!confirm('GENERAL RESET\n\nThis clears all course progress for '+email+' only. A backup will be created first. Continue?'))return;const b=$('#rgeneral',danger);b.disabled=true;b.textContent='Resetting…';try{const z=await bk('adminReset',{email,scope:'all'});if(!z.ok)throw new Error(z.message||z.error||'General reset failed');msg('General reset completed for this selected student. Previous progress is backed up.');await loadPreview(email);}catch(e){msg('General reset failed: '+e.message);b.disabled=false;b.textContent='Reset all course progress for this student';}};
+   $('#rpassword',danger).onclick=async()=>{if(!confirm('Reset the account password for '+email+'? This clears the student’s current password and signs out all devices. The student must create a new password using the same email. Course progress is not changed.'))return;const b=$('#rpassword',danger);b.disabled=true;b.textContent='Resetting password…';try{const z=await bk('adminResetPassword',{email});if(!z.ok)throw new Error(z.message||z.error||'Password reset failed');msg('Student password reset. The student can create a new password with the same email. Progress remains unchanged.');b.textContent='Password reset';}catch(e){msg('Password reset failed: '+e.message);b.disabled=false;b.textContent='Reset this student’s password';}};
+ };
+ const show=()=>{const email=$('#rstudent').value,box=$('#rprofile');box.innerHTML='';preview=null;previewEmail='';if(!email)return;
+   const st=ST[email]||{},card=E('div',{style:'margin-top:16px'});
+   card.innerHTML='<div class="hint">Selected student: <b>'+esc(st.name||'Student')+'</b> · '+esc(email)+'</div><button class="b p" id="rpreview" style="flex:none;margin-top:8px">Load previous data / marks</button><div id="rprevstate" class="hint" style="margin-top:8px">No live preview loaded yet.</div><div id="rprevdata"></div><div id="rscopes"></div>';
+   box.append(card);
+   $('#rpreview',card).onclick=async()=>{const b=$('#rpreview',card);if(!TK){msg('Connect to the backend first.');return}b.disabled=true;b.textContent='Loading…';try{await loadPreview(email);}catch(e){$('#rprevstate',card).textContent='Preview failed: '+e.message;msg('Preview failed. No reset was performed.')}finally{b.disabled=false;b.textContent='Reload previous data / marks'};};
+ };
+ const fill=()=>{const q=$('#rsearch').value.toLowerCase().trim(),sel=$('#rstudent'),old=sel.value,arr=Object.values(ST||{}).filter(x=>(!q||String(x.name||'').toLowerCase().includes(q)||String(x.email||'').toLowerCase().includes(q))).sort((a,b)=>String(a.name||a.email).localeCompare(String(b.name||b.email)));sel.innerHTML='<option value="">Select a student ('+arr.length+')</option>'+arr.map(x=>'<option value="'+esc(String(x.email||'').toLowerCase())+'">'+esc((x.name||'Student')+' — '+x.email)+'</option>').join('');if(arr.some(x=>String(x.email).toLowerCase()===old))sel.value=old;show()};
  $('#rsearch').oninput=fill;$('#rstudent').onchange=show;$('#rrefresh').onclick=fill;
- $('#rpull').onclick=async()=>{if(!TK)return msg('Connect to the backend first.');try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:20});if(!j.ok)throw new Error(j.message||j.error||'Could not load students');(j.students||[]).forEach(x=>addSt(x.email,x));n+=(j.students||[]).length;if(j.done)break;off+=20}await saveST();fill();msg('Loaded '+n+' student records from the backend. Select one student and load their previous data before resetting.')}catch(e){msg('Could not load students: '+e.message)}};
+ $('#rpull').onclick=async()=>{if(!TK)return msg('Connect to the backend first.');try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:20});if(!j.ok)throw new Error(j.message||j.error||'Could not load students');(j.students||[]).forEach(x=>addSt(x.email,x));n+=(j.students||[]).length;if(j.done)break;off+=20}await saveST();fill();msg('Loaded '+n+' student records. Select one student and load previous data / marks.')}catch(e){msg('Could not load students: '+e.message)}};
  fill();
 }
 
