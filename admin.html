@@ -69,7 +69,7 @@ practice:{t:'Practice files',l:'practice',sp:'files',mk:()=>({id:'',label:''}),t
 deadlines:{t:'Deadlines',l:'deadlines',mk:()=>({title:'',date:'',kind:'project',week:'',note:''}),ti:x=>(x.date||'No date')+' · '+(x.title||'New deadline')},
 resources:{t:'Quick links & resources',l:'resources',mk:()=>({title:'',url:'',desc:'',kind:'Link'}),ti:x=>x.title||'New resource'},
 faq:{t:'Student FAQ',l:'faq',mk:()=>({q:'',a:''}),ti:x=>x.q||'New question'},
-profile:{t:'Badges & profile',f:()=>[[D.profile,[['side','Profile side','s',['left','right']],['accents','Accent colours (comma separated)','csv'],['badges','The 5 badges','sub',[['name','Name'],['color','Colour','c'],['progress','Lessons finished %','n'],['result','Score %','n'],['visits','Days visited','n']],b=>b.name||'Badge',()=>({name:'',color:'#2f6fed',progress:0,result:0,visits:1})]]]]},
+progressReset:{t:'Student Progress Reset'},profile:{t:'Badges & profile',f:()=>[[D.profile,[['side','Profile side','s',['left','right']],['accents','Accent colours (comma separated)','csv'],['badges','The 5 badges','sub',[['name','Name'],['color','Colour','c'],['progress','Lessons finished %','n'],['result','Score %','n'],['visits','Days visited','n']],b=>b.name||'Badge',()=>({name:'',color:'#2f6fed',progress:0,result:0,visits:1})]]]]},
 access:{t:'Login & sign-out',f:()=>[[D.session,[['idleMinutes','Auto sign-out after (minutes idle)','n'],['warnMinutes','Warn this many minutes before','n']]],[D.login,[['brandLine','Login screen top line'],['notes','Notes under the login button — one per line','lines']]]]},
 theme:{t:'Site colours',f:()=>[[D.theme,[['curriculum','Curriculum and lessons','c'],['projects','Projects','c'],['practice','Practice','c'],['notes','Read Me notes','c'],['screen','Screencasts','c']]]]},import:{t:'Import from spreadsheet'},students:{t:'Students'},records:{t:'Help, announcements and log'},source:{t:'Source editor'},publish:{t:'Connect & publish'}};
 /* ===== codecs ===== */
@@ -111,7 +111,7 @@ function list(root,arr,spec,ti,mk,nested,sw){
 function go(k){cur=k;$('#ttl').textContent=SECT[k].t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==k));
  const v=$('#view');v.innerHTML='';const S=SECT[k];
  if(!src&&k!='publish'&&k!='students'&&k!='records'){v.append(E('div',{className:'card'},'<b>Connect first.</b> Open <i>Connect & publish</i> and load your index.html from GitHub (or upload it).'));return}
- if(k=='records')return recView(v);if(k=='source')return srcView(v);if(k=='import')return impView(v);if(k=='students')return stuView(v);if(k=='publish')return pubView(v);
+ if(k=='progressReset')return progressResetView(v);if(k=='records')return recView(v);if(k=='source')return srcView(v);if(k=='import')return impView(v);if(k=='students')return stuView(v);if(k=='publish')return pubView(v);
  if(S.f){S.f().forEach(([o,sp])=>{const c=E('div',{className:'card'});form(c,o,sp);v.append(c)});return}
  const top=E('div',{className:'card'});v.append(top);
  top.append(E('p',{className:'hint'},{weeks:'Weeks here are layered over the built-in course. Same week number = replaced. Use “Import built-in week” to start from what is on the site now.',items:'Same Drive ID as a built-in recording = renamed/updated. Untick “Released” to hide it from students.',notes:'Same note id as a built-in note replaces it; use Hide to remove it from students.',quizzes:'These are the pop-out quizzes attached to individual Read Me notes and screencasts. Each quiz needs at least five questions; students receive five random questions.',assessments:'Edit the official Phase Assessment question bank. Keep four options and set the correct option index from 0 to 3. Publishing updates the real PHASE1_QUESTIONS array in the main-site HTML.'}[k]||''));
@@ -340,6 +340,34 @@ function pubView(v){const c=E('div',{className:'card'});
  $('#gf').onchange=async e=>{const f=e.target.files[0];if(f){D=load(await f.text());mark(false);log('Opened local file ('+f.name+'). Use Download to save your edits.');ck()}};
  $('#gd').onclick=()=>{if(!src)return;const a=E('a',{href:URL.createObjectURL(new Blob([bake()],{type:'text/html'})),download:'index.html'});a.click()};
  const ck=()=>{if(!src)return;const w=check();$('#ck').innerHTML=w.length?'<span class="warn">Warning: '+w.map(esc).join('<br>Warning: ')+'</span>':'<span class="ok">No problems found.</span>'};ck()}
+/* ===== dedicated student progress reset page ===== */
+function progressResetView(root){
+ const scopes=[
+  ['curriculum','Curriculum / daily lessons','Clears completed lessons and week-finished markers.'],
+  ['readme','Read Me progress','Clears Read Me opened status and Read Me pop-out quiz results.'],
+  ['screencasts','Screencast progress','Clears watched/confirmed screencasts and screencast pop-out quiz results.'],
+  ['popoutquizzes','Pop-out quiz results only','Clears pop-out quiz attempts without clearing Read Me or screencast viewed status.'],
+  ['assessments','Weekly + Phase assessments','Clears weekly quiz and Phase assessment results.'],
+  ['projects','Project progress','Clears project submission/status progress.'],
+  ['all','All course progress','Clears all course progress. Account credentials and profile are retained.']
+ ];
+ const intro=E('div',{className:'card'});intro.innerHTML='<h3>Student Progress Reset</h3><p class="hint">A dedicated control center for resetting one student at a time. Every reset is backed up by the backend, recorded in reset history, and sends the student a notification. Account credentials are not reset.</p><div class="row"><button class="b p" id="rpull" style="flex:none">Pull all students from backend</button><button class="b" id="rrefresh" style="flex:none">Refresh student list</button><span class="hint" id="rmsg">Choose a student below.</span></div>';
+ root.append(intro);
+ const panel=E('div',{className:'card'});panel.innerHTML='<label>Search student by name or email</label><input id="rsearch" type="text" placeholder="Start typing a name or email…"><label>Select student</label><select id="rstudent"><option value="">Select a student</option></select><div id="rprofile"></div>';
+ root.append(panel);
+ const msg=t=>$('#rmsg').textContent=t;
+ const fill=()=>{const q=$('#rsearch').value.toLowerCase().trim(),sel=$('#rstudent'),old=sel.value;const arr=Object.values(ST||{}).filter(x=>(!q||String(x.name||'').toLowerCase().includes(q)||String(x.email||'').toLowerCase().includes(q))).sort((a,b)=>String(a.name||a.email).localeCompare(String(b.name||b.email)));sel.innerHTML='<option value="">Select a student ('+arr.length+')</option>'+arr.map(x=>'<option value="'+esc(String(x.email||'').toLowerCase())+'">'+esc((x.name||'Student')+' — '+x.email)+'</option>').join('');if(arr.some(x=>String(x.email).toLowerCase()===old))sel.value=old;show()};
+ const show=()=>{const email=$('#rstudent').value,box=$('#rprofile');box.innerHTML='';if(!email)return;const st=ST[email]||{},rec=st.rec||{};const card=E('div',{style:'margin-top:16px'});card.innerHTML='<div class="tg"><div><b>'+esc(st.name||'Student')+'</b>Name</div><div><b>'+esc(email)+'</b>Email</div><div><b>'+((rec.completed||[]).length)+'</b>Completed lessons</div><div><b>'+Object.keys(rec.weekQuizzes||{}).length+'</b>Weekly quiz records</div></div><h3 style="margin:20px 0 8px">Choose what to reset</h3><p class="hint">Each action resets only its category. “All course progress” is separate and more comprehensive.</p>';
+ scopes.forEach(([key,title,desc])=>{const row=E('div',{className:'row',style:'padding:12px 0;border-bottom:1px solid var(--line)'});row.innerHTML='<div style="min-width:240px"><b>'+esc(title)+'</b><div class="hint">'+esc(desc)+'</div></div><button class="b '+(key==='all'?'d':'')+'" data-scope="'+key+'" style="flex:none">Reset</button>';card.append(row)});
+ const hist=(EX.resetHistory||[]).filter(x=>String(x.email||'').toLowerCase()===email).slice(-8).reverse();if(hist.length){card.append(E('h4',{style:'margin-top:18px'},'Recent reset history'));const t=E('div',{className:'log'});t.textContent=hist.map(x=>(x.at||'')+' · '+(x.summary||x.by||'Reset')).join('\n');card.append(t)}
+ box.append(card);
+ card.querySelectorAll('[data-scope]').forEach(btn=>btn.onclick=async()=>{const scope=btn.dataset.scope,label=scopes.find(x=>x[0]===scope)[1];if(!TK){msg('Connect to the backend first.');return}if(!confirm('Confirm: '+label+' for '+(st.name||email)+'? This action is recorded and the student is notified.'))return;btn.disabled=true;btn.textContent='Resetting…';msg('Sending reset request…');try{const j=await bk('adminReset',{email,scope});if(!j.ok)throw new Error(j.message||j.error||'Reset failed');msg(label+' reset successfully for '+email+'. Student notification sent.');const local=ST[email]||(ST[email]={email,name:st.name||''});local.rec=local.rec||{};const rr=local.rec;if(scope==='all'){local.rec={};}else if(scope==='curriculum'){rr.completed=[];rr.weekFinished={};}else if(scope==='readme'){rr.readingSeen=[];rr.contentQuizzes=rr.contentQuizzes||{};rr.contentQuizzes.reading={};}else if(scope==='screencasts'){rr.videoConfirmed={};rr.seenScreencasts=[];rr.contentQuizzes=rr.contentQuizzes||{};rr.contentQuizzes.screencasts={};}else if(scope==='popoutquizzes'){rr.contentQuizzes={reading:{},screencasts:{}};}else if(scope==='assessments'){rr.weekQuizzes={};rr.phaseAssessments={};}else if(scope==='projects'){rr.assignmentStatus={};}await saveST();fill()}catch(e){msg('Reset failed: '+e.message);btn.disabled=false;btn.textContent='Reset'}});
+ };
+ $('#rsearch').oninput=fill;$('#rstudent').onchange=show;$('#rrefresh').onclick=fill;
+ $('#rpull').onclick=async()=>{if(!TK)return msg('Connect to the backend first.');try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:10});if(!j.ok)throw new Error(j.message||j.error||'Could not load students');(j.students||[]).forEach(x=>addSt(x.email,x));n+=(j.students||[]).length;if(j.done)break;off+=10}await saveST();fill();msg('Loaded '+n+' student records from the backend.')}catch(e){msg('Could not load students: '+e.message)}};
+ fill();
+}
+
 /* ===== preview ===== */
 let pvOn=false;function preview(){if(!src)return;const v=$('#view');let f=$('#pv');if(!f){f=E('iframe',{id:'pv'});f.sandbox='allow-scripts allow-popups';v.prepend(f)}
  const guard='<script>(function(){var f=window.fetch;window.fetch=function(u){if(/script\\.google|googleusercontent|index\\.html|\\?_hm/.test(String(u)))return Promise.reject(0);return f.apply(this,arguments)}})()<\/script>';
@@ -348,7 +376,7 @@ $('#bpv').onclick=()=>{if(!src)return;pvOn=!pvOn;if(pvOn)preview();else $('#pv')
 $('#bpub').onclick=()=>go('publish');
 /* ===== boot ===== */
 const nav=$('#nav');nav.append(E('h1',{},'Course Studio'));
-Object.keys(SECT).forEach(k=>{if(k=='source')nav.append(E('hr'));const b=E('button',{textContent:SECT[k].t});b.dataset.k=k;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};nav.append(b)});
+Object.keys(SECT).forEach(k=>{if(k=='progressReset'||k=='source')nav.append(E('hr'));const b=E('button',{textContent:SECT[k].t});b.dataset.k=k;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};nav.append(b)});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 go('publish');if(LS.o&&LS.r&&LS.t)pull().then(()=>go('site'));
 
