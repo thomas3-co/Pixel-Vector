@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<meta name="hm-build" content="2026-11-08-v20">
+<meta name="hm-build" content="2026-11-08-v21">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
@@ -1174,7 +1174,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 </div>
 <div class="hn-wrap" id="hnWrap" style="display:none"><button aria-expanded="false" aria-haspopup="dialog" aria-label="Notifications" class="hn-bell" id="hnBell" type="button"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="hn-badge" hidden id="hnBadge">0</span></button></div>
 <button aria-controls="layersPanel" aria-expanded="false" class="panel-toggle" id="lpToggle">Layers ▸</button>
-<button class="hmp-btn" id="hmpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="My profile" style="display:none"><span class="hmp-av" id="hmpAv">?</span></button>
+<button class="hmp-chip" id="hmpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open my profile" style="display:none"><span class="hmp-ring"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="t" cx="24" cy="24" r="21"/><circle class="v" id="hmpRingV" cx="24" cy="24" r="21"/></svg><span class="hmp-av" id="hmpAv">?</span></span><span class="hmp-meta"><b id="hmpChipName">Student</b><small id="hmpChipGrade">-</small></span><span class="hmp-caret" aria-hidden="true">&#9662;</span></button>
 </header>
 <div class="workspace">
 <main class="canvas" id="mainContent">
@@ -8246,91 +8246,140 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
 })();
 </script>
 <style id="hm-profile-css">
-/* ===== STUDENT PROFILE (top-right corner) ===== */
-#studentBadge{display:none!important}
-.hmp-btn{order:9;margin-left:6px;flex:0 0 auto;border:2px solid rgba(255,255,255,.35);background:transparent;border-radius:50%;padding:0;width:42px;height:42px;cursor:pointer;overflow:hidden}
-.hmp-btn:hover{border-color:#fff}
-.hmp-av{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2f6fed,#8b5cf6);color:#fff;font:800 15px Poppins,Arial,sans-serif;background-size:cover;background-position:center}
-.hmp-panel{position:fixed;top:72px;right:max(12px,env(safe-area-inset-right));width:min(340px,calc(100vw - 24px));max-height:calc(100dvh - 90px);overflow:auto;background:#fff;color:#1a1d24;border-radius:18px;box-shadow:0 20px 60px rgba(15,17,23,.35);z-index:1200;display:none;font:14px Inter,Arial,sans-serif}
-.hmp-panel.open{display:block}
-.hmp-head{padding:20px 18px 14px;text-align:center;background:linear-gradient(135deg,#eef3ff,#f4efff);border-radius:18px 18px 0 0}
-.hmp-big{width:84px;height:84px;margin:0 auto 8px;border-radius:50%;position:relative;cursor:pointer}
-.hmp-big .hmp-av{font-size:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 6px 18px rgba(47,111,237,.3)}
-.hmp-cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:#2f6fed;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid #fff}
-.hmp-name{font:700 17px Poppins,Arial,sans-serif;margin:0}
-.hmp-sub{color:#5b6270;font-size:12.5px;word-break:break-all}
-.hmp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 16px 4px}
-.hmp-stat{background:#f3f5f8;border-radius:12px;padding:10px 4px;text-align:center}
-.hmp-stat b{display:block;font:800 17px Poppins,Arial,sans-serif;color:#2f6fed}
-.hmp-stat span{font-size:11px;color:#5b6270}
-.hmp-bar{margin:10px 16px 0;height:8px;border-radius:99px;background:#e3e7ee;overflow:hidden}
-.hmp-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f6fed,#8b5cf6);transition:width .4s}
-.hmp-lbl{margin:4px 16px 0;font-size:11.5px;color:#5b6270}
-.hmp-form{padding:12px 16px 4px}
-.hmp-form label{display:block;font-size:11.5px;font-weight:700;color:#5b6270;margin:8px 0 3px}
-.hmp-form input,.hmp-form textarea{width:100%;border:1px solid #d5dce8;border-radius:10px;padding:9px 10px;font:inherit;resize:none}
-.hmp-row{display:flex;gap:8px;padding:10px 16px 16px;flex-wrap:wrap}
-.hmp-row button{flex:1 1 45%;min-height:40px;border-radius:10px;border:1px solid #d5dce8;background:#fff;font:600 13px Inter,Arial,sans-serif;cursor:pointer}
-.hmp-row .pri{background:#2f6fed;color:#fff;border-color:#2f6fed}
-.hmp-row .dng{color:#b42318}
-@media (max-width:760px){.hmp-btn{width:38px;height:38px}.hmp-panel{top:66px}}
+/* ===== STUDENT PROFILE · ultimate (top-right corner, replaces the Layers button) ===== */
+#studentBadge,#lpToggle{display:none!important}
+.workspace:has(#layersPanel:not(.collapsed)){padding-right:0!important}
+.hmp-chip{--a:#2f6fed;order:9;margin-left:8px;flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:4px 12px 4px 4px;min-height:46px;border-radius:99px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-family:Inter,Arial,sans-serif;transition:background .2s,transform .2s}
+.hmp-chip:hover{background:rgba(255,255,255,.16)}.hmp-chip:active{transform:scale(.97)}
+.hmp-ring{position:relative;width:38px;height:38px;flex:0 0 auto}
+.hmp-ring svg{position:absolute;inset:-5px;width:48px;height:48px;transform:rotate(-90deg)}
+.hmp-ring circle{fill:none;stroke-width:3}.hmp-ring .t{stroke:rgba(255,255,255,.18)}
+.hmp-ring .v{stroke:var(--a);stroke-linecap:round;stroke-dasharray:131.95;stroke-dashoffset:131.95;transition:stroke-dashoffset .6s}
+.hmp-meta{display:flex;flex-direction:column;line-height:1.15;text-align:left;max-width:110px}
+.hmp-meta b{font:700 12.5px Poppins,Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmp-meta small{font-size:11px;opacity:.75}.hmp-caret{font-size:11px;opacity:.7}
+.hmp-av{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--a,#2f6fed),#8b5cf6);color:#fff;font:800 14px Poppins,Arial,sans-serif;background-size:cover;background-position:center;overflow:hidden}
+.hmp-scrim{position:fixed;inset:0;background:rgba(10,14,28,.45);z-index:1190;display:none;backdrop-filter:blur(2px)}
+.hmp-scrim.open{display:block}
+.hmp-panel{--a:#2f6fed;--bg:#fff;--fg:#1a1d24;--mu:#5b6270;--ln:#e3e7ee;--sf:#f3f5f8;position:fixed;top:calc(var(--bar-h,64px) + 10px);right:max(12px,env(safe-area-inset-right));width:min(410px,calc(100vw - 24px));max-height:calc(100dvh - var(--bar-h,64px) - 22px);display:none;flex-direction:column;background:var(--bg);color:var(--fg);border-radius:22px;box-shadow:0 28px 80px rgba(8,12,30,.5);z-index:1200;overflow:hidden;font:14px Inter,Arial,sans-serif}
+.hmp-panel.dark{--bg:#171a22;--fg:#eef0f6;--mu:#9aa2b1;--ln:#2b303c;--sf:#222633}
+.hmp-panel.open{display:flex;animation:hmpIn .22s ease both}
+@keyframes hmpIn{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
+.hmp-cover{position:relative;height:96px;flex:0 0 auto;background:linear-gradient(120deg,var(--a),#8b5cf6 70%,#ff7a2d)}
+.hmp-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.28);color:#fff;font-size:20px;cursor:pointer}
+.hmp-id{display:flex;gap:14px;align-items:flex-end;padding:0 18px;margin-top:-38px}
+.hmp-big{position:relative;width:84px;height:84px;flex:0 0 auto;cursor:pointer}
+.hmp-big .hmp-av{border:4px solid var(--bg);font-size:28px;box-shadow:0 8px 22px rgba(0,0,0,.25)}
+.hmp-cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;border:3px solid var(--bg)}
+.hmp-who{padding-bottom:4px;min-width:0}
+.hmp-name{font:700 18px Poppins,Arial,sans-serif;margin:0;line-height:1.2}
+.hmp-lvl{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:99px;background:var(--a);color:#fff;font:700 11px Inter,Arial,sans-serif}
+.hmp-sub{color:var(--mu);font-size:12px;margin:8px 18px 0;word-break:break-all}
+.hmp-quote{margin:8px 18px 0;padding:10px 12px;border-left:3px solid var(--a);background:var(--sf);border-radius:0 10px 10px 0;font-size:13px;color:var(--mu);display:none}
+.hmp-tabs{display:flex;gap:4px;margin:14px 14px 0;padding:4px;background:var(--sf);border-radius:14px}
+.hmp-tabs button{flex:1;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--mu);font:700 13px Inter,Arial,sans-serif;cursor:pointer}
+.hmp-tabs button[aria-selected=true]{background:var(--bg);color:var(--a);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.hmp-body{overflow:auto;padding:14px 18px 20px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.hmp-pane{display:none}.hmp-pane.on{display:block}
+.hmp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.hmp-stat{background:var(--sf);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center}
+.hmp-stat i{font-style:normal;font-size:20px}.hmp-stat b{display:block;font:800 18px Poppins,Arial,sans-serif;color:var(--a);line-height:1.1}.hmp-stat span{font-size:11.5px;color:var(--mu)}
+.hmp-h{font:700 13px Poppins,Arial,sans-serif;margin:18px 0 8px}
+.hmp-bar{height:10px;border-radius:99px;background:var(--ln);overflow:hidden}.hmp-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),#8b5cf6);transition:width .5s}
+.hmp-lbl{font-size:12px;color:var(--mu);margin-top:6px}
+.hmp-badges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hmp-bd{text-align:center;padding:10px 4px;border-radius:14px;background:var(--sf);font-size:11px;color:var(--mu);opacity:.45;filter:grayscale(1)}
+.hmp-bd.on{opacity:1;filter:none;color:var(--fg)}.hmp-bd span{display:block;font-size:24px;margin-bottom:2px}
+.hmp-field label{display:block;font-size:12px;font-weight:700;color:var(--mu);margin:12px 0 4px}
+.hmp-field input,.hmp-field textarea{width:100%;border:1px solid var(--ln);background:var(--bg);color:var(--fg);border-radius:12px;padding:11px 12px;font:inherit;resize:none}
+.hmp-sw{display:flex;gap:10px;flex-wrap:wrap}.hmp-sw button{width:34px;height:34px;border-radius:50%;border:3px solid var(--bg);box-shadow:0 0 0 2px var(--ln);cursor:pointer}.hmp-sw button.on{box-shadow:0 0 0 3px var(--fg)}
+.hmp-sw2{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px;background:var(--sf);border-radius:12px;font-weight:600}
+.hmp-sw2 button{width:48px;height:28px;border-radius:99px;border:0;background:var(--ln);position:relative;cursor:pointer}.hmp-sw2 button:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}.hmp-sw2 button[aria-pressed=true]{background:var(--a)}.hmp-sw2 button[aria-pressed=true]:after{left:23px}
+.hmp-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.hmp-act button{flex:1 1 45%;min-height:44px;border-radius:12px;border:1px solid var(--ln);background:var(--bg);color:var(--fg);font:700 13px Inter,Arial,sans-serif;cursor:pointer}
+.hmp-act .pri{background:var(--a);border-color:var(--a);color:#fff}.hmp-act .dng{color:#e5484d}
+.hmp-panel .hmp-pane #layersPanel{position:static!important;display:block!important;width:auto!important;max-height:none!important;top:auto!important;right:auto!important;left:auto!important;padding:14px!important;border-radius:16px!important;border:0!important;box-shadow:none!important;animation:none!important;overflow:visible!important}
+.hmp-panel #layersPanel .lp-head,.hmp-panel #layersPanel .lp-signout{display:none!important}
+@media (max-width:760px){.hmp-meta,.hmp-caret{display:none}.hmp-chip{padding:4px;min-height:46px}.hmp-panel{left:8px;right:8px;width:auto;top:calc(var(--bar-h,64px) + 6px)}}
+@media (prefers-reduced-motion:reduce){.hmp-panel.open{animation:none}}
 </style>
 <script id="hm-profile-js">
-/* ===== STUDENT PROFILE · reads the signed-in student; extras (photo, goal, bio) are kept on this device ===== */
+/* ===== STUDENT PROFILE · ultimate. Tabs: Overview | Layers | Settings.
+   The old "Layers" panel is moved INSIDE the Layers tab (all its ids and buttons still work).
+   Photo, goal, bio, colour, dark mode and streak are saved on this device. ===== */
 (function(){
-  var btn=document.getElementById('hmpBtn'), av=document.getElementById('hmpAv');
+  var $=function(i){return document.getElementById(i);}, chip=$('hmpBtn'), av=$('hmpAv');
+  var COLORS=['#2f6fed','#8b5cf6','#ef476f','#ff7a2d','#12b886','#0ea5e9'];
+  var scrim=document.createElement('div'); scrim.className='hmp-scrim'; document.body.appendChild(scrim);
   var pn=document.createElement('div'); pn.className='hmp-panel'; pn.setAttribute('role','dialog'); pn.setAttribute('aria-label','Student profile');
-  pn.innerHTML='<div class="hmp-head"><div class="hmp-big" id="hmpBig" title="Change photo"><div class="hmp-av" id="hmpAv2"></div><span class="hmp-cam">&#128247;</span></div>'
-   +'<h3 class="hmp-name" id="hmpName"></h3><div class="hmp-sub" id="hmpFull"></div><div class="hmp-sub" id="hmpMail"></div></div>'
-   +'<div class="hmp-stats"><div class="hmp-stat"><b id="hmpGrade">-</b><span>Grade</span></div><div class="hmp-stat"><b id="hmpLess">0</b><span>Lessons done</span></div><div class="hmp-stat"><b id="hmpStreak">0</b><span>Day streak</span></div></div>'
-   +'<div class="hmp-bar"><i id="hmpFill"></i></div><div class="hmp-lbl" id="hmpLbl"></div>'
-   +'<div class="hmp-form"><label for="hmpGoal">My goal for this course</label><input id="hmpGoal" maxlength="80" placeholder="e.g. Build my own portfolio">'
-   +'<label for="hmpBio">About me</label><textarea id="hmpBio" rows="2" maxlength="160" placeholder="A short line about you"></textarea></div>'
-   +'<div class="hmp-row"><button class="pri" id="hmpSave" type="button">Save</button><button id="hmpProg" type="button">My Progress</button><button id="hmpClear" type="button">Remove photo</button><button class="dng" id="hmpOut" type="button">Sign out</button></div>'
-   +'<input type="file" id="hmpFile" accept="image/*" hidden>';
+  pn.innerHTML='<div class="hmp-cover"><button class="hmp-x" id="hmpX" type="button" aria-label="Close profile">&times;</button></div>'
+  +'<div class="hmp-id"><div class="hmp-big" id="hmpBig" title="Change photo"><div class="hmp-av" id="hmpAv2"></div><span class="hmp-cam">&#128247;</span></div><div class="hmp-who"><h3 class="hmp-name" id="hmpName"></h3><span class="hmp-lvl" id="hmpLvl"></span></div></div>'
+  +'<div class="hmp-sub" id="hmpSub"></div><div class="hmp-quote" id="hmpQuote"></div>'
+  +'<div class="hmp-tabs" role="tablist"><button role="tab" data-p="ov" aria-selected="true">Overview</button><button role="tab" data-p="ly" aria-selected="false">Layers</button><button role="tab" data-p="st" aria-selected="false">Settings</button></div>'
+  +'<div class="hmp-body">'
+  +'<div class="hmp-pane on" data-p="ov"><div class="hmp-grid"><div class="hmp-stat"><i>&#127891;</i><div><b id="hmpGrade">-</b><span>Overall grade</span></div></div><div class="hmp-stat"><i>&#128218;</i><div><b id="hmpLess">0</b><span>Lessons done</span></div></div><div class="hmp-stat"><i>&#128293;</i><div><b id="hmpStreak">0</b><span>Day streak</span></div></div><div class="hmp-stat"><i>&#129504;</i><div><b id="hmpQz">0</b><span>Quizzes taken</span></div></div></div>'
+  +'<div class="hmp-h">Course progress</div><div class="hmp-bar"><i id="hmpFill"></i></div><div class="hmp-lbl" id="hmpLbl"></div>'
+  +'<div class="hmp-h">Achievements</div><div class="hmp-badges" id="hmpBadges"></div>'
+  +'<div class="hmp-act"><button class="pri" id="hmpProg" type="button">Open My Progress</button><button id="hmpToLayers" type="button">See Layers</button></div></div>'
+  +'<div class="hmp-pane" data-p="ly" id="hmpLayersPane"></div>'
+  +'<div class="hmp-pane" data-p="st"><div class="hmp-field"><label for="hmpGoal">My goal for this course</label><input id="hmpGoal" maxlength="80" placeholder="e.g. Build my own portfolio"><label for="hmpBio">About me</label><textarea id="hmpBio" rows="2" maxlength="160" placeholder="A short line about you"></textarea></div>'
+  +'<div class="hmp-h">Profile colour</div><div class="hmp-sw" id="hmpSw"></div>'
+  +'<div class="hmp-sw2"><span>Dark card</span><button id="hmpDark" type="button" aria-pressed="false" aria-label="Dark mode for this card"></button></div>'
+  +'<div class="hmp-act"><button class="pri" id="hmpSave" type="button">Save</button><button id="hmpClear" type="button">Remove photo</button><button class="dng" id="hmpOut" type="button">Sign out</button></div></div>'
+  +'</div><input type="file" id="hmpFile" accept="image/*" hidden>';
   document.body.appendChild(pn);
-  var $=function(i){return document.getElementById(i);};
+  /* move the Layers panel inside the profile (keeps every id / listener) */
+  var lp=$('layersPanel'); if(lp){ $('hmpLayersPane').appendChild(lp); lp.classList.remove('collapsed');
+    new MutationObserver(function(){ if(lp.classList.contains('collapsed')) lp.classList.remove('collapsed'); }).observe(lp,{attributes:true,attributeFilter:['class']}); }
+  pn.addEventListener('pointerdown',function(e){ e.stopPropagation(); });  /* stops the old "tap outside closes Layers" rule */
   function email(){ try{ return (student&&student.email)||''; }catch(e){ return ''; } }
   function ext(){ try{ return JSON.parse(localStorage.getItem('hm_pf_x:'+email())||'{}'); }catch(e){ return {}; } }
   function setExt(o){ try{ localStorage.setItem('hm_pf_x:'+email(),JSON.stringify(o)); }catch(e){} }
-  function today(){ return new Date().toISOString().slice(0,10); }
-  function streak(){
-    var k='hm_streak:'+email(), s={}; try{ s=JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){}
-    var t=today(); if(s.last!==t){ var y=new Date(Date.now()-864e5).toISOString().slice(0,10); s.n=(s.last===y)?(s.n||0)+1:1; s.last=t; try{ localStorage.setItem(k,JSON.stringify(s)); }catch(e){} }
-    return s.n||1;
-  }
-  function initials(n){ var p=String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase(); }
-  function paint(el,photo,name){ if(photo){ el.style.backgroundImage='url('+photo+')'; el.textContent=''; } else { el.style.backgroundImage=''; el.textContent=initials(name); } }
+  function streak(){ var k='hm_streak:'+email(), s={}; try{ s=JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){}
+    var t=new Date().toISOString().slice(0,10); if(s.last!==t){ var y=new Date(Date.now()-864e5).toISOString().slice(0,10); s.n=(s.last===y)?(s.n||0)+1:1; s.last=t; try{ localStorage.setItem(k,JSON.stringify(s)); }catch(e){} } return s.n||1; }
+  function ini(n){ var p=String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase(); }
+  function paint(el,ph,n){ if(ph){ el.style.backgroundImage='url('+ph+')'; el.textContent=''; } else { el.style.backgroundImage=''; el.textContent=ini(n); } }
+  function level(p){ return p>=100?'Master Designer':p>=70?'Pro Designer':p>=35?'Designer':p>=10?'Explorer':'Newcomer'; }
+  function theme(x){ var a=x.accent||COLORS[0]; pn.style.setProperty('--a',a); chip.style.setProperty('--a',a); document.documentElement.style.setProperty('--a',a); pn.classList.toggle('dark',!!x.dark); $('hmpDark').setAttribute('aria-pressed',!!x.dark);
+    $('hmpSw').querySelectorAll('button').forEach(function(b){ b.classList.toggle('on',b.dataset.c===a); }); }
+  COLORS.forEach(function(c){ var b=document.createElement('button'); b.type='button'; b.dataset.c=c; b.style.background=c; b.setAttribute('aria-label','Colour '+c);
+    b.onclick=function(){ var o=ext(); o.accent=c; setExt(o); theme(o); }; $('hmpSw').appendChild(b); });
   function refresh(){
     var ok=false; try{ ok=!!(student&&student.email); }catch(e){}
-    btn.style.display=ok?'':'none'; if(!ok){ pn.classList.remove('open'); return; }
-    var x=ext(), nm=student.name||'Student'; paint(av,x.photo,nm); paint($('hmpAv2'),x.photo,nm);
-    $('hmpName').textContent=nm; $('hmpMail').textContent=student.email;
-    $('hmpFull').textContent=(student.profile&&student.profile.fullName)||'';
+    chip.style.display=ok?'':'none'; if(!ok){ close(); return; }
+    var x=ext(), nm=student.name||'Student', first=nm.trim().split(/\s+/)[0]; theme(x); paint(av,x.photo,nm); paint($('hmpAv2'),x.photo,nm);
     var g={letter:'-',pct:0}; try{ g=computeGrade(); }catch(e){}
-    $('hmpGrade').textContent=g.letter==='Needs Improvement'?'NI':g.letter;
-    var done=(student.completed||[]).length, total=0; try{ total=cards.length; }catch(e){}
-    $('hmpLess').textContent=done; $('hmpStreak').textContent=streak();
-    var pct=total?Math.round(done/total*100):0; $('hmpFill').style.width=pct+'%'; $('hmpLbl').textContent=pct+'% of lessons completed'+(g.pct?' · overall '+g.pct+'%':'');
-    if(document.activeElement!==$('hmpGoal')) $('hmpGoal').value=x.goal||'';
-    if(document.activeElement!==$('hmpBio')) $('hmpBio').value=x.bio||'';
+    var gl=g.letter==='Needs Improvement'?'NI':g.letter, done=(student.completed||[]).length, total=0; try{ total=cards.length; }catch(e){}
+    var pct=total?Math.min(100,Math.round(done/total*100)):0, qz=Object.keys(student.weekQuizzes||{}).length, st=streak();
+    $('hmpChipName').textContent=first; $('hmpChipGrade').textContent=(gl&&gl!=='-'?gl+' · ':'')+pct+'%';
+    $('hmpRingV').style.strokeDashoffset=131.95*(1-pct/100);
+    $('hmpName').textContent=nm; $('hmpLvl').textContent=level(pct);
+    $('hmpSub').textContent=((student.profile&&student.profile.fullName)?student.profile.fullName+' · ':'')+student.email;
+    var q=$('hmpQuote'), t=[x.goal?'\ud83c\udfaf '+x.goal:'',x.bio||''].filter(Boolean).join('  \u2014  '); q.textContent=t; q.style.display=t?'block':'none';
+    $('hmpGrade').textContent=gl; $('hmpLess').textContent=done+(total?'/'+total:''); $('hmpStreak').textContent=st; $('hmpQz').textContent=qz;
+    $('hmpFill').style.width=pct+'%'; $('hmpLbl').textContent=pct+'% of lessons completed'+(g.pct?' \u00b7 overall score '+g.pct+'%':'');
+    var B=[['\ud83c\udf31','First Layer',done>=1],['\ud83d\udcda','10 Lessons',done>=10],['\ud83e\udde0','Quiz Taker',qz>=1],['\ud83d\udd25','3-Day Streak',st>=3],['\u2b50','Halfway',pct>=50],['\ud83c\udfc6','Course Complete',pct>=100]];
+    $('hmpBadges').innerHTML=B.map(function(b){ return '<div class="hmp-bd'+(b[2]?' on':'')+'"><span>'+b[0]+'</span>'+b[1]+'</div>'; }).join('');
+    if(document.activeElement!==$('hmpGoal')) $('hmpGoal').value=x.goal||''; if(document.activeElement!==$('hmpBio')) $('hmpBio').value=x.bio||'';
   }
-  btn.addEventListener('click',function(e){ e.stopPropagation(); var o=pn.classList.toggle('open'); btn.setAttribute('aria-expanded',o); if(o) refresh(); });
-  document.addEventListener('click',function(e){ if(!pn.contains(e.target)&&e.target!==btn) pn.classList.remove('open'); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') pn.classList.remove('open'); });
+  function tab(p){ pn.querySelectorAll('.hmp-tabs button').forEach(function(b){ b.setAttribute('aria-selected',b.dataset.p===p); }); pn.querySelectorAll('.hmp-pane').forEach(function(d){ d.classList.toggle('on',d.dataset.p===p); }); }
+  function open(){ refresh(); pn.classList.add('open'); scrim.classList.add('open'); chip.setAttribute('aria-expanded','true'); }
+  function close(){ pn.classList.remove('open'); scrim.classList.remove('open'); chip.setAttribute('aria-expanded','false'); }
+  chip.addEventListener('click',function(e){ e.stopPropagation(); pn.classList.contains('open')?close():open(); });
+  scrim.addEventListener('click',close); $('hmpX').addEventListener('click',close);
+  document.addEventListener('click',function(e){ if(pn.classList.contains('open')&&!pn.contains(e.target)&&!chip.contains(e.target)) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
+  pn.querySelectorAll('.hmp-tabs button').forEach(function(b){ b.addEventListener('click',function(){ tab(b.dataset.p); }); });
+  $('hmpToLayers').addEventListener('click',function(){ tab('ly'); });
   $('hmpBig').addEventListener('click',function(){ $('hmpFile').click(); });
-  $('hmpFile').addEventListener('change',function(){
-    var f=this.files&&this.files[0]; if(!f) return; var r=new FileReader();
-    r.onload=function(){ var im=new Image(); im.onload=function(){
-      var c=document.createElement('canvas'); c.width=c.height=128; var cx=c.getContext('2d'), s=Math.min(im.width,im.height);
-      cx.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,128,128);
-      var o=ext(); o.photo=c.toDataURL('image/jpeg',.75); setExt(o); refresh(); }; im.src=r.result; };
-    r.readAsDataURL(f); this.value='';
-  });
+  $('hmpFile').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f) return; var r=new FileReader();
+    r.onload=function(){ var im=new Image(); im.onload=function(){ var c=document.createElement('canvas'); c.width=c.height=128; var cx=c.getContext('2d'), s=Math.min(im.width,im.height);
+      cx.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,128,128); var o=ext(); o.photo=c.toDataURL('image/jpeg',.75); setExt(o); refresh(); }; im.src=r.result; };
+    r.readAsDataURL(f); this.value=''; });
   $('hmpClear').addEventListener('click',function(){ var o=ext(); delete o.photo; setExt(o); refresh(); });
-  $('hmpSave').addEventListener('click',function(){ var o=ext(); o.goal=$('hmpGoal').value.trim(); o.bio=$('hmpBio').value.trim(); setExt(o); try{ showToast('Profile saved'); }catch(e){} });
-  $('hmpProg').addEventListener('click',function(){ pn.classList.remove('open'); try{ goTab('progress'); }catch(e){} });
-  $('hmpOut').addEventListener('click',function(){ pn.classList.remove('open'); var b=$('lpSignOutBtn'); if(b) b.click(); });
+  $('hmpDark').addEventListener('click',function(){ var o=ext(); o.dark=!o.dark; setExt(o); theme(o); });
+  $('hmpSave').addEventListener('click',function(){ var o=ext(); o.goal=$('hmpGoal').value.trim(); o.bio=$('hmpBio').value.trim(); setExt(o); refresh(); try{ showToast('Profile saved'); }catch(e){} });
+  $('hmpProg').addEventListener('click',function(){ close(); try{ goTab('progress'); }catch(e){} });
+  $('hmpOut').addEventListener('click',function(){ close(); var b=$('lpSignOutBtn'); if(b) b.click(); });
   setInterval(refresh,2000); refresh();
 })();
 </script>
