@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<meta name="hm-build" content="2026-11-08-v21">
+<meta name="hm-build" content="2026-11-08-v22">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
@@ -1071,7 +1071,28 @@ img,video,canvas,svg,iframe{max-width:100%}
 }
 </style>
 </head>
-<body><div aria-live="polite" class="offline-banner" id="offlineBanner" role="status">You are offline. Your local progress can still be saved on this device.</div><button aria-label="Accessibility and learning preferences" class="a11y-float" id="a11yBtn" type="button">Aa</button>
+<body>
+<!--
+ =====================================================================
+  FIND-IT GUIDE  -  press Ctrl+F (Cmd+F on Mac) and paste the word in CAPITALS
+  ---------------------------------------------------------------------
+  EDIT THIS                         SEARCH FOR THIS WORD
+  Profile texts, colours, badges    CC-0 PROFILE
+  Curriculum week cards + vocab     CC-1 CURRICULUM
+  Screencast list                   CC-2 SCREENCASTS
+  Read Me notes                     CC-3 NOTES
+  Quizzes (Read Me + Screencast)    CC-4 QUIZZES
+  Projects                          CC-5 PROJECTS
+  Materials + Practice files        CC-6 MATERIALS
+  Home page text, tab names, brand  CC-7 SITE TEXT
+  Built-in week card (original)     id="week6"   (change the number)
+  Built-in Read Me (original)       id="readme-week6"
+  Built-in screencast list          const screencastPlaylist
+  Built-in screencast vocab/quiz    window.screencastQuizVocabulary
+  Built-in materials / practice     const materialIds  /  const practiceIds
+ =====================================================================
+-->
+<div aria-live="polite" class="offline-banner" id="offlineBanner" role="status">You are offline. Your local progress can still be saved on this device.</div><button aria-label="Accessibility and learning preferences" class="a11y-float" id="a11yBtn" type="button">Aa</button>
 <a class="skip-link" href="#mainContent">Skip to content</a>
 <!-- ========== SIGN-IN GATE ========== -->
 <div aria-labelledby="siHeading" aria-modal="true" id="signInGate" role="dialog">
@@ -1174,7 +1195,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 </div>
 <div class="hn-wrap" id="hnWrap" style="display:none"><button aria-expanded="false" aria-haspopup="dialog" aria-label="Notifications" class="hn-bell" id="hnBell" type="button"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="hn-badge" hidden id="hnBadge">0</span></button></div>
 <button aria-controls="layersPanel" aria-expanded="false" class="panel-toggle" id="lpToggle">Layers ▸</button>
-<button class="hmp-chip" id="hmpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open my profile" style="display:none"><span class="hmp-ring"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="t" cx="24" cy="24" r="21"/><circle class="v" id="hmpRingV" cx="24" cy="24" r="21"/></svg><span class="hmp-av" id="hmpAv">?</span></span><span class="hmp-meta"><b id="hmpChipName">Student</b><small id="hmpChipGrade">-</small></span><span class="hmp-caret" aria-hidden="true">&#9662;</span></button>
+<button class="hmp-chip" id="hmpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open my profile" style="display:none"><span class="hmp-ring"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="t" cx="24" cy="24" r="21"/><circle class="v" id="hmpRingV" cx="24" cy="24" r="21"/></svg><span class="hmp-av" id="hmpAv">?</span></span><span class="hmp-meta"><b id="hmpChipName">Student</b><small id="hmpChipGrade">-</small></span><svg class="hmp-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
 </header>
 <div class="workspace">
 <main class="canvas" id="mainContent">
@@ -2388,6 +2409,43 @@ img,video,canvas,svg,iframe{max-width:100%}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <!-- ########## CONTENT CENTER: edit each block on its own ########## -->
 <script id="cc-root">window.HM_CONTENT=window.HM_CONTENT||{};</script>
+<script id="cc-0-profile">
+/* ==================================================================
+   CC-0 PROFILE  -  every text, level, badge and colour of the student profile
+   Edit the words between quotes. Colours are hex codes like "#2f6fed".
+   Badge rule: "lessons" | "percent" | "quizzes" | "streak"  (value = number needed)
+   Badge icons: seed, book, check, flame, star, trophy, target, award, chart, zap
+   ================================================================== */
+window.HM_PROFILE = {
+  labels:{
+    title:"My Profile", tabOverview:"Overview", tabLayers:"Layers", tabSettings:"Settings",
+    grade:"Overall grade", lessons:"Lessons done", streak:"Day streak", quizzes:"Quizzes taken",
+    progressTitle:"Course progress", badgesTitle:"Achievements", levelTitle:"Next level",
+    goal:"My goal for this course", bio:"About me", photoTitle:"Profile photo",
+    accentTitle:"Accent colour", themeTitle:"Card theme", save:"Save changes",
+    myProgress:"Open My Progress", signOut:"Sign out"
+  },
+  levels:[ {min:0,name:"Newcomer"}, {min:10,name:"Explorer"}, {min:35,name:"Designer"}, {min:70,name:"Pro Designer"}, {min:100,name:"Master Designer"} ],
+  badges:[
+    {icon:"seed",   name:"First Layer",     desc:"Finish your first lesson",    rule:"lessons", value:1},
+    {icon:"book",   name:"10 Lessons",      desc:"Finish 10 lessons",           rule:"lessons", value:10},
+    {icon:"check",  name:"Quiz Taker",      desc:"Take your first quiz",        rule:"quizzes", value:1},
+    {icon:"flame",  name:"3-Day Streak",    desc:"Visit 3 days in a row",       rule:"streak",  value:3},
+    {icon:"star",   name:"Halfway",         desc:"Reach 50% of the course",     rule:"percent", value:50},
+    {icon:"trophy", name:"Course Complete", desc:"Finish every lesson",         rule:"percent", value:100}
+  ],
+  accents:["#2f6fed","#8b5cf6","#ef476f","#ff7a2d","#12b886","#0ea5e9"],
+  defaultAccent:"#2f6fed",
+  defaultTheme:"light",
+  /* CARD CONTENT COLOURS: bg = card background, fg = main text, muted = small text, line = borders, surface = boxes */
+  themes:{
+    light:   {name:"Light",    bg:"#ffffff", fg:"#1a1d24", muted:"#5b6270", line:"#e3e7ee", surface:"#f3f5f8"},
+    dark:    {name:"Dark",     bg:"#171a22", fg:"#eef0f6", muted:"#9aa2b1", line:"#2b303c", surface:"#222633"},
+    midnight:{name:"Midnight", bg:"#0f1b3d", fg:"#e8eeff", muted:"#9db0e0", line:"#22346b", surface:"#172652"},
+    sand:    {name:"Sand",     bg:"#fbf6ee", fg:"#33291c", muted:"#7a6a55", line:"#eadfce", surface:"#f3eadb"}
+  }
+};
+</script>
 <script id="cc-1-curriculum">
 /* ==================================================================
    CONTENT CENTER · 1) CURRICULUM (week cards + their vocabulary quiz)
@@ -2440,7 +2498,7 @@ HM_CONTENT.screencasts = {
    ================================================================== */
 HM_CONTENT.notes = [
   /* EXAMPLE:
-  { id:"week6", week:6, badge:"WEEK 6", title:"Retouching", intro:"Intro paragraph", quiz:true,
+  { id:"readme-week6", week:6, badge:"WEEK 6", title:"Retouching", intro:"Intro paragraph", quiz:true,
     cards:[ { title:"Eyes", text:"What the student reads", links:[] } ],
     vocab:[ {term:"Dodge", def:"Lightens an area"} ], tip:"Optional tip box", hidden:false }
   */
@@ -2449,14 +2507,14 @@ HM_CONTENT.notes = [
 <script id="cc-4-quizzes">
 /* ==================================================================
    CONTENT CENTER · 5) QUIZZES (Read Me quiz + Screencast quiz = the Assessment list)
-   A quiz needs at least 5 questions; students get 5 random ones. type:"video" -> key is a screencast id. type:"reading" -> key is a Read Me note id. "answer" is the 0-based index of the right option.
+   Read Me ids look like readme-week1 ... readme-week16. A quiz needs at least 5 questions; students get 5 random ones. type:"video" -> key is a screencast id. type:"reading" -> key is a Read Me note id. "answer" is the 0-based index of the right option.
    Leave empty to keep the built-in course. Anything you add here shows up
    on the student site after a refresh. Items with the same id REPLACE the
    built-in one; new ids are ADDED. Nothing built-in is ever deleted.
    ================================================================== */
 HM_CONTENT.quizzes = [
   /* EXAMPLE:
-  { type:"reading", key:"week6", questions:[
+  { type:"reading", key:"readme-week6", questions:[
     { q:"Which tool whitens teeth?", options:["Dodge","Burn","Smudge","Blur"], answer:0 },
     // ... at least 5 questions
   ] }
@@ -2493,6 +2551,21 @@ HM_CONTENT.materials = [
 HM_CONTENT.practice = [
   /* EXAMPLE: { id:"DRIVE_FILE_ID", label:"Practice File 1" } */
 ];
+</script>
+<script id="cc-7-site-text">
+/* ==================================================================
+   CC-7 SITE TEXT  -  Home page words, brand name and tab names
+   Leave "" to keep the current text. Anything you type replaces it.
+   ================================================================== */
+HM_CONTENT.site = {
+  brandName:"",            /* top-left title, e.g. "Graphic Design & Photoshop" */
+  brandSub:"",             /* small line under it, e.g. "Class of 2028" */
+  heroEyebrow:"",          /* small line above the big heading */
+  heroTitle:"",            /* big heading on Home */
+  heroText:"",             /* paragraph under the heading */
+  stats:[ /* up to 4 boxes on Home, e.g. {num:"16", label:"Weeks of curriculum"} */ ],
+  tabs:{ /* rename tabs, e.g. curriculum:"Weeks", notes:"Reading", screencasts:"Videos" */ }
+};
 </script>
 <!-- ########## END CONTENT CENTER ########## -->
 <script id="hm-content-js">
@@ -8246,7 +8319,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
 })();
 </script>
 <style id="hm-profile-css">
-/* ===== STUDENT PROFILE · ultimate (top-right corner, replaces the Layers button) ===== */
+/* ===== STUDENT PROFILE - right-side drawer (no emoji, SVG icons) ===== */
 #studentBadge,#lpToggle{display:none!important}
 .workspace:has(#layersPanel:not(.collapsed)){padding-right:0!important}
 .hmp-chip{--a:#2f6fed;order:9;margin-left:8px;flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:4px 12px 4px 4px;min-height:46px;border-radius:99px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-family:Inter,Arial,sans-serif;transition:background .2s,transform .2s}
@@ -8257,80 +8330,122 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
 .hmp-ring .v{stroke:var(--a);stroke-linecap:round;stroke-dasharray:131.95;stroke-dashoffset:131.95;transition:stroke-dashoffset .6s}
 .hmp-meta{display:flex;flex-direction:column;line-height:1.15;text-align:left;max-width:110px}
 .hmp-meta b{font:700 12.5px Poppins,Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hmp-meta small{font-size:11px;opacity:.75}.hmp-caret{font-size:11px;opacity:.7}
+.hmp-meta small{font-size:11px;opacity:.75}.hmp-caret{opacity:.7}
 .hmp-av{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--a,#2f6fed),#8b5cf6);color:#fff;font:800 14px Poppins,Arial,sans-serif;background-size:cover;background-position:center;overflow:hidden}
-.hmp-scrim{position:fixed;inset:0;background:rgba(10,14,28,.45);z-index:1190;display:none;backdrop-filter:blur(2px)}
-.hmp-scrim.open{display:block}
-.hmp-panel{--a:#2f6fed;--bg:#fff;--fg:#1a1d24;--mu:#5b6270;--ln:#e3e7ee;--sf:#f3f5f8;position:fixed;top:calc(var(--bar-h,64px) + 10px);right:max(12px,env(safe-area-inset-right));width:min(410px,calc(100vw - 24px));max-height:calc(100dvh - var(--bar-h,64px) - 22px);display:none;flex-direction:column;background:var(--bg);color:var(--fg);border-radius:22px;box-shadow:0 28px 80px rgba(8,12,30,.5);z-index:1200;overflow:hidden;font:14px Inter,Arial,sans-serif}
-.hmp-panel.dark{--bg:#171a22;--fg:#eef0f6;--mu:#9aa2b1;--ln:#2b303c;--sf:#222633}
-.hmp-panel.open{display:flex;animation:hmpIn .22s ease both}
-@keyframes hmpIn{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
-.hmp-cover{position:relative;height:96px;flex:0 0 auto;background:linear-gradient(120deg,var(--a),#8b5cf6 70%,#ff7a2d)}
-.hmp-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.28);color:#fff;font-size:20px;cursor:pointer}
+.hmp-scrim{position:fixed;inset:0;background:rgba(10,14,28,.5);z-index:1190;display:none;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.hmp-scrim.open{display:block;animation:hmpFade .2s ease both}
+.hmp-ic{display:inline-block;vertical-align:middle;flex:0 0 auto}
+.hmp-panel{--a:#2f6fed;--bg:#fff;--fg:#1a1d24;--mu:#5b6270;--ln:#e3e7ee;--sf:#f3f5f8;position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);display:none;flex-direction:column;background:var(--bg);color:var(--fg);box-shadow:-24px 0 70px rgba(8,12,30,.45);z-index:1200;font:14px Inter,Arial,sans-serif;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.hmp-panel.open{display:flex;animation:hmpSlide .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes hmpSlide{from{transform:translateX(100%)}to{transform:none}}
+@keyframes hmpFade{from{opacity:0}to{opacity:1}}
+.hmp-top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--ln);flex:0 0 auto}
+.hmp-top h2{margin:0;font:700 15px Poppins,Arial,sans-serif;display:flex;align-items:center;gap:8px}
+.hmp-iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--ln);background:var(--sf);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hmp-scroll{flex:1;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.hmp-cover{height:92px;background:linear-gradient(120deg,var(--a),#8b5cf6 70%,#ff7a2d)}
 .hmp-id{display:flex;gap:14px;align-items:flex-end;padding:0 18px;margin-top:-38px}
-.hmp-big{position:relative;width:84px;height:84px;flex:0 0 auto;cursor:pointer}
-.hmp-big .hmp-av{border:4px solid var(--bg);font-size:28px;box-shadow:0 8px 22px rgba(0,0,0,.25)}
-.hmp-cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;border:3px solid var(--bg)}
+.hmp-big{position:relative;width:88px;height:88px;flex:0 0 auto;cursor:pointer;border:0;background:none;padding:0}
+.hmp-big .hmp-av{border:4px solid var(--bg);font-size:30px;box-shadow:0 8px 22px rgba(0,0,0,.25)}
+.hmp-cam{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:var(--a);color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid var(--bg)}
 .hmp-who{padding-bottom:4px;min-width:0}
-.hmp-name{font:700 18px Poppins,Arial,sans-serif;margin:0;line-height:1.2}
-.hmp-lvl{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:99px;background:var(--a);color:#fff;font:700 11px Inter,Arial,sans-serif}
-.hmp-sub{color:var(--mu);font-size:12px;margin:8px 18px 0;word-break:break-all}
-.hmp-quote{margin:8px 18px 0;padding:10px 12px;border-left:3px solid var(--a);background:var(--sf);border-radius:0 10px 10px 0;font-size:13px;color:var(--mu);display:none}
-.hmp-tabs{display:flex;gap:4px;margin:14px 14px 0;padding:4px;background:var(--sf);border-radius:14px}
-.hmp-tabs button{flex:1;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--mu);font:700 13px Inter,Arial,sans-serif;cursor:pointer}
-.hmp-tabs button[aria-selected=true]{background:var(--bg);color:var(--a);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.hmp-body{overflow:auto;padding:14px 18px 20px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.hmp-name{font:700 19px Poppins,Arial,sans-serif;margin:0;line-height:1.2}
+.hmp-lvl{display:inline-block;margin-top:5px;padding:3px 11px;border-radius:99px;background:var(--a);color:#fff;font:700 11px Inter,Arial,sans-serif;letter-spacing:.2px}
+.hmp-sub{color:var(--mu);font-size:12px;margin:10px 18px 0;word-break:break-all}
+.hmp-quote{margin:10px 18px 0;padding:10px 12px;border-left:3px solid var(--a);background:var(--sf);border-radius:0 10px 10px 0;font-size:13px;color:var(--mu);display:none}
+.hmp-tabs{position:sticky;top:0;z-index:2;display:flex;gap:4px;margin:14px 0 0;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--ln)}
+.hmp-tabs button{flex:1;min-height:42px;border:0;border-radius:11px;background:transparent;color:var(--mu);font:700 13px Inter,Arial,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.hmp-tabs button[aria-selected=true]{background:var(--a);color:#fff}
+.hmp-body{padding:16px 18px 24px}
 .hmp-pane{display:none}.hmp-pane.on{display:block}
 .hmp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.hmp-stat{background:var(--sf);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center}
-.hmp-stat i{font-style:normal;font-size:20px}.hmp-stat b{display:block;font:800 18px Poppins,Arial,sans-serif;color:var(--a);line-height:1.1}.hmp-stat span{font-size:11.5px;color:var(--mu)}
-.hmp-h{font:700 13px Poppins,Arial,sans-serif;margin:18px 0 8px}
-.hmp-bar{height:10px;border-radius:99px;background:var(--ln);overflow:hidden}.hmp-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),#8b5cf6);transition:width .5s}
-.hmp-lbl{font-size:12px;color:var(--mu);margin-top:6px}
-.hmp-badges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.hmp-bd{text-align:center;padding:10px 4px;border-radius:14px;background:var(--sf);font-size:11px;color:var(--mu);opacity:.45;filter:grayscale(1)}
-.hmp-bd.on{opacity:1;filter:none;color:var(--fg)}.hmp-bd span{display:block;font-size:24px;margin-bottom:2px}
-.hmp-field label{display:block;font-size:12px;font-weight:700;color:var(--mu);margin:12px 0 4px}
-.hmp-field input,.hmp-field textarea{width:100%;border:1px solid var(--ln);background:var(--bg);color:var(--fg);border-radius:12px;padding:11px 12px;font:inherit;resize:none}
-.hmp-sw{display:flex;gap:10px;flex-wrap:wrap}.hmp-sw button{width:34px;height:34px;border-radius:50%;border:3px solid var(--bg);box-shadow:0 0 0 2px var(--ln);cursor:pointer}.hmp-sw button.on{box-shadow:0 0 0 3px var(--fg)}
-.hmp-sw2{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px;background:var(--sf);border-radius:12px;font-weight:600}
-.hmp-sw2 button{width:48px;height:28px;border-radius:99px;border:0;background:var(--ln);position:relative;cursor:pointer}.hmp-sw2 button:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}.hmp-sw2 button[aria-pressed=true]{background:var(--a)}.hmp-sw2 button[aria-pressed=true]:after{left:23px}
-.hmp-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.hmp-act button{flex:1 1 45%;min-height:44px;border-radius:12px;border:1px solid var(--ln);background:var(--bg);color:var(--fg);font:700 13px Inter,Arial,sans-serif;cursor:pointer}
-.hmp-act .pri{background:var(--a);border-color:var(--a);color:#fff}.hmp-act .dng{color:#e5484d}
+.hmp-stat{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:12px;display:flex;gap:11px;align-items:center}
+.hmp-stat .ib{width:38px;height:38px;border-radius:11px;background:var(--a);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;opacity:.95}
+.hmp-stat b{display:block;font:800 18px Poppins,Arial,sans-serif;color:var(--fg);line-height:1.1}.hmp-stat span{font-size:11.5px;color:var(--mu)}
+.hmp-h{font:700 13px Poppins,Arial,sans-serif;margin:20px 0 10px;color:var(--fg)}
+.hmp-donut{display:flex;gap:16px;align-items:center;background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:14px}
+.hmp-donut .d{position:relative;width:104px;height:104px;flex:0 0 auto}
+.hmp-donut svg{width:104px;height:104px;transform:rotate(-90deg)}
+.hmp-donut circle{fill:none;stroke-width:10}.hmp-donut .t{stroke:var(--ln)}
+.hmp-donut .v{stroke:var(--a);stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset .7s}
+.hmp-donut .c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 22px Poppins,Arial,sans-serif;color:var(--fg)}
+.hmp-donut p{margin:0 0 6px;font-size:12.5px;color:var(--mu)}.hmp-donut p b{color:var(--fg)}
+.hmp-bar{height:8px;border-radius:99px;background:var(--ln);overflow:hidden;margin-top:6px}.hmp-bar i{display:block;height:100%;width:0;background:var(--a);transition:width .5s}
+.hmp-badges{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.hmp-bd{display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:var(--sf);border:1px solid var(--ln);opacity:.5}
+.hmp-bd .ib{width:36px;height:36px;border-radius:50%;background:var(--ln);color:var(--mu);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.hmp-bd b{display:block;font-size:12.5px;color:var(--fg);line-height:1.2}.hmp-bd span{font-size:11px;color:var(--mu);line-height:1.25;display:block}
+.hmp-bd.on{opacity:1}.hmp-bd.on .ib{background:var(--a);color:#fff}
+.hmp-field label{display:block;font-size:12px;font-weight:700;color:var(--mu);margin:12px 0 5px}
+.hmp-field input[type=text],.hmp-field textarea{width:100%;border:1px solid var(--ln);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;font:inherit;resize:none}
+.hmp-field input:focus,.hmp-field textarea:focus{outline:2px solid var(--a);outline-offset:1px}
+.hmp-sw{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hmp-sw button.sw{width:36px;height:36px;border-radius:50%;border:3px solid var(--bg);box-shadow:0 0 0 2px var(--ln);cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;padding:0}
+.hmp-sw button.sw.on{box-shadow:0 0 0 3px var(--fg)}
+.hmp-sw input[type=color]{width:40px;height:40px;border:0;background:none;padding:0;cursor:pointer}
+.hmp-themes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.hmp-th{border:2px solid var(--ln);border-radius:14px;padding:10px;cursor:pointer;text-align:left;font:700 12.5px Inter,Arial,sans-serif;min-height:64px;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.hmp-th.on{border-color:var(--a)}.hmp-th i{display:block;height:8px;width:60%;border-radius:99px}
+.hmp-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.hmp-btn2{flex:1 1 45%;min-height:46px;border-radius:12px;border:1px solid var(--ln);background:var(--bg);color:var(--fg);font:700 13px Inter,Arial,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.hmp-btn2.pri{background:var(--a);border-color:var(--a);color:#fff}.hmp-btn2.dng{color:#e5484d;border-color:#e5484d55}
+.hmp-foot{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--ln);background:var(--bg);flex:0 0 auto}
 .hmp-panel .hmp-pane #layersPanel{position:static!important;display:block!important;width:auto!important;max-height:none!important;top:auto!important;right:auto!important;left:auto!important;padding:14px!important;border-radius:16px!important;border:0!important;box-shadow:none!important;animation:none!important;overflow:visible!important}
 .hmp-panel #layersPanel .lp-head,.hmp-panel #layersPanel .lp-signout{display:none!important}
-@media (max-width:760px){.hmp-meta,.hmp-caret{display:none}.hmp-chip{padding:4px;min-height:46px}.hmp-panel{left:8px;right:8px;width:auto;top:calc(var(--bar-h,64px) + 6px)}}
-@media (prefers-reduced-motion:reduce){.hmp-panel.open{animation:none}}
+@media (max-width:760px){.hmp-meta,.hmp-caret{display:none}.hmp-chip{padding:4px}.hmp-panel{width:100vw}}
+@media (prefers-reduced-motion:reduce){.hmp-panel.open,.hmp-scrim.open{animation:none}}
 </style>
 <script id="hm-profile-js">
-/* ===== STUDENT PROFILE · ultimate. Tabs: Overview | Layers | Settings.
-   The old "Layers" panel is moved INSIDE the Layers tab (all its ids and buttons still work).
-   Photo, goal, bio, colour, dark mode and streak are saved on this device. ===== */
+/* ===== STUDENT PROFILE - right-side drawer. Texts/colours/badges come from CC-0 PROFILE.
+   Tabs: Overview | Layers | Settings. The old Layers panel lives inside the Layers tab.
+   Photo, goal, bio, colours and streak are saved on this device. ===== */
 (function(){
   var $=function(i){return document.getElementById(i);}, chip=$('hmpBtn'), av=$('hmpAv');
-  var COLORS=['#2f6fed','#8b5cf6','#ef476f','#ff7a2d','#12b886','#0ea5e9'];
+  var C=window.HM_PROFILE||{}, LB=C.labels||{}, T=function(k,d){ return LB[k]||d; };
+  var ACC=(C.accents&&C.accents.length)?C.accents:['#2f6fed','#8b5cf6','#ef476f','#ff7a2d','#12b886','#0ea5e9'];
+  var LEV=(C.levels&&C.levels.length)?C.levels:[{min:0,name:'Newcomer'},{min:10,name:'Explorer'},{min:35,name:'Designer'},{min:70,name:'Pro Designer'},{min:100,name:'Master Designer'}];
+  var BAD=(C.badges&&C.badges.length)?C.badges:[{icon:'seed',name:'First Layer',desc:'Finish your first lesson',rule:'lessons',value:1}];
+  var THM=C.themes&&Object.keys(C.themes).length?C.themes:{light:{name:'Light',bg:'#ffffff',fg:'#1a1d24',muted:'#5b6270',line:'#e3e7ee',surface:'#f3f5f8'}};
+  var P={close:'<path d="M18 6 6 18M6 6l12 12"/>',camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+   user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+   settings:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',award:'<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+   book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+   check:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+   star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-1.97 1.5C7.46 19.15 7 20.24 7 22M14 14.66V17c0 .55.47.98 1.97 1.5C16.54 19.15 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z"/>',
+   zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',seed:'<path d="M12 22V12M12 12C12 7 8 4 3 4c0 5 3 8 9 8zM12 14c0-4 3-7 9-7 0 5-3 8-9 8"/>',
+   chart:'<path d="M18 20V10M12 20V4M6 20v-6"/>',out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',tick:'<polyline points="20 6 9 17 4 12"/>'};
+  function ic(n,z){ z=z||18; return '<svg class="hmp-ic" width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[n]||P.star)+'</svg>'; }
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   var scrim=document.createElement('div'); scrim.className='hmp-scrim'; document.body.appendChild(scrim);
-  var pn=document.createElement('div'); pn.className='hmp-panel'; pn.setAttribute('role','dialog'); pn.setAttribute('aria-label','Student profile');
-  pn.innerHTML='<div class="hmp-cover"><button class="hmp-x" id="hmpX" type="button" aria-label="Close profile">&times;</button></div>'
-  +'<div class="hmp-id"><div class="hmp-big" id="hmpBig" title="Change photo"><div class="hmp-av" id="hmpAv2"></div><span class="hmp-cam">&#128247;</span></div><div class="hmp-who"><h3 class="hmp-name" id="hmpName"></h3><span class="hmp-lvl" id="hmpLvl"></span></div></div>'
+  var pn=document.createElement('aside'); pn.className='hmp-panel'; pn.setAttribute('role','dialog'); pn.setAttribute('aria-modal','true'); pn.setAttribute('aria-label',T('title','My Profile'));
+  var tabs=[['ov','user',T('tabOverview','Overview')],['ly','layers',T('tabLayers','Layers')],['st','settings',T('tabSettings','Settings')]];
+  pn.innerHTML='<div class="hmp-top"><h2>'+ic('user',18)+esc(T('title','My Profile'))+'</h2><button class="hmp-iconbtn" id="hmpX" type="button" aria-label="Close profile">'+ic('close',20)+'</button></div>'
+  +'<div class="hmp-scroll" id="hmpScroll"><div class="hmp-cover"></div>'
+  +'<div class="hmp-id"><button class="hmp-big" id="hmpBig" type="button" aria-label="Change photo"><div class="hmp-av" id="hmpAv2"></div><span class="hmp-cam">'+ic('camera',15)+'</span></button><div class="hmp-who"><h3 class="hmp-name" id="hmpName"></h3><span class="hmp-lvl" id="hmpLvl"></span></div></div>'
   +'<div class="hmp-sub" id="hmpSub"></div><div class="hmp-quote" id="hmpQuote"></div>'
-  +'<div class="hmp-tabs" role="tablist"><button role="tab" data-p="ov" aria-selected="true">Overview</button><button role="tab" data-p="ly" aria-selected="false">Layers</button><button role="tab" data-p="st" aria-selected="false">Settings</button></div>'
+  +'<div class="hmp-tabs" role="tablist">'+tabs.map(function(t,i){return '<button type="button" role="tab" data-p="'+t[0]+'" aria-selected="'+(i===0)+'">'+ic(t[1],16)+esc(t[2])+'</button>';}).join('')+'</div>'
   +'<div class="hmp-body">'
-  +'<div class="hmp-pane on" data-p="ov"><div class="hmp-grid"><div class="hmp-stat"><i>&#127891;</i><div><b id="hmpGrade">-</b><span>Overall grade</span></div></div><div class="hmp-stat"><i>&#128218;</i><div><b id="hmpLess">0</b><span>Lessons done</span></div></div><div class="hmp-stat"><i>&#128293;</i><div><b id="hmpStreak">0</b><span>Day streak</span></div></div><div class="hmp-stat"><i>&#129504;</i><div><b id="hmpQz">0</b><span>Quizzes taken</span></div></div></div>'
-  +'<div class="hmp-h">Course progress</div><div class="hmp-bar"><i id="hmpFill"></i></div><div class="hmp-lbl" id="hmpLbl"></div>'
-  +'<div class="hmp-h">Achievements</div><div class="hmp-badges" id="hmpBadges"></div>'
-  +'<div class="hmp-act"><button class="pri" id="hmpProg" type="button">Open My Progress</button><button id="hmpToLayers" type="button">See Layers</button></div></div>'
+  +'<div class="hmp-pane on" data-p="ov"><div class="hmp-grid">'
+  +'<div class="hmp-stat"><span class="ib">'+ic('award',20)+'</span><div><b id="hmpGrade">-</b><span>'+esc(T('grade','Overall grade'))+'</span></div></div>'
+  +'<div class="hmp-stat"><span class="ib">'+ic('book',20)+'</span><div><b id="hmpLess">0</b><span>'+esc(T('lessons','Lessons done'))+'</span></div></div>'
+  +'<div class="hmp-stat"><span class="ib">'+ic('flame',20)+'</span><div><b id="hmpStreak">0</b><span>'+esc(T('streak','Day streak'))+'</span></div></div>'
+  +'<div class="hmp-stat"><span class="ib">'+ic('check',20)+'</span><div><b id="hmpQz">0</b><span>'+esc(T('quizzes','Quizzes taken'))+'</span></div></div></div>'
+  +'<div class="hmp-h">'+esc(T('progressTitle','Course progress'))+'</div><div class="hmp-donut"><div class="d"><svg viewBox="0 0 120 120"><circle class="t" cx="60" cy="60" r="52"/><circle class="v" id="hmpDonut" cx="60" cy="60" r="52"/></svg><div class="c" id="hmpPct">0%</div></div><div><p id="hmpLbl"></p><p><b>'+esc(T('levelTitle','Next level'))+'</b></p><p id="hmpNext"></p><div class="hmp-bar"><i id="hmpFill"></i></div></div></div>'
+  +'<div class="hmp-h">'+esc(T('badgesTitle','Achievements'))+'</div><div class="hmp-badges" id="hmpBadges"></div></div>'
   +'<div class="hmp-pane" data-p="ly" id="hmpLayersPane"></div>'
-  +'<div class="hmp-pane" data-p="st"><div class="hmp-field"><label for="hmpGoal">My goal for this course</label><input id="hmpGoal" maxlength="80" placeholder="e.g. Build my own portfolio"><label for="hmpBio">About me</label><textarea id="hmpBio" rows="2" maxlength="160" placeholder="A short line about you"></textarea></div>'
-  +'<div class="hmp-h">Profile colour</div><div class="hmp-sw" id="hmpSw"></div>'
-  +'<div class="hmp-sw2"><span>Dark card</span><button id="hmpDark" type="button" aria-pressed="false" aria-label="Dark mode for this card"></button></div>'
-  +'<div class="hmp-act"><button class="pri" id="hmpSave" type="button">Save</button><button id="hmpClear" type="button">Remove photo</button><button class="dng" id="hmpOut" type="button">Sign out</button></div></div>'
-  +'</div><input type="file" id="hmpFile" accept="image/*" hidden>';
+  +'<div class="hmp-pane" data-p="st"><div class="hmp-field"><label for="hmpGoal">'+esc(T('goal','My goal for this course'))+'</label><input type="text" id="hmpGoal" maxlength="80" placeholder="e.g. Build my own portfolio"><label for="hmpBio">'+esc(T('bio','About me'))+'</label><textarea id="hmpBio" rows="3" maxlength="160" placeholder="A short line about you"></textarea></div>'
+  +'<div class="hmp-h">'+esc(T('photoTitle','Profile photo'))+'</div><div class="hmp-row" style="margin-top:0"><button class="hmp-btn2" id="hmpUp" type="button">'+ic('camera',16)+'Upload photo</button><button class="hmp-btn2" id="hmpClear" type="button">'+ic('trash',16)+'Remove</button></div>'
+  +'<div class="hmp-h">'+esc(T('accentTitle','Accent colour'))+'</div><div class="hmp-sw" id="hmpSw"></div>'
+  +'<div class="hmp-h">'+esc(T('themeTitle','Card theme'))+'</div><div class="hmp-themes" id="hmpThemes"></div>'
+  +'<div class="hmp-row"><button class="hmp-btn2 pri" id="hmpSave" type="button">'+ic('tick',16)+esc(T('save','Save changes'))+'</button></div></div>'
+  +'</div></div>'
+  +'<div class="hmp-foot"><button class="hmp-btn2 pri" id="hmpProg" type="button">'+ic('chart',16)+esc(T('myProgress','Open My Progress'))+'</button><button class="hmp-btn2 dng" id="hmpOut" type="button">'+ic('out',16)+esc(T('signOut','Sign out'))+'</button></div>'
+  +'<input type="file" id="hmpFile" accept="image/*" hidden>';
   document.body.appendChild(pn);
-  /* move the Layers panel inside the profile (keeps every id / listener) */
   var lp=$('layersPanel'); if(lp){ $('hmpLayersPane').appendChild(lp); lp.classList.remove('collapsed');
     new MutationObserver(function(){ if(lp.classList.contains('collapsed')) lp.classList.remove('collapsed'); }).observe(lp,{attributes:true,attributeFilter:['class']}); }
-  pn.addEventListener('pointerdown',function(e){ e.stopPropagation(); });  /* stops the old "tap outside closes Layers" rule */
+  pn.addEventListener('pointerdown',function(e){ e.stopPropagation(); });
   function email(){ try{ return (student&&student.email)||''; }catch(e){ return ''; } }
   function ext(){ try{ return JSON.parse(localStorage.getItem('hm_pf_x:'+email())||'{}'); }catch(e){ return {}; } }
   function setExt(o){ try{ localStorage.setItem('hm_pf_x:'+email(),JSON.stringify(o)); }catch(e){} }
@@ -8338,49 +8453,74 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
     var t=new Date().toISOString().slice(0,10); if(s.last!==t){ var y=new Date(Date.now()-864e5).toISOString().slice(0,10); s.n=(s.last===y)?(s.n||0)+1:1; s.last=t; try{ localStorage.setItem(k,JSON.stringify(s)); }catch(e){} } return s.n||1; }
   function ini(n){ var p=String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase(); }
   function paint(el,ph,n){ if(ph){ el.style.backgroundImage='url('+ph+')'; el.textContent=''; } else { el.style.backgroundImage=''; el.textContent=ini(n); } }
-  function level(p){ return p>=100?'Master Designer':p>=70?'Pro Designer':p>=35?'Designer':p>=10?'Explorer':'Newcomer'; }
-  function theme(x){ var a=x.accent||COLORS[0]; pn.style.setProperty('--a',a); chip.style.setProperty('--a',a); document.documentElement.style.setProperty('--a',a); pn.classList.toggle('dark',!!x.dark); $('hmpDark').setAttribute('aria-pressed',!!x.dark);
-    $('hmpSw').querySelectorAll('button').forEach(function(b){ b.classList.toggle('on',b.dataset.c===a); }); }
-  COLORS.forEach(function(c){ var b=document.createElement('button'); b.type='button'; b.dataset.c=c; b.style.background=c; b.setAttribute('aria-label','Colour '+c);
+  function levelIdx(p){ var r=0; LEV.forEach(function(l,i){ if(p>=l.min) r=i; }); return r; }
+  function themeKey(x){ var k=x.theme||(x.dark?'dark':(C.defaultTheme||'light')); return THM[k]?k:Object.keys(THM)[0]; }
+  function theme(x){
+    var a=x.accent||C.defaultAccent||ACC[0], k=themeKey(x), t=THM[k];
+    pn.style.setProperty('--a',a); chip.style.setProperty('--a',a); document.documentElement.style.setProperty('--a',a);
+    pn.style.setProperty('--bg',t.bg); pn.style.setProperty('--fg',t.fg); pn.style.setProperty('--mu',t.muted); pn.style.setProperty('--ln',t.line); pn.style.setProperty('--sf',t.surface);
+    $('hmpSw').querySelectorAll('button.sw').forEach(function(b){ var on=b.dataset.c.toLowerCase()===a.toLowerCase(); b.classList.toggle('on',on); b.innerHTML=on?ic('tick',16):''; });
+    $('hmpThemes').querySelectorAll('.hmp-th').forEach(function(b){ b.classList.toggle('on',b.dataset.k===k); });
+  }
+  ACC.forEach(function(c){ var b=document.createElement('button'); b.type='button'; b.className='sw'; b.dataset.c=c; b.style.background=c; b.setAttribute('aria-label','Accent '+c);
     b.onclick=function(){ var o=ext(); o.accent=c; setExt(o); theme(o); }; $('hmpSw').appendChild(b); });
+  var ci=document.createElement('input'); ci.type='color'; ci.value=C.defaultAccent||ACC[0]; ci.setAttribute('aria-label','Custom accent colour');
+  ci.oninput=function(){ var o=ext(); o.accent=ci.value; setExt(o); theme(o); }; $('hmpSw').appendChild(ci);
+  Object.keys(THM).forEach(function(k){ var t=THM[k], b=document.createElement('button'); b.type='button'; b.className='hmp-th'; b.dataset.k=k;
+    b.style.background=t.bg; b.style.color=t.fg; b.innerHTML=esc(t.name||k)+'<i style="background:'+t.muted+'"></i>'; b.onclick=function(){ var o=ext(); o.theme=k; delete o.dark; setExt(o); theme(o); }; $('hmpThemes').appendChild(b); });
   function refresh(){
     var ok=false; try{ ok=!!(student&&student.email); }catch(e){}
     chip.style.display=ok?'':'none'; if(!ok){ close(); return; }
     var x=ext(), nm=student.name||'Student', first=nm.trim().split(/\s+/)[0]; theme(x); paint(av,x.photo,nm); paint($('hmpAv2'),x.photo,nm);
     var g={letter:'-',pct:0}; try{ g=computeGrade(); }catch(e){}
     var gl=g.letter==='Needs Improvement'?'NI':g.letter, done=(student.completed||[]).length, total=0; try{ total=cards.length; }catch(e){}
-    var pct=total?Math.min(100,Math.round(done/total*100)):0, qz=Object.keys(student.weekQuizzes||{}).length, st=streak();
-    $('hmpChipName').textContent=first; $('hmpChipGrade').textContent=(gl&&gl!=='-'?gl+' · ':'')+pct+'%';
+    var pct=total?Math.min(100,Math.round(done/total*100)):0, qz=Object.keys(student.weekQuizzes||{}).length, st=streak(), li=levelIdx(pct), nx=LEV[li+1];
+    $('hmpChipName').textContent=first; $('hmpChipGrade').textContent=(gl&&gl!=='-'?gl+' \u00b7 ':'')+pct+'%';
     $('hmpRingV').style.strokeDashoffset=131.95*(1-pct/100);
-    $('hmpName').textContent=nm; $('hmpLvl').textContent=level(pct);
-    $('hmpSub').textContent=((student.profile&&student.profile.fullName)?student.profile.fullName+' · ':'')+student.email;
-    var q=$('hmpQuote'), t=[x.goal?'\ud83c\udfaf '+x.goal:'',x.bio||''].filter(Boolean).join('  \u2014  '); q.textContent=t; q.style.display=t?'block':'none';
+    $('hmpName').textContent=nm; $('hmpLvl').textContent=LEV[li].name;
+    $('hmpSub').textContent=((student.profile&&student.profile.fullName)?student.profile.fullName+' \u00b7 ':'')+student.email;
+    var q=$('hmpQuote'), t=[x.goal||'',x.bio||''].filter(Boolean).join('  \u2014  '); q.textContent=t; q.style.display=t?'block':'none';
     $('hmpGrade').textContent=gl; $('hmpLess').textContent=done+(total?'/'+total:''); $('hmpStreak').textContent=st; $('hmpQz').textContent=qz;
-    $('hmpFill').style.width=pct+'%'; $('hmpLbl').textContent=pct+'% of lessons completed'+(g.pct?' \u00b7 overall score '+g.pct+'%':'');
-    var B=[['\ud83c\udf31','First Layer',done>=1],['\ud83d\udcda','10 Lessons',done>=10],['\ud83e\udde0','Quiz Taker',qz>=1],['\ud83d\udd25','3-Day Streak',st>=3],['\u2b50','Halfway',pct>=50],['\ud83c\udfc6','Course Complete',pct>=100]];
-    $('hmpBadges').innerHTML=B.map(function(b){ return '<div class="hmp-bd'+(b[2]?' on':'')+'"><span>'+b[0]+'</span>'+b[1]+'</div>'; }).join('');
+    $('hmpDonut').style.strokeDashoffset=326.7*(1-pct/100); $('hmpPct').textContent=pct+'%';
+    $('hmpLbl').textContent=done+(total?' of '+total:'')+' lessons completed'+(g.pct?' \u00b7 score '+g.pct+'%':'');
+    var span=nx?(nx.min-LEV[li].min):1, into=nx?Math.max(0,pct-LEV[li].min):span;
+    $('hmpNext').textContent=nx?('Reach '+nx.min+'% to become '+nx.name):'Top level reached'; $('hmpFill').style.width=Math.min(100,Math.round(into/span*100))+'%';
+    var val={lessons:done,percent:pct,quizzes:qz,streak:st};
+    $('hmpBadges').innerHTML=BAD.map(function(b){ var on=(val[b.rule]||0)>=b.value; return '<div class="hmp-bd'+(on?' on':'')+'"><span class="ib">'+ic(b.icon,18)+'</span><div><b>'+esc(b.name)+'</b><span>'+esc(b.desc||'')+'</span></div></div>'; }).join('');
     if(document.activeElement!==$('hmpGoal')) $('hmpGoal').value=x.goal||''; if(document.activeElement!==$('hmpBio')) $('hmpBio').value=x.bio||'';
   }
   function tab(p){ pn.querySelectorAll('.hmp-tabs button').forEach(function(b){ b.setAttribute('aria-selected',b.dataset.p===p); }); pn.querySelectorAll('.hmp-pane').forEach(function(d){ d.classList.toggle('on',d.dataset.p===p); }); }
-  function open(){ refresh(); pn.classList.add('open'); scrim.classList.add('open'); chip.setAttribute('aria-expanded','true'); }
-  function close(){ pn.classList.remove('open'); scrim.classList.remove('open'); chip.setAttribute('aria-expanded','false'); }
+  function open(){ refresh(); pn.classList.add('open'); scrim.classList.add('open'); chip.setAttribute('aria-expanded','true'); setTimeout(function(){ $('hmpX').focus(); },60); }
+  function close(){ if(!pn.classList.contains('open')) return; pn.classList.remove('open'); scrim.classList.remove('open'); chip.setAttribute('aria-expanded','false'); try{ chip.focus(); }catch(e){} }
   chip.addEventListener('click',function(e){ e.stopPropagation(); pn.classList.contains('open')?close():open(); });
   scrim.addEventListener('click',close); $('hmpX').addEventListener('click',close);
-  document.addEventListener('click',function(e){ if(pn.classList.contains('open')&&!pn.contains(e.target)&&!chip.contains(e.target)) close(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
-  pn.querySelectorAll('.hmp-tabs button').forEach(function(b){ b.addEventListener('click',function(){ tab(b.dataset.p); }); });
-  $('hmpToLayers').addEventListener('click',function(){ tab('ly'); });
-  $('hmpBig').addEventListener('click',function(){ $('hmpFile').click(); });
+  document.addEventListener('keydown',function(e){ if(!pn.classList.contains('open')) return; if(e.key==='Escape'){ close(); return; }
+    if(e.key==='Tab'){ var f=pn.querySelectorAll('button,input,textarea,[href]'), a=[].filter.call(f,function(n){ return n.offsetParent!==null&&!n.disabled; }); if(!a.length) return; var i=a.indexOf(document.activeElement);
+      if(e.shiftKey&&i<=0){ e.preventDefault(); a[a.length-1].focus(); } else if(!e.shiftKey&&i===a.length-1){ e.preventDefault(); a[0].focus(); } } });
+  pn.querySelectorAll('.hmp-tabs button').forEach(function(b){ b.addEventListener('click',function(){ tab(b.dataset.p); $('hmpScroll').scrollTop=0; }); });
+  $('hmpBig').addEventListener('click',function(){ $('hmpFile').click(); }); $('hmpUp').addEventListener('click',function(){ $('hmpFile').click(); });
   $('hmpFile').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f) return; var r=new FileReader();
     r.onload=function(){ var im=new Image(); im.onload=function(){ var c=document.createElement('canvas'); c.width=c.height=128; var cx=c.getContext('2d'), s=Math.min(im.width,im.height);
       cx.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,128,128); var o=ext(); o.photo=c.toDataURL('image/jpeg',.75); setExt(o); refresh(); }; im.src=r.result; };
     r.readAsDataURL(f); this.value=''; });
   $('hmpClear').addEventListener('click',function(){ var o=ext(); delete o.photo; setExt(o); refresh(); });
-  $('hmpDark').addEventListener('click',function(){ var o=ext(); o.dark=!o.dark; setExt(o); theme(o); });
   $('hmpSave').addEventListener('click',function(){ var o=ext(); o.goal=$('hmpGoal').value.trim(); o.bio=$('hmpBio').value.trim(); setExt(o); refresh(); try{ showToast('Profile saved'); }catch(e){} });
   $('hmpProg').addEventListener('click',function(){ close(); try{ goTab('progress'); }catch(e){} });
   $('hmpOut').addEventListener('click',function(){ close(); var b=$('lpSignOutBtn'); if(b) b.click(); });
-  setInterval(refresh,2000); refresh();
+  setInterval(function(){ if(!document.hidden) refresh(); },2000); refresh();
+})();
+</script>
+<script id="hm-site-text-js">
+/* Applies CC-7 SITE TEXT (Home words, brand, tab names). Empty values change nothing. */
+(function(){
+  function apply(){
+    var S=(window.HM_CONTENT&&HM_CONTENT.site)||{}, q=function(sel){return document.querySelector(sel);};
+    function set(sel,v){ if(v){ var e=q(sel); if(e) e.textContent=v; } }
+    set('.brand .name',S.brandName); set('.brand .sub',S.brandSub); set('.hero-eyebrow',S.heroEyebrow); set('.hero h1',S.heroTitle); set('.hero > p',S.heroText);
+    (S.stats||[]).slice(0,4).forEach(function(st,i){ var box=document.querySelectorAll('.stat-row .stat')[i]; if(!box) return; if(st.num!=null&&st.num!=='') box.querySelector('b').textContent=st.num; if(st.label) box.querySelector('span').textContent=st.label; });
+    Object.keys(S.tabs||{}).forEach(function(k){ var t=q('#mainTabs [data-tab="'+k+'"]'); if(t&&S.tabs[k]) t.textContent=S.tabs[k]; });
+  }
+  apply(); window.addEventListener('load',function(){ setTimeout(apply,1200); });
 })();
 </script>
 </body>
