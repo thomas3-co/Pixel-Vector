@@ -107,7 +107,7 @@ function impWeek(done){const n=prompt('Import which built-in week number (1–16
 /* ===== source editor ===== */
 function ranges(){const out=[],re=/<(div|section|article)\b[^>]*\bid="([^"]+)"[^>]*>/g;let m;while(m=re.exec(src)){if(/week-card|note-section|class="view|home-workflow|capture-warning/.test(m[0])||/^(home|curriculum|projects|notes|screencasts|practice|materials|assessment|phase-assessment|progress)$/.test(m[2]))out.push(m[2])}
  const re2=/<script id="([^"]+)">/g;while(m=re2.exec(src))if(m[1].length<40)out.push('script:'+m[1]);return out}
-function span(id){let s,e;if(id.startsWith('script:')){s=src.indexOf('<script id="'+id.slice(7)+'">');e=src.indexOf('</script>',s)+9;return s<0?null:[s,e]}
+function span(id){let s,e;if(id.startsWith('script:')){s=src.indexOf('<script id="'+id.slice(7)+'">');e=src.indexOf('<\/script>',s)+9;return s<0?null:[s,e]}
  const m=new RegExp('<(div|section|article)\\b[^>]*\\bid="'+id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'"[^>]*>').exec(src);if(!m)return null;
  const tag=m[1],re=new RegExp('<(/?)'+tag+'\\b[^>]*>','g');re.lastIndex=m.index;let d=0,x;while(x=re.exec(src)){d+=x[1]?-1:1;if(!d)return[m.index,re.lastIndex]}return null}
 function srcView(v){const ids=ranges(),c=E('div',{className:'card'});
