@@ -37,6 +37,7 @@ details.dragover{outline:2px dashed var(--acc)}details[draggable=true]{opacity:.
 /* ===== state ===== */
 const $=(s,r=document)=>r.querySelector(s),E=(t,a={},h='')=>{const e=document.createElement(t);Object.assign(e,a);if(h)e.innerHTML=h;return e};
 let src='',sha='',D={},dirty=false,cur='site',LS=JSON.parse(localStorage.getItem('cs_gh')||'{}');
+const GAS_BACKEND_URL='<?= backendUrl ?>';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function mark(v=true){dirty=v;applyTheme();const s=$('#st');s.textContent=src?(v?'Unpublished changes':'Up to date'):'Not connected';s.className='chip'+(v?' dirty':'')}
 /* ===== field specs: [key,label,type,extra] ===== */
@@ -49,7 +50,10 @@ groups:[['id','Group id'],['title','Title'],['sub','Subtitle'],['color','Colour'
 notes:[['id','Note id (e.g. readme-week6)'],['week','Week','n'],['badge','Badge (e.g. WEEK 6)'],['title','Title'],['intro','Intro','a'],['quiz','Has quiz + Mark as Read','b'],['hidden','Hide this note','b'],['tip','Tip box','a'],['cards','Cards','sub',[['title','Card title'],['text','Text','a']],c=>c.title||'New card',()=>({title:'',text:''})],['vocab','Vocabulary — term | definition','pairs',PAIR]],
 quizzes:[['type','Type','s',['reading','video']],['key','Key (Read Me note id, or screencast id)'],['questions','Questions (need 5+, students get 5 random)','sub',[['q','Question','a'],['options','Options — one per line','lines'],['answer','Correct option number (0 = first line)','n']],q=>q.q||'New question',()=>({q:'',options:['','','',''],answer:0})]],
 projects:[['id','Project id'],['week','Week','n'],['title','Title'],['desc','Brief','a'],['skills','Skills (comma separated)','csv'],['checks','Checklist — one per line','lines'],['classroomUrl','Classroom / submission link'],['section','Section (e.g. Phase One)'],['marks','Marks','n'],['hidden','Hide project','b']],
-files:[['id','Google Drive file ID'],['label','Label']]};
+files:[['id','Google Drive file ID'],['label','Label']],
+deadlines:[['title','Deadline title'],['date','Date (YYYY-MM-DD)'],['kind','Colour category','s',['project','practice','exam','other']],['week','Week number','n'],['note','Short note']],
+resources:[['title','Resource title'],['url','HTTPS link'],['desc','Description'],['kind','Category']],
+faq:[['q','Question','a'],['a','Answer','a']]};
 const SECT={
 site:{t:'Home & brand text',f:()=>[[D.site,[['brandName','Brand name'],['brandSub','Brand subtitle'],['heroEyebrow','Small line above heading'],['heroTitle','Home heading'],['heroText','Home paragraph','a'],['stats','Home boxes (up to 4) — number | label','pairs',['num','label']],['tabs','Rename tabs — one per line: key = name (curriculum, projects, notes, screencasts, practice, materials, assessment, progress)','map']]]]},
 weeks:{t:'Curriculum weeks',l:'weeks',a:'Import built-in week…',mk:()=>({n:'',title:'',short:'',days:[]}),ti:w=>'Week '+w.n+' — '+(w.title||''),imp:1},
@@ -60,6 +64,9 @@ quizzes:{t:'Assessment quizzes',l:'quizzes',mk:()=>({type:'reading',key:'',quest
 projects:{t:'Projects',l:'projects',mk:()=>({id:'',skills:[],checks:[]}),ti:x=>x.title||x.id||'New project',sw:'hidden'},
 materials:{t:'Additional materials',l:'materials',sp:'files',mk:()=>({id:'',label:''}),ti:x=>x.label||x.id||'New file'},
 practice:{t:'Practice files',l:'practice',sp:'files',mk:()=>({id:'',label:''}),ti:x=>x.label||x.id||'New file'},
+deadlines:{t:'Deadlines',l:'deadlines',mk:()=>({title:'',date:'',kind:'project',week:'',note:''}),ti:x=>(x.date||'No date')+' · '+(x.title||'New deadline')},
+resources:{t:'Quick links & resources',l:'resources',mk:()=>({title:'',url:'',desc:'',kind:'Link'}),ti:x=>x.title||'New resource'},
+faq:{t:'Student FAQ',l:'faq',mk:()=>({q:'',a:''}),ti:x=>x.q||'New question'},
 profile:{t:'Badges & profile',f:()=>[[D.profile,[['side','Profile side','s',['left','right']],['accents','Accent colours (comma separated)','csv'],['badges','The 5 badges','sub',[['name','Name'],['color','Colour','c'],['progress','Lessons finished %','n'],['result','Score %','n'],['visits','Days visited','n']],b=>b.name||'Badge',()=>({name:'',color:'#2f6fed',progress:0,result:0,visits:1})]]]]},
 access:{t:'Login & sign-out',f:()=>[[D.session,[['idleMinutes','Auto sign-out after (minutes idle)','n'],['warnMinutes','Warn this many minutes before','n']]],[D.login,[['brandLine','Login screen top line'],['notes','Notes under the login button — one per line','lines']]]]},
 theme:{t:'Site colours',f:()=>[[D.theme,[['curriculum','Curriculum and lessons','c'],['projects','Projects','c'],['practice','Practice','c'],['notes','Read Me notes','c'],['screen','Screencasts','c']]]]},import:{t:'Import from spreadsheet'},students:{t:'Students'},records:{t:'Help, announcements and log'},source:{t:'Source editor'},publish:{t:'Connect & publish'}};
@@ -139,7 +146,7 @@ const rowsOf=(wb,n,range)=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{d
 function impContent(wb){const ws=wb.Sheets.Content;if(!ws)return 'No "Content" sheet in this file.';const rows=XLSX.utils.sheet_to_json(ws,{header:1});
  const pub=rows.filter(r=>r[1]=='published').pop();if(!pub)return 'No published content revision found.';let j;try{j=JSON.parse(pub.slice(6).filter(x=>x!=null).join(''))}catch(e){return 'Could not read the content data.'}
  D.weeks=Object.entries(j.weeks||{}).map(([n,x])=>({n:+n,...x})).sort((a,b)=>a.n-b.n);D.items=(j.screencasts||{}).items||[];D.groups=(j.screencasts||{}).groups||[];
- D.notes=j.notes||[];D.quizzes=j.quizzes||[];D.projects=j.projects||[];if(j.materials)D.materials=j.materials;if(j.practice)D.practice=j.practice;Object.assign(D.site,j.site||{});mark();
+ D.notes=j.notes||[];D.quizzes=j.quizzes||[];D.projects=j.projects||[];D.deadlines=j.deadlines||[];D.resources=j.resources||[];D.faq=j.faq||[];if(j.materials)D.materials=j.materials;if(j.practice)D.practice=j.practice;Object.assign(D.site,j.site||{});mark();
  return 'Imported revision '+pub[0]+': '+D.weeks.length+' weeks, '+D.items.length+' screencasts, '+D.groups.length+' groups, '+D.notes.length+' Read Me notes, '+D.projects.length+' projects.'}
 function impStudents(wb){
  const js=(t,d)=>{try{return JSON.parse(t)}catch(x){return d}},bad=[];let full=0;
@@ -149,14 +156,22 @@ function impStudents(wb){
  rowsOf(wb,'Student Logins',3).forEach(r=>addSt(r.Email,{signIns:r['Sign-ins'],devices:r.Devices,status:r.Status,shots:r['Screenshot attempts']}));
  rowsOf(wb,'Student Profiles',3).forEach(r=>addSt(r.Email,{fullName:r['Full name']}));
  const hp=rowsOf(wb,'Complaints',3).filter(r=>r.Email);if(hp.length)EX.help=hp.map(r=>({name:r.Student,email:String(r.Email).toLowerCase(),at:r.Sent,topic:r.Topic,text:r.Message,status:r.Status,reply:r['Instructor reply'],repliedAt:r['Replied at']}));
- const an=rowsOf(wb,'Announcements');if(an.length)EX.ann=an.map(r=>({title:r.title,message:r.message,audience:r.audience,created:r.created,active:r.active,priority:r.priority}));
+ const an=rowsOf(wb,'Announcements');if(an.length)EX.ann=an.map(r=>({id:r.id,title:r.title,message:r.message,audience:r.audience,created:r.created,by:r.by,active:r.active,priority:r.priority,expires:r.expires,attachmentUrl:r.attachmentUrl}));
+ const notices=rowsOf(wb,'StudentNotices');if(notices.length)EX.notices=notices.map(r=>({id:r.id,email:String(r.email||'').toLowerCase(),title:r.title,message:r.message,created:r.created,read:r.read}));
+ const reads=rowsOf(wb,'NoticeReads');if(reads.length)EX.noticeReads=reads.map(r=>({email:String(r.email||'').toLowerCase(),id:r.id,at:r.at}));
+ const resets=rowsOf(wb,'Reset History');if(resets.length)EX.resetHistory=resets.map(r=>({id:r.id,at:r.at,by:r.by,email:String(r.email||'').toLowerCase(),name:r.name,count:r.count,summary:r.summary,undoneAt:r.undoneAt,undoable:r.undoable}));
+ const devices=rowsOf(wb,'Device Log');if(devices.length)EX.deviceLog=devices;
+ const assessments=rowsOf(wb,'Assessments');if(assessments.length)EX.assessments=assessments;
+ const submissions=rowsOf(wb,'Weekly Submissions');if(submissions.length)EX.submissions=submissions;
+ const teacher=rowsOf(wb,'Teacher Computer');if(teacher.length)EX.teacherComputer=teacher;
+ const backups=rowsOf(wb,'Backups');if(backups.length)EX.backups=backups.map(r=>({'Saved at':r['Saved at'],Email:String(r.Email||'').toLowerCase(),Name:r.Name,'Lessons done':r['Lessons done'],'Data (gzip + base64)':r['Data (gzip + base64)']}));
  const lg=rowsOf(wb,'Change Log');if(lg.length)EX.log=lg.map(r=>({at:r.When,by:r.By,student:r.Student,action:r.Action,details:r.Details}));
- saveST();return Object.keys(ST).length+' students imported, '+full+' with full progress records. Help messages: '+(EX.help||[]).length+', announcements: '+(EX.ann||[]).length+', log entries: '+(EX.log||[]).length+'. Passwords, salts and login tokens are skipped.'+(bad.length?' Could not read the progress record of: '+bad.join(', ')+' (spreadsheet exports cut very long cells). Use "Pull all from backend" for these.':'')}
-function impView(v){const c=E('div',{className:'card'});c.innerHTML='<h3>Import the whole course from your progress spreadsheet</h3><p class="hint">Reads the latest published course content (weeks and day cards, screencasts and groups, Read Me notes, quizzes, projects, home text) into the editor. Review it, then Publish. The file is read in this browser only.</p><label class="b p" style="display:inline-block;cursor:pointer">Choose GD_progress.xlsx<input type="file" id="xf" accept=".xlsx" hidden></label><p id="xm" class="hint"></p>';v.append(c);
+ saveST();return Object.keys(ST).length+' students imported, '+full+' with full progress records. Help messages: '+(EX.help||[]).length+', announcements: '+(EX.ann||[]).length+', notices: '+(EX.notices||[]).length+', reset-history rows: '+(EX.resetHistory||[]).length+', backup snapshots: '+(EX.backups||[]).length+', device-log rows: '+(EX.deviceLog||[]).length+', log entries: '+(EX.log||[]).length+'. Password hashes, salts and login tokens are skipped.'+(bad.length?' Could not read the progress record of: '+bad.join(', ')+' (spreadsheet exports cut very long cells). Use "Pull all from backend" for these.':'')}
+function impView(v){const c=E('div',{className:'card'});c.innerHTML='<h3>Import the whole course from your progress spreadsheet</h3><p class="hint">Reads the latest published course content, plus deadlines, quick links and FAQ when present. The Students tab imports current student records and operational history. Files are processed locally in this browser; credentials, password hashes, salts and login tokens are deliberately excluded.</p><label class="b p" style="display:inline-block;cursor:pointer">Choose GD_progress.xlsx<input type="file" id="xf" accept=".xlsx" hidden></label><p id="xm" class="hint"></p>';v.append(c);
  $('#xf',c).onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#xm',c).textContent='Reading...';try{const wb=await readWb(f);$('#xm',c).textContent=impContent(wb)}catch(x){$('#xm',c).textContent='Error: Could not read that file: '+x.message}}}
 /* ===== students: live from your backend + spreadsheet import ===== */
 let LV={},TK=sessionStorage.getItem('cs_tk')||'',BK={},liveT=null,EDS=null;try{BK=JSON.parse(localStorage.getItem('cs_bk')||'{}')}catch(e){}
-const bkUrl=()=>BK.u||(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/.exec(src)||[])[1]||'';
+const bkUrl=()=>BK.u||(GAS_BACKEND_URL.indexOf('<?=')===-1?GAS_BACKEND_URL:'')||(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/.exec(src)||[])[1]||'';
 async function bk(a,p){const u=bkUrl();if(!u)throw new Error('Enter the web app address first.');
  const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:a,token:TK},p||{}))});const j=await r.json();
  if(j.error==='ADMIN_AUTH'){TK='';sessionStorage.removeItem('cs_tk');throw new Error('Signed out. Please connect again.')}return j}
@@ -180,9 +195,11 @@ const extraHtml=(s,e)=>{const r=s.rec||{},p=r.profile||{},dv=s.devs||[],ws=r.wee
  '<h4>Help messages</h4>'+li(hp.map(x=>dt(x.at)+' '+x.topic+': '+x.text+(x.reply?' -> Reply: '+x.reply:'')))+
  '<h4>Activity log</h4>'+li(lg.map(x=>dt(x.at)+' '+x.action+': '+x.details))};
 function recView(v){const c=E('div',{className:'card'}),tbl=(h,rows)=>'<div style="overflow:auto"><table class="tb"><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x instanceof Date?x.toLocaleString():x)+'</td>').join('')+'</tr>').join('')+'</table></div>';
- const hp=EX.help||[],an=EX.ann||[],lg=(EX.log||[]).slice(-300).reverse();
+ const hp=EX.help||[],an=EX.ann||[],lg=(EX.log||[]).slice(-300).reverse(),nt=EX.notices||[],rh=EX.resetHistory||[];
  c.innerHTML='<h3>Help messages ('+hp.length+')</h3>'+tbl(['Student','Sent','Topic','Message','Status','Reply'],hp.map(x=>[x.name,x.at,x.topic,x.text,x.status,x.reply]))+'<h3 style="margin-top:18px">Announcements ('+an.length+')</h3>'+tbl(['Title','Message','Audience','Created','Priority'],an.map(x=>[x.title,x.message,x.audience,x.created,x.priority]))+'<h3 style="margin-top:18px">Activity log (latest 300)</h3>'+tbl(['When','By','Student','Action','Details'],lg.map(x=>[x.at,x.by,x.student,x.action,x.details]));
- if(!hp.length&&!an.length&&!lg.length)c.innerHTML='<p class="hint">Nothing imported yet. Import the spreadsheet on the Students tab first.</p>';v.append(c)}
+ c.innerHTML += '<h3 style="margin-top:20px">Student notices ('+nt.length+')</h3>'+tbl(['Student email','Title','Message','Created','Read'],nt.slice(-150).reverse().map(x=>[x.email,x.title,x.message,x.created,x.read?'Yes':'No']))+
+ '<h3 style="margin-top:20px">Reset history ('+rh.length+')</h3>'+tbl(['When','Student','Action','Summary','Undoable'],rh.slice(-150).reverse().map(x=>[x.at,x.email,x.by,x.summary,x.undoable]));
+ if(!hp.length&&!an.length&&!lg.length&&!nt.length&&!rh.length)c.innerHTML='<p class="hint">Nothing imported yet. Import the spreadsheet on the Students tab first.</p>';v.append(c)}
 function stuView(v){const c=E('div',{className:'card'});
  c.innerHTML='<div id="cn" class="row"></div><p class="hint" id="cm"></p><details><summary><span>Send an announcement to a group</span></summary><div class="in"><div class="row"><select id="ba"><option value="all">All students</option><option value="inactive">Quiet 7+ days</option><option value="low">Grade under 60%</option></select><select id="bp2"><option value="normal">Normal</option><option value="urgent">Urgent</option></select></div><input type="text" id="bt" placeholder="Title" style="margin-top:8px"><textarea id="bm" placeholder="Message students will see in their bell"></textarea><button class="b p" id="bs" style="margin-top:8px">Send announcement</button> <span class="hint" id="bh"></span></div></details>'+
  '<div class="row" style="margin-top:12px"><input type="text" id="sq" placeholder="Search name or email"><select id="sf"><option value="">All students</option><option value="on">Online now</option><option value="r">At risk</option><option value="q">Quiet 7+ days</option><option value="n">Never signed in</option></select><label class="b" style="margin:0;cursor:pointer;text-align:center;flex:none">Import spreadsheet<input type="file" id="sx" accept=".xlsx" hidden></label><button class="b" id="sp" style="flex:none">Pull all from backend</button><button class="b" id="sj" style="flex:none">Backup JSON</button><label class="b" style="margin:0;cursor:pointer;text-align:center;flex:none">Restore JSON<input type="file" id="sr" accept=".json" hidden></label><button class="b" id="sc" style="flex:none">Export CSV</button><button class="b d" id="sd" style="flex:none">Clear local data</button></div><p class="hint" id="sh"></p><div style="overflow:auto"><table class="tb" id="tb"></table></div><div id="dt"></div>';v.append(c);
@@ -216,7 +233,7 @@ function stuView(v){const c=E('div',{className:'card'});
   $('#ao',d).onclick=()=>act(()=>bk('adminSignOut',{email:e}),'Signed out of every device.');
   $('#rg',d).onclick=()=>{const sc=$('#rs',d).value;if(!sc)return am('Choose what to reset first.');if(confirm('Reset '+$('#rs',d).selectedOptions[0].text+' for '+s.name+'? The student is notified.'))act(()=>bk('adminReset',{email:e,scope:sc}),'Reset done.')};
   $('#dsv',d).onclick=()=>{const x=ST[e]=ST[e]||{email:e,name:s.name};x.name=$('#dn',d).value;x.teacherGrade=$('#dg',d).value;x.note=$('#dnote',d).value;const rj=$('#drec',d);if(rj)try{x.rec=JSON.parse(rj.value)}catch(er){return $('#dm',d).textContent='The JSON has a typing mistake: '+er.message}saveST();$('#dm',d).textContent='Saved in this browser.';draw()};
-  $('#el',d).onclick=async()=>{if(!need())return;am('Loading...');try{const j=await bk('adminEditor',{email:e});if(!j.ok){const n=(j.error=='UNKNOWN'||/adminExt_|not defined/.test(j.message||''));return $('#ed',d).innerHTML=n?'<div class="card"><b>One small backend addition is needed.</b><p class="hint">In your main backend script, inside adminRoute_, paste these two lines just above the line that starts with default:, then save and deploy a new version.</p><textarea class="code" style="min-height:90px" readonly>'+esc(PATCH)+'</textarea></div>':am(j.message||j.error)}
+  $('#el',d).onclick=async()=>{if(!need())return;am('Loading...');try{const j=await bk('adminEditor',{email:e});if(!j.ok){return am(j.message||j.error||'The deployed Apps Script backend does not include the progress editor API. Deploy Course_Backend_Integrated_Fixed.gs as a new version, then reconnect.')}
    am('');EDS={e,cat:j.catalog,vals:j.vals,chg:{}};edDraw(d)}catch(x){am(x.message)}}};
  const edVal=k=>k in EDS.chg?EDS.chg[k].v:EDS.vals[k];
  const edDraw=d=>{const box=$('#ed',d),n=Object.keys(EDS.chg).length;
@@ -235,7 +252,7 @@ function stuView(v){const c=E('div',{className:'card'});
  $('#sx',c).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{$('#sh',c).textContent='Reading...';const m=impStudents(await readWb(f));draw();$('#sh',c).textContent=m}catch(x){$('#sh',c).textContent='Error: Could not read that file: '+x.message}};
  $('#sq',c).oninput=$('#sf',c).onchange=draw;$('#sd',c).onclick=()=>{if(confirm('Remove the spreadsheet data stored in this browser?')){ST={};saveST();draw()}};
  $('#sc',c).onclick=()=>{const cols=['name','email','lastActive','overall','letter','grade','lessons','weeklyDone','weeklyDue','logins','devices','level','teacherGrade','note'],q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';const csv=[cols.join(',')].concat(allKeys().map(row).map(s=>cols.map(k=>q(s[k])).join(','))).join('\n');E('a',{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'students.csv'}).click()};
- $('#sp',c).onclick=async()=>{const h=$('#sh',c);if(!TK)return h.textContent='Connect to the backend first.';try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:5});if(!j.ok)throw new Error(/adminExt_|not defined|UNKNOWN/.test((j.message||'')+j.error)?'Add the adminExportAll backend code first (see instructions).':(j.message||j.error));j.students.forEach(x=>addSt(x.email,x));n+=j.students.length;h.textContent='Pulled '+n+' of '+j.total+'...';if(j.done)break;off+=5}await saveST();draw();h.textContent='Pulled '+n+' students with their full progress records.'}catch(x){h.textContent=x.message}};
+ $('#sp',c).onclick=async()=>{const h=$('#sh',c);if(!TK)return h.textContent='Connect to the backend first.';try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:5});if(!j.ok)throw new Error(/UNKNOWN|not defined/.test((j.message||'')+j.error)?'The deployed backend is missing the full student export API. Deploy Course_Backend_Integrated_Fixed.gs as a new version.':(j.message||j.error));j.students.forEach(x=>addSt(x.email,x));n+=j.students.length;h.textContent='Pulled '+n+' of '+j.total+'...';if(j.done)break;off+=5}await saveST();draw();h.textContent='Pulled '+n+' students with their full progress records.'}catch(x){h.textContent=x.message}};
  $('#sj',c).onclick=()=>{E('a',{href:URL.createObjectURL(new Blob([JSON.stringify({students:ST,extra:EX})],{type:'application/json'})),download:'students-backup.json'}).click()};
  $('#sr',c).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());ST=j.students||ST;EX=j.extra||EX;await saveST();draw();$('#sh',c).textContent='Backup restored.'}catch(x){$('#sh',c).textContent='Could not read backup: '+x.message}};
  stReady.then(draw);conn();draw();if(TK)refresh()}
@@ -259,17 +276,17 @@ function load(t){src=t;const w={HM_CONTENT:{}};['cc-0-profile','cc-1-curriculum'
  const C=w.HM_CONTENT,pick=(k,d)=>JSON.parse(JSON.stringify(b[k]??C[k]??d)),P=w.HM_PROFILE||{},pf=b.profile||{};
  const sc=pick('screencasts',{}),wk=pick('weeks',{});
  return{site:Object.assign({stats:[],tabs:{}},pick('site',{})),weeks:Object.entries(wk).map(([n,x])=>({n:Number(n),...x})).sort((a,b)=>a.n-b.n),items:sc.items||[],groups:sc.groups||[],
- notes:pick('notes',[]),quizzes:pick('quizzes',[]),projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),
+ notes:pick('notes',[]),quizzes:pick('quizzes',[]),projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),deadlines:pick('deadlines',[]),resources:pick('resources',[]),faq:pick('faq',[]),
  profile:{side:pf.side||P.side||'left',accents:pf.accents||P.accents||[],badges:JSON.parse(JSON.stringify(pf.badges||P.badges||[]))},
  session:Object.assign({idleMinutes:60,warnMinutes:2},w.HM_SESSION,b.session),login:Object.assign({notes:[]},w.HM_LOGIN,b.login),theme:readTheme()}}
 function readTheme(){const o={},m=/:root\s*\{[\s\S]*?\}/.exec(src);(m?m[0]:'').replace(/--c-(curriculum|projects|notes|screen|practice)\s*:\s*(#[0-9a-fA-F]{3,8})/g,(a,n,c)=>o[n]=c);return o}
 function applyTheme(){Object.entries(D.theme||{}).forEach(([n,c])=>document.documentElement.style.setProperty('--c-'+n,c))}
 function clean(o){if(Array.isArray(o))return o.map(clean);if(o&&typeof o=='object'){const r={};for(const k in o){if(o[k]===''||o[k]==null||(typeof o[k]=='number'&&isNaN(o[k])))continue;r[k]=clean(o[k])}return r}return o}
 function bake(){const B={},d=clean(D);
- if(Object.keys(d.site||{}).some(k=>(d.site[k]||[]).length!==0))B.site=d.site;
+ if(Object.keys(d.site||{}).some(k=>{const v=d.site[k];return Array.isArray(v)?v.length!==0:!!v}))B.site=d.site;
  if(d.weeks.length)B.weeks=Object.fromEntries(d.weeks.filter(w=>w.n).map(({n,...r})=>[n,r]));
  if(d.items.length||d.groups.length)B.screencasts={items:d.items,groups:d.groups};
- ['notes','quizzes','projects','materials','practice'].forEach(k=>d[k].length&&(B[k]=d[k]));
+ ['notes','quizzes','projects','materials','practice','deadlines','resources','faq'].forEach(k=>d[k]&&d[k].length&&(B[k]=d[k]));
  B.profile=d.profile;B.session=d.session;B.login=d.login;
  let t=src.replace(RE9,()=>'<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(B,null,1).replace(/<\//g,'<\\/')+';\n<\/script>');
  t=t.replace(/:root\s*\{[\s\S]*?\}/,b=>b.replace(/(--c-(curriculum|projects|notes|screen|practice)\s*:\s*)(#[0-9a-fA-F]{3,8})/g,(m,a,n,c)=>a+((D.theme||{})[n]||c)));
@@ -312,4 +329,38 @@ const nav=$('#nav');nav.append(E('h1',{},'Course Studio'));
 Object.keys(SECT).forEach(k=>{if(k=='source')nav.append(E('hr'));const b=E('button',{textContent:SECT[k].t});b.dataset.k=k;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};nav.append(b)});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 go('publish');if(LS.o&&LS.r&&LS.t)pull().then(()=>go('site'));
+
+/* ===== Course Studio Ultimate layer (safe additive enhancements) ===== */
+(function(){
+ const css=`:root{--acc:#536dfe;--studio-glow:0 18px 50px rgba(23,32,64,.10)}
+ body{background:radial-gradient(ellipse at 12% -10%,rgba(83,109,254,.09),transparent 38%),var(--bg)}
+ #app{grid-template-columns:248px minmax(0,1fr)}
+ nav{background:linear-gradient(180deg,#111522,#1b2234);border-right:1px solid rgba(255,255,255,.07);padding:20px 12px}
+ nav h1{font-size:17px;letter-spacing:.2px;padding:7px 12px 18px}
+ nav button{padding:10px 12px;margin:2px 0;transition:.18s}
+ nav button.on{box-shadow:0 8px 22px rgba(83,109,254,.25)}
+ main{max-width:1500px;padding-left:clamp(16px,3vw,42px);padding-right:clamp(16px,3vw,42px)}
+ header{backdrop-filter:blur(16px);background:color-mix(in srgb,var(--bg) 88%,transparent)}
+ .card{border-radius:18px;box-shadow:var(--studio-glow);padding:clamp(15px,2vw,22px)}
+ button.b{transition:transform .16s,box-shadow .16s,border-color .16s}
+ button.b:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(20,30,60,.09)}
+ .tg div{border:1px solid var(--line);background:linear-gradient(145deg,var(--panel),var(--bg))}
+ .tb th{position:sticky;top:0;background:var(--panel);z-index:1}
+ .tb tr.r:hover{background:color-mix(in srgb,var(--acc) 7%,var(--panel))}
+ details{overflow:hidden}
+ summary{min-height:46px}
+ input:focus,textarea:focus,select:focus{outline:3px solid color-mix(in srgb,var(--acc) 22%,transparent);border-color:var(--acc)}
+ .studio-kicker{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+ .studio-hero{padding:24px;border-radius:20px;background:linear-gradient(125deg,#171d31,#344b91 72%,#6b61b7);color:white;margin-bottom:16px;box-shadow:0 18px 45px rgba(31,46,90,.22)}
+ .studio-hero h3{font-size:24px;margin:5px 0}.studio-hero p{color:#dce4ff;margin:0}
+ .studio-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+ .studio-stat{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px}
+ .studio-stat b{font:700 24px Poppins;display:block}.studio-stat span{color:var(--mut);font-size:12px}
+ .studio-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+ .studio-tag{display:inline-flex;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:800;background:color-mix(in srgb,var(--acc) 12%,var(--panel));color:var(--acc)}
+ @media(max-width:800px){#app{grid-template-columns:1fr}nav{position:sticky;top:0;z-index:20;height:auto;max-height:42vh;overflow:auto}nav button{width:auto;display:inline-flex;white-space:nowrap}main{padding:0 14px 40px}header{flex-wrap:wrap}header h2{min-width:100%}}
+ `;
+ const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+})();
+
 </script></body></html>
