@@ -30,8 +30,105 @@ summary span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.i
 .ty{font-size:11px;padding:2px 9px;border-radius:99px;color:#fff;font-weight:600;flex:none}.th{width:64px;height:38px;object-fit:cover;border-radius:6px;background:var(--line);flex:none}
 details.dragover{outline:2px dashed var(--acc)}details[draggable=true]{opacity:.85}.tb{width:100%;border-collapse:collapse}.tb th,.tb td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}.tb tr.r{cursor:pointer}.tb tr.r:hover{background:var(--bg)}
 .tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px}.tg div{background:var(--bg);border-radius:10px;padding:10px}.tg b{display:block;font-size:20px;font-family:Poppins}
+
+.bdg{display:inline-flex;align-items:center;gap:7px}.bdg b{display:block;font-size:12.5px;line-height:1.1}.bar{display:block;width:70px;height:5px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:3px}.bar u{display:block;height:100%;background:var(--acc);border-radius:9px;text-decoration:none}
+.bpanel{border:1px solid var(--line);border-radius:14px;padding:14px;margin:14px 0;background:var(--bg)}.bp-top{display:flex;gap:14px;align-items:center}.bp-top h3{font-size:20px}.bp-top small{letter-spacing:1px;color:var(--mut);font-weight:700;font-size:10.5px}
+.bp-next{margin-top:10px}.rq{display:grid;grid-template-columns:80px 90px 1fr;gap:8px;align-items:center;font-size:12.5px;margin-top:6px}.rq .bar{width:100%;height:7px;margin:0}
+.bd-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0}.bd-tile{background:var(--bg);border-radius:12px;padding:12px;border:1px solid var(--line)}.bd-tile b{display:block;font:700 22px Poppins,sans-serif}.bd-tile span{color:var(--mut);font-size:12px}
+.bd-dist{display:grid;gap:8px;margin-top:8px}.bd-d{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center}.bd-d .track{height:16px;border-radius:9px;background:var(--bg);border:1px solid var(--line);overflow:hidden}.bd-d .track i{display:block;height:100%;border-radius:9px}.bd-d>span:first-child{display:flex;gap:8px;align-items:center;font-weight:600}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px}.gal-t{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}.gal-i{position:relative;aspect-ratio:4/3;background:linear-gradient(110deg,var(--line) 8%,var(--bg) 18%,var(--line) 33%);background-size:220% 100%;animation:shim 1.4s linear infinite}.gal-i.ok,.gal-i.no{animation:none}.gal-i.no{background:var(--bg)}
+.gal-i img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.gal-i .nop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mut);font-size:11.5px;text-align:center;padding:8px}.gal-i .nop b{font-size:22px}
+.gal-m{padding:8px 10px}.gal-m b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gal-m small{color:var(--mut);font-size:11px;display:flex;justify-content:space-between;gap:6px;align-items:center}.gal-m a{color:var(--acc);text-decoration:none;font-weight:600}
+@keyframes shim{to{background-position:-220% 0}}.st-ok{color:var(--ok);font-weight:700}.st-bad{color:var(--bad);font-weight:700}
+.lb-rank{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;background:var(--line);font-weight:700;font-size:12px}.lb-rank.r1{background:#f6c445;color:#4a3500}.lb-rank.r2{background:#cfd5df}.lb-rank.r3{background:#e0a470;color:#4a2400}
+@media(max-width:800px){.bd-d{grid-template-columns:110px 1fr 56px}.rq{grid-template-columns:62px 80px 1fr}}
 @media(max-width:800px){#app{grid-template-columns:1fr}nav{position:static;height:auto;display:flex;flex-wrap:wrap}nav button{width:auto}nav hr{display:none}}
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head><body>
+<script id="hmr">
+/* ===== HMR · progress reconcile + badge engine (identical copy lives in the student site and the admin) =====
+   1. normId      - turns old lesson ids ("1", "w2d1", "Week 2 Day 1", "2_1" ...) into today's ids ("2-1")
+   2. reconcile   - keeps every previously finished lesson, and (once per student) credits weeks the student already
+                    finished / submitted / took the quiz for. Nothing is ever removed; unknown ids are kept in legacyCompleted.
+   3. visitDays   - days visited are kept IN the student record (not only on one device) and rebuilt from past activity.
+   4. badgeCalc   - the same formula the student profile uses, so the admin shows exactly the badge the student wears.   */
+(function(g){
+  var DEF_BADGES=[{name:'Starter',color:'#b7791f',progress:0,result:0,visits:1},{name:'Explorer',color:'#8a94a6',progress:15,result:50,visits:3},{name:'Creator',color:'#e0a800',progress:40,result:65,visits:6},{name:'Designer',color:'#12b886',progress:70,result:80,visits:10},{name:'Master',color:'#8b5cf6',progress:100,result:90,visits:15}];
+  function cmpId(a,b){var A=String(a).split('-').map(Number),B=String(b).split('-').map(Number);return (A[0]-B[0])||(A[1]-B[1]);}
+  function iso(d){try{var x=new Date(d);return isNaN(x)?'':x.toISOString().slice(0,10);}catch(e){return '';}}
+  function ctxOf(ids){var list=Array.from(new Set((ids||[]).map(String))).sort(cmpId),set={},byWeek={};list.forEach(function(i){set[i]=1;var w=i.split('-')[0];(byWeek[w]=byWeek[w]||[]).push(i);});return {list:list,set:set,byWeek:byWeek};}
+  var RX=/^(?:week|wk|w|day|d|lesson|l)?[\s_#]*0*(\d{1,2})(?:[\s_.\-:\/\u00b7\u2013\u2014]+(?:(?:day|d|lesson|l)[\s_#\-]*)?|[\s_]*(?:day|d|lesson|l)[\s_#\-]*)0*(\d{1,2})$/;
+  function normId(raw,ctx){
+    if(raw==null)return null;var s=String(raw).trim().toLowerCase();if(!s)return null;if(ctx.set[s])return s;
+    var m=RX.exec(s);if(m){var id=(+m[1])+'-'+(+m[2]);return ctx.set[id]?id:null;}
+    if(/^\d+$/.test(s)){var n=+s;return (n>=1&&n<=ctx.list.length)?ctx.list[n-1]:null;}   /* old numbering 1,2,3 ... = lesson number */
+    return null;
+  }
+  function weekNum(k){var m=/\d+/.exec(String(k));return m?String(+m[0]):null;}
+  function activityDays(rec){
+    var out={},add=function(v){var d=iso(v);if(d&&d>'2020')out[d]=1;};rec=rec||{};
+    Object.keys(rec.weekFinished||{}).forEach(function(k){add(rec.weekFinished[k]);});
+    Object.keys(rec.weekSubmissions||{}).forEach(function(k){var x=rec.weekSubmissions[k];add(x&&(x.at||x.date));});
+    Object.keys(rec.weekQuizzes||{}).forEach(function(k){var x=rec.weekQuizzes[k];if(x)add(x.at||x.date||x.takenAt||x.completedAt);});
+    var pa=rec.phaseAssessments||{};Object.keys(pa).forEach(function(k){add(pa[k]&&pa[k].completedAt);});
+    ['createdAt','lastSavedAt','lastLogin'].forEach(function(k){if(rec[k])add(rec[k]);});
+    return Object.keys(out);
+  }
+  function visitDays(rec,local){var s={};(rec.visitDays||[]).forEach(function(d){s[d]=1;});(local||[]).forEach(function(d){s[d]=1;});activityDays(rec).forEach(function(d){s[d]=1;});return Object.keys(s).sort();}
+  /* sync: merge local-device days + activity into rec.visitDays; returns {count,changed} */
+  function syncVisits(rec,local,today){
+    var all=visitDays(rec,local);if(today&&all.indexOf(today)<0)all.push(today);all.sort();all=all.slice(-400);
+    var changed=JSON.stringify(all)!==JSON.stringify(rec.visitDays||[]);if(changed)rec.visitDays=all;
+    return {count:all.length,changed:changed};
+  }
+  /* reconcile(rec, ids, {dry}) -> report. Mutates rec unless dry. */
+  function reconcile(rec,ids,opt){
+    opt=opt||{};var ctx=ids&&ids.set?ids:ctxOf(ids);rec=rec||{};
+    var before=(rec.completed||[]).length,effBefore=(rec.completed||[]).filter(function(x){return ctx.set[String(x).trim().toLowerCase()];}).length,done={},remapped=[],unmatched=[],credited=[];
+    (rec.completed||[]).concat(rec.legacyCompleted||[]).forEach(function(x){var n=normId(x,ctx);if(n){if(String(x)!==n)remapped.push([String(x),n]);done[n]=1;}else if(unmatched.indexOf(String(x))<0)unmatched.push(String(x));});
+    var already=(rec.migrated||0)>=2;
+    if(!already&&opt.credit!==false){
+      var ev={};
+      Object.keys(rec.weekFinished||{}).forEach(function(k){if(rec.weekFinished[k]){var w=weekNum(k);if(w)(ev[w]=ev[w]||[]).push('week marked finished');}});
+      Object.keys(rec.weekSubmissions||{}).forEach(function(k){var w=weekNum(k);if(w)(ev[w]=ev[w]||[]).push('weekly work submitted');});
+      Object.keys(rec.weekQuizzes||{}).forEach(function(k){var w=weekNum(k);if(w)(ev[w]=ev[w]||[]).push('week quiz taken');});
+      Object.keys(ev).forEach(function(w){(ctx.byWeek[w]||[]).forEach(function(id){if(!done[id]){done[id]=1;credited.push({id:id,why:ev[w][0]});}});});
+    }
+    var after=Object.keys(done).sort(cmpId);
+    var changed=remapped.length>0||credited.length>0||after.length!==before||(unmatched.length>0&&JSON.stringify(unmatched)!==JSON.stringify(rec.legacyCompleted||[]))||(!already&&opt.credit!==false);
+    if(!opt.dry){
+      rec.completed=after;
+      if(unmatched.length)rec.legacyCompleted=unmatched;else delete rec.legacyCompleted;
+      if(credited.length){rec.autoCredited=Array.from(new Set((rec.autoCredited||[]).concat(credited.map(function(c){return c.id;}))));}
+      if(!already&&opt.credit!==false){rec.migrated=2;rec.migratedAt=new Date().toISOString();}
+    }
+    return {changed:changed,before:before,effBefore:effBefore,after:after.length,remapped:remapped,unmatched:unmatched,credited:credited,already:already,ids:after};
+  }
+  function gradeOf(rec,T){
+    rec=rec||{};var done=(rec.completed||[]).length,wq=rec.weekQuizzes||{},qs=Object.keys(wq),sum=0;
+    qs.forEach(function(k){var q=wq[k]||{};sum+=q.total?(q.score/q.total)*100:100;});
+    var comp=T.lessons?(done/T.lessons)*100:0,qa=qs.length?sum/qs.length:0;
+    var rd=T.reading?Math.min(100,((rec.readingSeen||[]).length/T.reading)*100):0;
+    var vc=Object.keys(rec.videoConfirmed||{}).filter(function(k){return rec.videoConfirmed[k];}).length;
+    var vd=T.video?Math.min(100,(vc/T.video)*100):0;
+    return {overall:Math.round(comp*.45+qa*.25+rd*.15+vd*.15),pct:T.lessons?Math.min(100,Math.round(done/T.lessons*100)):0,done:done,quizzes:qs.length};
+  }
+  function letter(o){return o>=97?'A+':o>=93?'A':o>=90?'A-':o>=87?'B+':o>=83?'B':o>=80?'B-':o>=77?'C+':o>=73?'C':o>=70?'C-':o>=67?'D+':o>=63?'D':o>=60?'D-':'NI';}
+  function badgeCalc(vals,badges){
+    var B=(badges&&badges.length)?badges:DEF_BADGES,cur=-1;
+    B.forEach(function(b,i){if(vals.pct>=b.progress&&vals.res>=b.result&&vals.visits>=b.visits)cur=i;});
+    var idx=Math.max(cur,0),nx=B[cur+1]||null;
+    var need=nx?{progress:Math.max(0,nx.progress-vals.pct),result:Math.max(0,nx.result-vals.res),visits:Math.max(0,nx.visits-vals.visits)}:null;
+    /* closeness to next badge: average of the three requirement ratios */
+    var near=nx?Math.round(([nx.progress?Math.min(1,vals.pct/nx.progress):1,nx.result?Math.min(1,vals.res/nx.result):1,nx.visits?Math.min(1,vals.visits/nx.visits):1].reduce(function(a,b){return a+b;},0)/3)*100):100;
+    return {earned:cur>=0,idx:idx,level:idx+1,total:B.length,badge:B[idx],next:nx,need:need,near:near};
+  }
+  function shield(color,z,on){return '<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" aria-hidden="true" style="display:block;flex:none"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z" fill="'+(on?color:'#9aa2b1')+'"/><path d="M12 2 4 5v6c0 .9.1 1.8.3 2.6L12 11z" fill="rgba(255,255,255,.22)"/><polygon points="12 7.2 13.4 10.4 16.9 10.7 14.3 13 15.1 16.4 12 14.6 8.9 16.4 9.7 13 7.1 10.7 10.6 10.4" fill="#fff"/></svg>';}
+  /* Google Drive thumbnails: try several endpoints before giving up */
+  function thumbChain(id,w){id=encodeURIComponent(id);w=w||640;return ['https://drive.google.com/thumbnail?id='+id+'&sz=w'+w,'https://lh3.googleusercontent.com/d/'+id+'=w'+w,'https://drive.google.com/uc?export=view&id='+id];}
+  g.HMR={DEF_BADGES:DEF_BADGES,cmpId:cmpId,iso:iso,ctxOf:ctxOf,normId:normId,activityDays:activityDays,visitDays:visitDays,syncVisits:syncVisits,reconcile:reconcile,gradeOf:gradeOf,letter:letter,badgeCalc:badgeCalc,shield:shield,thumbChain:thumbChain};
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
 <div id="app"><nav id="nav"></nav><main><header><h2 id="ttl"></h2><span class="chip" id="st">Not connected</span><button class="b" id="bpv">Preview</button><button class="b p" id="bpub">Publish</button></header><div id="view"></div></main></div>
 <script>
 /* ===== state ===== */
@@ -100,7 +197,7 @@ function list(root,arr,spec,ti,mk,nested,sw){
   d.ondragover=e=>{if(dragI!=null){e.preventDefault();d.classList.add('dragover')}};d.ondragleave=()=>d.classList.remove('dragover');
   d.ondrop=e=>{e.preventDefault();if(dragI==null||dragI==i)return;const[m]=arr.splice(dragI,1);arr.splice(i,0,m);dragI=null;mark();draw()};
   const tc={lesson:'curriculum',project:'projects',practice:'practice'}[it.type];if(tc){const y=E('span',{className:'ty',textContent:it.type});y.style.background='var(--c-'+tc+')';s.append(y)}
-  if(spec===SPEC.items&&it.id){const im=E('img',{className:'th',loading:'lazy',src:'https://drive.google.com/thumbnail?id='+encodeURIComponent(it.id)+'&sz=w200'});im.onerror=()=>im.remove();s.append(im)}
+  if((spec===SPEC.items||spec===SPEC.files)&&it.id){const im=E('img',{className:'th',loading:'lazy',referrerPolicy:'no-referrer'}),ch=HMR.thumbChain(it.id,200);let k=0;im.onerror=()=>{if(++k<ch.length)im.src=ch[k];else im.remove()};im.src=ch[0];s.append(im)}
   if(spec===SPEC.notes||spec===SPEC.quizzes){const y=E('span',{className:'ty',textContent:spec===SPEC.notes?'read me':'quiz'});y.style.background='var(--c-notes)';s.append(y)}
   s.append(sp);
   const btn=(txt,fn,cls='',tip)=>{const b=E('button',{className:'b mini '+cls,textContent:txt,title:tip||txt});b.onclick=e=>{e.preventDefault();e.stopPropagation();fn()};s.append(b)};
@@ -141,11 +238,14 @@ const stReady=(async()=>{try{ST=(await idbGet('students'))||{};EX=(await idbGet(
 const addSt=(e,o)=>{e=String(e||'').toLowerCase().trim();if(e)ST[e]=Object.assign(ST[e]||{email:e},o)};
 const COURSE_START=new Date('2026-09-14T00:00:00'),curWeek=()=>Math.floor((Date.now()-COURSE_START)/(7*864e5))+1;
 const dt=x=>x instanceof Date?x.toISOString().slice(0,10):String(x||'').slice(0,10);
-function calc(r){r=r||{};const done=(r.completed||[]).length,wq=r.weekQuizzes||{};let sc=0,pc=0,n=0;Object.values(wq).forEach(q=>{sc+=+q.score||0;n++;pc+=q.total?q.score/q.total*100:100});
- const rd=(r.readingSeen||[]).length,vw=Object.keys(r.videoConfirmed||{}).filter(k=>r.videoConfirmed[k]).length;
- const ov=Math.round(done/32*100*.45+(n?pc/n:0)*.25+Math.min(100,rd/5*100)*.15+Math.min(100,vw/9*100)*.15);
+let _cx=null,_ck='';
+function siteIds(){const s=new Set(),re=/class="flip-card[^"]*"[^>]*\bdata-day="(\d+-\d+)"/g;let m;const t=src||'';while(m=re.exec(t))s.add(m[1]);
+ (D.weeks||[]).forEach(w=>(w.days||[]).forEach((d,i)=>s.add(w.n+'-'+(i+1))));if(!s.size)for(let w=1;w<=16;w++){s.add(w+'-1');s.add(w+'-2')}return[...s]}
+function getCtx(){const k=(src||'').length+':'+((D&&D.weeks)||[]).length;if(k!==_ck||!_cx){_cx=HMR.ctxOf(siteIds());_ck=k}return _cx}
+function totals(){const n=((D&&D.notes)||[]).filter(x=>!x.hidden&&x.quiz!==false).length,v=((D&&D.items)||[]).filter(x=>x.released!==false).length;return{lessons:getCtx().list.length,reading:Math.max(5,n),video:Math.max(9,v)}}
+function calc(r){r=r||{};const rc=HMR.reconcile(r,getCtx(),{dry:true}),g=HMR.gradeOf(Object.assign({},r,{completed:rc.ids}),totals()),wq=r.weekQuizzes||{};let sc=0;Object.values(wq).forEach(q=>{sc+=+q.score||0});
  const cw=curWeek(),subs=r.weekSubmissions||{};let due=0,dn=0;for(let w=5;w<=Math.min(cw,16);w++){due++;if(subs[w])dn++}
- return{overall:ov,letter:ov>=90?'A':ov>=80?'B':ov>=70?'C':ov>=60?'D':'Needs work',lessons:done,wq:sc+'/15',weeklyDone:dn,weeklyDue:due}}
+ const ov=g.overall;return{overall:ov,letter:ov>=90?'A':ov>=80?'B':ov>=70?'C':ov>=60?'D':'Needs work',lessons:rc.ids.length,wq:sc+'/15',weeklyDone:dn,weeklyDue:due}}
 const readWb=async f=>XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
 const rowsOf=(wb,n,range)=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:'',range:range||0}):[];
 function impContent(wb){const ws=wb.Sheets.Content;if(!ws)return 'No "Content" sheet in this file.';const rows=XLSX.utils.sheet_to_json(ws,{header:1});
@@ -188,11 +288,28 @@ async function bk(a,p){const u=bkUrl();if(!u)throw new Error('Enter the web app 
  if(j.error==='ADMIN_AUTH'){TK='';sessionStorage.removeItem('cs_tk');throw new Error('Signed out. Please connect again.')}return j}
 async function bkLogin(pw){const j=await bk('adminLogin',{password:pw});if(!j.ok)throw new Error({BADPW:'Wrong admin password.',LOCKED:'Too many wrong tries. Wait 15 minutes.',ADMIN_NOT_SET:'No admin password is set yet. In your Apps Script project run openAdminPasswordDialog once.'}[j.error]||j.message||j.error||'Sign-in failed');TK=j.token;sessionStorage.setItem('cs_tk',TK)}
 async function pollLive(){const j=await bk('adminSnapshot',{fresh:true});if(!j.ok)throw new Error(j.message||j.error);LV={};j.snap.students.forEach(s=>LV[s.email.toLowerCase()]=s)}
-const row=e=>Object.assign({},ST[e],ST[e]&&ST[e].rec?calc(ST[e].rec):{},LV[e]),allKeys=()=>[...new Set(Object.keys(ST).concat(Object.keys(LV)))];
+const badgeOf=(e,s)=>{const r=ST[e]&&ST[e].rec,B=(D.profile&&D.profile.badges)||[],T=totals();let pct,res,visits,done,approx=false;
+ if(r&&Object.keys(r).length){const rc=HMR.reconcile(r,getCtx(),{dry:true}),g=HMR.gradeOf(Object.assign({},r,{completed:rc.ids}),T);pct=g.pct;res=g.overall;done=g.done;visits=HMR.visitDays(r).length}
+ else{approx=true;done=+s.lessons||0;pct=T.lessons?Math.min(100,Math.round(done/T.lessons*100)):0;res=Math.round(+s.overall||+s.grade||0);const age=s.created?Math.max(1,Math.ceil((Date.now()-new Date(s.created))/864e5)):99;visits=Math.min(+s.logins||+s.signIns||0,age)}
+ return Object.assign(HMR.badgeCalc({pct,res,visits},B),{pct,res,visits,done,approx})};
+const row=e=>{const s=Object.assign({},ST[e],ST[e]&&ST[e].rec?calc(ST[e].rec):{},LV[e]);if(ST[e]&&ST[e].rec&&Object.keys(ST[e].rec).length){const c=calc(ST[e].rec);if(c.lessons>(+s.lessons||0))s.lessons=c.lessons;if(c.overall>(+s.overall||0)){s.overall=c.overall;s.letter=c.letter}}s.badge=badgeOf(e,s);return s},allKeys=()=>[...new Set(Object.keys(ST).concat(Object.keys(LV)))];
 const mins=s=>{const d=s.lastActive||s.lastLogin;if(!d)return null;const m=(Date.now()-new Date(d))/6e4;return isNaN(m)?null:Math.max(0,m)};
 const stat=s=>{const m=mins(s);return m==null?'Never signed in':m<3?'Online now':m<60?Math.floor(m)+' min ago':m<1440?Math.floor(m/60)+' h ago':Math.floor(m/1440)+' days ago'};
 const dotc=s=>{const m=mins(s);return m==null?'#cbd2dd':m<3?'#12b886':m<1440?'#2f6fed':'#98a2b3'};
-const risky=s=>s.level=='high'||s.level=='medium',lessonsOf=s=>typeof s.lessons=='number'?s.lessons+'/32':(s.lessons??'');
+const risky=s=>s.level=='high'||s.level=='medium',lessonsOf=s=>typeof s.lessons=='number'?s.lessons+'/'+getCtx().list.length:(s.lessons??'');
+
+/* ---- badge helpers (used by the student table, detail panel and the Badges centre) ---- */
+const badgeOpts=()=>{const B=(D.profile&&D.profile.badges)||HMR.DEF_BADGES;return '<optgroup label="Badge">'+B.map(b=>'<option value="b:'+esc(b.name)+'">Badge: '+esc(b.name)+'</option>').join('')+'</optgroup>'};
+const badgeCell=s=>{const b=s.badge;if(!b)return '';return '<span class="bdg" title="Badge '+b.level+' of '+b.total+' · progress '+b.pct+'% · result '+b.res+'% · visits '+b.visits+(b.approx?' (estimated from the live summary)':'')+'">'+HMR.shield(b.badge.color,22,b.earned)+'<span><b>'+esc(b.badge.name)+(b.approx?' ≈':'')+'</b><i class="bar"><u style="width:'+b.near+'%;background:'+(b.next?b.next.color:b.badge.color)+'"></u></i></span></span>'};
+const badgePanel=(s,e)=>{const b=s.badge;if(!b)return '';const n=b.next,rq=(l,c,t,u)=>'<div class="rq"><span>'+l+'</span><b>'+Math.min(c,t)+' / '+t+u+'</b><i class="bar"><u style="width:'+(t?Math.min(100,Math.round(c/t*100)):100)+'%"></u></i></div>';
+ return '<div class="bpanel"><div class="bp-top">'+HMR.shield(b.badge.color,56,b.earned)+'<div><small>BADGE '+b.level+' OF '+b.total+(b.approx?' · ESTIMATE':'')+'</small><h3>'+esc(b.badge.name)+'</h3><span class="hint">'+b.pct+'% progress · '+b.res+'% result · '+b.visits+' visit day'+(b.visits==1?'':'s')+'</span></div></div>'+
+ (n?'<div class="bp-next"><b>Next: '+esc(n.name)+'</b> <span class="hint">('+b.near+'% of the way)</span>'+rq('Progress',b.pct,n.progress,'%')+rq('Result',b.res,n.result,'%')+rq('Visits',b.visits,n.visits,' days')+'</div>':'<div class="bp-next"><b>Top badge reached.</b></div>')+
+ '<p class="hint">Visit days are now saved inside each student\'s record. Until a student signs in again, only days with recorded activity (quizzes, finished weeks, submissions) are counted, so this can read lower than their own profile.'+(s.logins!=null||s.signIns!=null?' Sign-ins on record: <b>'+esc(s.logins??s.signIns)+'</b>.':'')+'</p><button class="b mini" data-audit="'+esc(e)+'">Check this student\'s progress repair</button></div>'};
+const doneHtml=r=>{const rc=HMR.reconcile(r,getCtx(),{dry:true}),ids=rc.ids.slice();let h='<h4>Completed lessons ('+ids.length+' of '+getCtx().list.length+')</h4><div class="hint">'+esc(ids.join(', ')||'None')+'</div>';
+ if(rc.effBefore!==ids.length)h+='<div class="hint warn">The old site counted '+rc.effBefore+' of this student\'s lessons; after repairing old id formats and counting finished work it is '+ids.length+'.</div>';
+ if(rc.remapped.length)h+='<div class="hint">Old ids recognised: '+esc(rc.remapped.map(x=>x[0]+' → '+x[1]).join(', '))+'</div>';
+ if(rc.credited.length)h+='<div class="hint">Credited from earlier work: '+esc(rc.credited.map(x=>x.id+' ('+x.why+')').join(', '))+'</div>';
+ if(rc.unmatched.length)h+='<div class="hint warn">Not recognised (kept safely, not counted): '+esc(rc.unmatched.join(', '))+'</div>';return h};
 const PATCH="case 'adminEditor': return studioEditor_(req.email);\ncase 'adminApplyEdits': { var ae = centerApplyEdits(req.email, req.edits, req.notify !== false); adminCacheClear_(); return ae; }";
 const extraHtml=(s,e)=>{const r=s.rec||{},p=r.profile||{},dv=s.devs||[],ws=r.weekSubmissions||{},wq=r.weekQuizzes||{};
  let hp=(EX.help||[]).filter(x=>x.email==e);if(!hp.length)hp=(r.complaints||[]).map(x=>({at:x.at,topic:x.topic,text:x.text}));
@@ -200,7 +317,7 @@ const extraHtml=(s,e)=>{const r=s.rec||{},p=r.profile||{},dv=s.devs||[],ws=r.wee
  const li=a=>a.length?a.map(x=>'<div class="hint">'+esc(x)+'</div>').join(''):'<div class="hint">None</div>';
  return '<h4>Profile</h4><div class="hint">Full name: '+esc(p.fullName||s.fullName||'not provided')+' | Father: '+esc(p.fatherName||'-')+' | Grandfather: '+esc(p.grandfatherName||'-')+' | Account created: '+esc(dt(s.created))+'</div>'+
  '<h4>Quizzes</h4>'+li(Object.keys(wq).map(w=>'Week '+w+': '+wq[w].score+'/'+wq[w].total))+
- '<h4>Completed lessons ('+(r.completed||[]).length+')</h4><div class="hint">'+esc((r.completed||[]).slice().sort().join(', ')||'None')+'</div>'+
+ doneHtml(r)+
  '<h4>Weekly submissions</h4>'+li(Object.keys(ws).sort((a,b)=>a-b).map(w=>'Week '+w+': '+dt(ws[w].at)+(ws[w].late?' (late)':'')+(ws[w].note?' - '+ws[w].note:'')))+
  '<h4>Devices ('+dv.length+')</h4>'+li(dv.map(x=>(x.label||'Unknown')+' - '+(x.n||1)+' sign-ins, last '+dt(x.last)))+
  '<h4>Help messages</h4>'+li(hp.map(x=>dt(x.at)+' '+x.topic+': '+x.text+(x.reply?' -> Reply: '+x.reply:'')))+
@@ -213,13 +330,13 @@ function recView(v){const c=E('div',{className:'card'}),tbl=(h,rows)=>'<div styl
  if(!hp.length&&!an.length&&!lg.length&&!nt.length&&!rh.length)c.innerHTML='<p class="hint">Nothing imported yet. Import the spreadsheet on the Students tab first.</p>';v.append(c)}
 function stuView(v){const c=E('div',{className:'card'});
  c.innerHTML='<div id="cn" class="row"></div><p class="hint" id="cm"></p><details><summary><span>Send an announcement to a group</span></summary><div class="in"><div class="row"><select id="ba"><option value="all">All students</option><option value="inactive">Quiet 7+ days</option><option value="low">Grade under 60%</option></select><select id="bp2"><option value="normal">Normal</option><option value="urgent">Urgent</option></select></div><input type="text" id="bt" placeholder="Title" style="margin-top:8px"><textarea id="bm" placeholder="Message students will see in their bell"></textarea><button class="b p" id="bs" style="margin-top:8px">Send announcement</button> <span class="hint" id="bh"></span></div></details>'+
- '<div class="row" style="margin-top:12px"><input type="text" id="sq" placeholder="Search name or email"><select id="sf"><option value="">All students</option><option value="on">Online now</option><option value="r">At risk</option><option value="q">Quiet 7+ days</option><option value="n">Never signed in</option></select><label class="b" style="margin:0;cursor:pointer;text-align:center;flex:none">Import spreadsheet<input type="file" id="sx" accept=".xlsx" hidden></label><button class="b" id="sp" style="flex:none">Pull all from backend</button><button class="b" id="sj" style="flex:none">Backup JSON</button><label class="b" style="margin:0;cursor:pointer;text-align:center;flex:none">Restore JSON<input type="file" id="sr" accept=".json" hidden></label><button class="b" id="sc" style="flex:none">Export CSV</button><button class="b d" id="sd" style="flex:none">Clear local data</button></div><p class="hint" id="sh"></p><div style="overflow:auto"><table class="tb" id="tb"></table></div><div id="dt"></div>';v.append(c);
+ '<div class="row" style="margin-top:12px"><input type="text" id="sq" placeholder="Search name or email"><select id="sf"><option value="">All students</option><option value="on">Online now</option><option value="r">At risk</option><option value="q">Quiet 7+ days</option><option value="n">Never signed in</option>'+badgeOpts()+'</select><label class="b" style="margin:0;cursor:pointer;text-align:center;flex:none">Import spreadsheet<input type="file" id="sx" accept=".xlsx" hidden></label><button class="b" id="sp" style="flex:none">Pull all from backend</button><button class="b" id="sj" style="flex:none">Backup JSON</button><label class="b" style="margin:0;cursor:pointer;text-align:center;flex:none">Restore JSON<input type="file" id="sr" accept=".json" hidden></label><button class="b" id="sc" style="flex:none">Export CSV</button><button class="b d" id="sd" style="flex:none">Clear local data</button></div><p class="hint" id="sh"></p><div style="overflow:auto"><table class="tb" id="tb"></table></div><div id="dt"></div>';v.append(c);
  const msg=t=>$('#cm',c).textContent=t||'';
  const draw=()=>{const tb=$('#tb',c);if(!tb)return;const q=$('#sq',c).value.toLowerCase(),f=$('#sf',c).value;
-  let L=allKeys().map(row).filter(s=>(String(s.name)+s.email+(s.fullName||'')).toLowerCase().includes(q)).filter(s=>{const m=mins(s);return f=='on'?(m!=null&&m<3):f=='q'?(m!=null&&m>=10080):f=='r'?risky(s):f=='n'?m==null:1}).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  let L=allKeys().map(row).filter(s=>(String(s.name)+s.email+(s.fullName||'')).toLowerCase().includes(q)).filter(s=>{const m=mins(s);return f=='on'?(m!=null&&m<3):f=='q'?(m!=null&&m>=10080):f=='r'?risky(s):f=='n'?m==null:f.indexOf('b:')==0?!!(s.badge&&s.badge.badge.name===f.slice(2)):1}).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const on=allKeys().map(row).filter(s=>{const m=mins(s);return m!=null&&m<3}).length;
   $('#sh',c).textContent=allKeys().length+' students, '+on+' online now (last active within 3 minutes). Showing '+L.length+'. Spreadsheet data stays in this browser only.';
-  tb.innerHTML='<tr><th>Name</th><th>Status</th><th>Progress</th><th>Grade</th><th>Lessons</th><th>Weekly</th><th>Risk</th><th>Sign-ins</th></tr>'+L.map(s=>`<tr class="r" data-e="${esc(s.email)}"><td>${esc(s.name)}<div class="hint">${esc(s.email)}</div></td><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:${dotc(s)}"></span>${esc(stat(s))}</td><td>${s.overall!=null?s.overall+'%':esc(s.progress??'')}</td><td>${esc(s.letter||s.p1g||'')} ${s.grade!=null?s.grade+'%':(s.p1!==''&&s.p1!=null?Math.round(s.p1*100)+'%':'')}</td><td>${esc(lessonsOf(s))}</td><td>${s.weeklyDue!=null?s.weeklyDone+'/'+s.weeklyDue:''}</td><td>${esc(s.level&&s.level!='ok'?s.level:'')}</td><td>${esc(s.logins??s.signIns??'')}</td></tr>`).join('');
+  tb.innerHTML='<tr><th>Name</th><th>Status</th><th>Progress</th><th>Grade</th><th>Lessons</th><th>Weekly</th><th>Badge</th><th>Risk</th><th>Sign-ins</th></tr>'+L.map(s=>`<tr class="r" data-e="${esc(s.email)}"><td>${esc(s.name)}<div class="hint">${esc(s.email)}</div></td><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:${dotc(s)}"></span>${esc(stat(s))}</td><td>${s.overall!=null?s.overall+'%':esc(s.progress??'')}</td><td>${esc(s.letter||s.p1g||'')} ${s.grade!=null?s.grade+'%':(s.p1!==''&&s.p1!=null?Math.round(s.p1*100)+'%':'')}</td><td>${esc(lessonsOf(s))}</td><td>${s.weeklyDue!=null?s.weeklyDone+'/'+s.weeklyDue:''}</td><td>${badgeCell(s)}</td><td>${esc(s.level&&s.level!='ok'?s.level:'')}</td><td>${esc(s.logins??s.signIns??'')}</td></tr>`).join('');
   tb.querySelectorAll('tr.r').forEach(r=>r.onclick=()=>detail(r.dataset.e))};
  const refresh=async()=>{try{await pollLive();draw();msg('Updated '+new Date().toLocaleTimeString()+'. Refreshes every 20 seconds while this page is open.')}catch(e){msg(e.message)}};
  const setLive=on=>{clearInterval(liveT);liveT=null;if(on)liveT=setInterval(()=>{if(!document.hidden&&$('#tb')&&cur=='students')refresh()},20000);const b=$('#lv',c);if(b)b.textContent=on?'Live: on (every 20 s)':'Live: off'};
@@ -231,7 +348,7 @@ function stuView(v){const c=E('div',{className:'card'});
  const detail=e=>{const s=row(e),r=s.rec||{},d=$('#dt',c);EDS=null;
   const tiles=[['Progress',s.overall!=null?s.overall+'%':s.progress],['Grade',s.letter||s.p1g],['Lessons',lessonsOf(s)],['Week quizzes',s.wq],['Weekly check-ins',s.weeklyDue!=null?s.weeklyDone+'/'+s.weeklyDue:''],['Sign-ins',s.logins??s.signIns],['Devices',s.devices],['Open help',s.openHelp]];
   d.innerHTML=`<div class="card" style="margin-top:14px"><h3>${esc(s.name)}</h3><p class="hint">${esc(s.email)} - ${esc(stat(s))}${s.reasons&&s.reasons.length?' - '+esc(s.reasons.join('; ')):''}${s.action?'. Suggested: '+esc(s.action):''}</p><div class="tg">${tiles.map(([l,x])=>`<div><b>${esc(x??'-')}</b>${l}</div>`).join('')}</div>
-  ${extraHtml(s,e)}<div class="row" style="margin-top:12px"><button class="b" id="an" style="flex:none">Notify</button><button class="b" id="ap" style="flex:none">Reset password</button><button class="b" id="ao" style="flex:none">Sign out everywhere</button><button class="b d" id="rg" style="flex:none">Open safe reset & preview</button></div>
+  ${badgePanel(s,e)}${extraHtml(s,e)}<div class="row" style="margin-top:12px"><button class="b" id="an" style="flex:none">Notify</button><button class="b" id="ap" style="flex:none">Reset password</button><button class="b" id="ao" style="flex:none">Sign out everywhere</button><button class="b d" id="rg" style="flex:none">Open safe reset & preview</button></div>
   <div id="nb" hidden><input type="text" id="nt" placeholder="Title (optional)" style="margin-top:8px"><textarea id="nm" placeholder="Message the student will see in their bell"></textarea><button class="b p" id="ns" style="margin-top:6px">Send</button></div><p class="hint" id="am"></p>
   <div class="row"><button class="b" id="el" style="flex:none">Edit progress day by day, quiz by quiz</button></div><div id="ed"></div>
   <div class="row"><div><label>Display name</label><input type="text" id="dn" value="${esc(s.name)}"></div><div><label>Teacher grade</label><input type="text" id="dg" value="${esc(s.teacherGrade||'')}"></div></div><label>Private note (stays in this browser)</label><textarea id="dnote">${esc(s.note||'')}</textarea>
@@ -262,7 +379,7 @@ function stuView(v){const c=E('div',{className:'card'});
   $('#es',box).onclick=async()=>{const b=$('#es',box);b.disabled=true;b.textContent='Saving...';try{const j=await bk('adminApplyEdits',{email:EDS.e,edits:Object.values(EDS.chg),notify:$('#en',box).checked});if(!j.ok)throw new Error(j.message||j.error);$('#am',d).textContent='Saved '+j.count+' change(s).';const j2=await bk('adminEditor',{email:EDS.e});EDS.vals=j2.vals;EDS.chg={};edDraw(d);refresh()}catch(x){$('#am',d).textContent=x.message;b.disabled=false}}};
  $('#sx',c).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{$('#sh',c).textContent='Reading...';const m=impStudents(await readWb(f));draw();$('#sh',c).textContent=m}catch(x){$('#sh',c).textContent='Error: Could not read that file: '+x.message}};
  $('#sq',c).oninput=$('#sf',c).onchange=draw;$('#sd',c).onclick=()=>{if(confirm('Remove the spreadsheet data stored in this browser?')){ST={};saveST();draw()}};
- $('#sc',c).onclick=()=>{const cols=['name','email','lastActive','overall','letter','grade','lessons','weeklyDone','weeklyDue','logins','devices','level','teacherGrade','note'],q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';const csv=[cols.join(',')].concat(allKeys().map(row).map(s=>cols.map(k=>q(s[k])).join(','))).join('\n');E('a',{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'students.csv'}).click()};
+ $('#sc',c).onclick=()=>{const cols=['name','email','lastActive','overall','letter','grade','lessons','weeklyDone','weeklyDue','badgeName','badgeLevel','badgeProgress','badgeResult','badgeVisits','logins','devices','level','teacherGrade','note'],q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';const csv=[cols.join(',')].concat(allKeys().map(row).map(s=>Object.assign(s,{badgeName:s.badge&&s.badge.badge.name,badgeLevel:s.badge&&s.badge.level,badgeProgress:s.badge&&s.badge.pct,badgeResult:s.badge&&s.badge.res,badgeVisits:s.badge&&s.badge.visits})).map(s=>cols.map(k=>q(s[k])).join(','))).join('\n');E('a',{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'students.csv'}).click()};
  $('#sp',c).onclick=async()=>{const h=$('#sh',c);if(!TK)return h.textContent='Connect to the backend first.';try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:5});if(!j.ok)throw new Error(/UNKNOWN|not defined/.test((j.message||'')+j.error)?'The deployed backend is missing the full student export API. Deploy Course_Backend_Integrated_Fixed.gs as a new version.':(j.message||j.error));j.students.forEach(x=>addSt(x.email,x));n+=j.students.length;h.textContent='Pulled '+n+' of '+j.total+'...';if(j.done)break;off+=5}await saveST();draw();h.textContent='Pulled '+n+' students with their full progress records.'}catch(x){h.textContent=x.message}};
  $('#sj',c).onclick=()=>{E('a',{href:URL.createObjectURL(new Blob([JSON.stringify({students:ST,extra:EX})],{type:'application/json'})),download:'students-backup.json'}).click()};
  $('#sr',c).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());ST=j.students||ST;EX=j.extra||EX;await saveST();draw();$('#sh',c).textContent='Backup restored.'}catch(x){$('#sh',c).textContent='Could not read backup: '+x.message}};
@@ -981,4 +1098,108 @@ addNav('Student operations','follow','Student follow-up','◉');addNav('Student 
 window.csSaveWB=saveWB;
 }catch(e){console.error('Data centre add-on failed',e)}})();
 </script>
+<script id="badges-addon">
+/* ===== BADGES CENTRE · PROGRESS AUDIT & REPAIR · THUMBNAIL GALLERIES ===== */
+(()=>{try{
+const toast=t=>{let d=$('#bd-toast');if(!d){d=E('div',{id:'bd-toast'});d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;z-index:99;max-width:90vw;transition:opacity .25s;opacity:0;pointer-events:none';document.body.append(d)}d.textContent=t;d.style.opacity=1;clearTimeout(d._t);d._t=setTimeout(()=>d.style.opacity=0,2800)};
+const people=()=>allKeys().map(e=>Object.assign(row(e),{email:e}));
+const dl=(name,data,type)=>E('a',{href:URL.createObjectURL(new Blob([data],{type})),download:name}).click();
+const bt=(t,fn,c='')=>{const b=E('button',{className:'b '+c,textContent:t});b.style.flex='none';b.onclick=fn;return b};
+const BAD=()=>(D.profile&&D.profile.badges&&D.profile.badges.length)?D.profile.badges:HMR.DEF_BADGES;
+const csvq=x=>'"'+String(x??'').replace(/"/g,'""')+'"';
+let TAB='overview',AF='',CREDIT=true;
+const hasRec=e=>ST[e]&&ST[e].rec&&Object.keys(ST[e].rec).length;
+
+/* ---------- audit data: what would change for each student ---------- */
+function auditRows(){const ctx=getCtx(),T=totals(),B=BAD(),out=[];
+ Object.keys(ST).forEach(e=>{if(!hasRec(e))return;const r=ST[e].rec,rc=HMR.reconcile(r,ctx,{dry:true,credit:CREDIT});
+  const touched=rc.remapped.length||rc.credited.length||rc.unmatched.length;if(!touched&&!AF)return;if(AF&&AF!==e)return;
+  const raw=HMR.gradeOf(Object.assign({},r,{completed:(r.completed||[]).filter(x=>ctx.set[String(x).trim().toLowerCase()])}),T),fixed=HMR.gradeOf(Object.assign({},r,{completed:rc.ids}),T),vis=HMR.visitDays(r).length;
+  const b0=HMR.badgeCalc({pct:raw.pct,res:raw.overall,visits:Math.max(0,(r.visitDays||[]).length)},B),b1=HMR.badgeCalc({pct:fixed.pct,res:fixed.overall,visits:vis},B);
+  out.push({e,name:ST[e].name||e,rc,raw,fixed,b0,b1})});
+ return out.sort((a,b)=>(b.rc.after-b.rc.effBefore)-(a.rc.after-a.rc.effBefore))}
+const needRepairCount=()=>{const f=AF;AF='';const n=auditRows().length;AF=f;return n};
+function applyRepair(e){const r=ST[e].rec,ctx=getCtx(),rc=HMR.reconcile(r,ctx,{credit:CREDIT});HMR.syncVisits(r,[],null);if(rc.after>rc.effBefore&&!r.migrationNote)r.migrationNote={n:rc.after-rc.effBefore,at:new Date().toISOString(),shown:false};return rc}
+
+/* ---------- Badges centre ---------- */
+function badgesView(tab){TAB=tab||TAB;const v=$('#view');v.innerHTML='';const P=people(),B=BAD();
+ const c=E('div',{className:'card'});v.append(c);
+ c.innerHTML='<h3>Badges, leaderboard &amp; progress audit</h3><p class="hint">Every student automatically wears the highest badge whose progress, result <i>and</i> visit-day requirements they meet. Numbers here use the same rules as the student site ('+P.length+' students loaded).</p>';
+ const tabs=E('div',{className:'dc-tabs'});[['overview','Overview'],['leaderboard','Leaderboard'],['next','Close to next badge'],['audit','Progress audit & repair'],['rules','Badge rules']].forEach(([k,l])=>{const b=E('button',{className:'b'+(k===TAB?' on':''),textContent:l+(k==='audit'?' ('+needRepairCount()+')':'')});b.onclick=()=>{TAB=k;if(k!=='audit')AF='';badgesView(k)};tabs.append(b)});c.append(tabs);
+ const body=E('div');c.append(body);
+ if(!P.length&&TAB!=='rules'){body.innerHTML='<p class="hint">No students loaded yet. Open <b>Student directory</b> and connect or import the spreadsheet, then come back.</p>';return}
+ ({overview:ovTab,leaderboard:lbTab,next:nxTab,audit:auTab,rules:ruTab})[TAB](body,P,B)}
+
+function ovTab(body,P,B){const n=P.length,avg=k=>n?Math.round(P.reduce((a,s)=>a+s.badge[k],0)/n):0,earned=P.filter(s=>s.badge.earned).length,top=P.filter(s=>s.badge.idx===B.length-1&&s.badge.earned).length;
+ const tiles=[[n,'Students'],[avg('pct')+'%','Average progress'],[avg('res')+'%','Average result'],[avg('visits'),'Average visit days'],[earned,'Wearing a badge'],[top,'Top badge ('+esc(B[B.length-1].name)+')'],[needRepairCount(),'Records needing repair']];
+ body.innerHTML='<div class="bd-tiles">'+tiles.map(([x,l])=>'<div class="bd-tile"><b>'+x+'</b><span>'+l+'</span></div>').join('')+'</div><h4>Badge distribution</h4>';
+ const cnt=B.map((b,i)=>P.filter(s=>s.badge.earned&&s.badge.idx===i).length),none=P.filter(s=>!s.badge.earned).length,mx=Math.max(1,none,...cnt),d=E('div',{className:'bd-dist'});
+ const line=(sh,name,k,col)=>'<div class="bd-d"><span>'+sh+esc(name)+'</span><div class="track"><i style="width:'+Math.round(k/mx*100)+'%;background:'+col+'"></i></div><span>'+k+' <small class="hint">('+(n?Math.round(k/n*100):0)+'%)</small></span></div>';
+ d.innerHTML=line(HMR.shield('#9aa2b1',22,false),'No badge yet',none,'#9aa2b1')+B.map((b,i)=>line(HMR.shield(b.color,22,true),'Badge '+(i+1)+' · '+b.name,cnt[i],b.color)).join('');body.append(d);
+ const r=E('div',{className:'row',style:'margin-top:14px'});r.append(bt('Export badges CSV',()=>{const cols=['Name','Email','Badge','Level','Progress %','Result %','Visit days','Next badge','Closeness to next %'];dl('student-badges.csv',[cols.join(',')].concat(P.map(s=>[s.name,s.email,s.badge.badge.name,s.badge.earned?s.badge.level:0,s.badge.pct,s.badge.res,s.badge.visits,s.badge.next?s.badge.next.name:'—',s.badge.near].map(csvq).join(','))).join('\n'),'text/csv')}),bt('Open student directory',()=>go('students')));body.append(r);
+ const est=P.filter(s=>s.badge.approx).length;if(est)body.append(E('p',{className:'hint'},'≈ '+est+' student(s) have no full progress record loaded, so their badge is estimated from the live summary. Use <b>Pull all from backend</b> in the Student directory for exact badges.'))}
+
+function lbTab(body,P){const L=P.slice().sort((a,b)=>((b.badge.earned?b.badge.idx+1:0)-(a.badge.earned?a.badge.idx+1:0))||(b.badge.res-a.badge.res)||(b.badge.pct-a.badge.pct)||(b.badge.visits-a.badge.visits)).slice(0,25);
+ body.innerHTML='<p class="hint">Ranked by badge level, then result, then progress, then visit days. Top '+L.length+'.</p><div style="overflow:auto"><table class="tb"><tr><th>#</th><th>Student</th><th>Badge</th><th>Progress</th><th>Result</th><th>Visits</th></tr>'+L.map((s,i)=>'<tr class="r" data-e="'+esc(s.email)+'"><td><span class="lb-rank'+(i<3?' r'+(i+1):'')+'">'+(i+1)+'</span></td><td>'+esc(s.name)+'<div class="hint">'+esc(s.email)+'</div></td><td>'+badgeCell(s)+'</td><td>'+s.badge.pct+'%</td><td>'+s.badge.res+'%</td><td>'+s.badge.visits+'</td></tr>').join('')+'</table></div>';
+ body.querySelectorAll('tr.r').forEach(r=>r.onclick=()=>{go('students');let n=0;const t=setInterval(()=>{const x=document.querySelector('#tb tr.r[data-e="'+r.dataset.e.replace(/"/g,'')+'"]');if(x){clearInterval(t);x.click()}else if(++n>30)clearInterval(t)},100)})}
+
+const needTxt=b=>[b.need.progress?'+'+b.need.progress+'% progress':'',b.need.result?'+'+b.need.result+'% result':'',b.need.visits?'+'+b.need.visits+' visit day'+(b.need.visits==1?'':'s'):''].filter(Boolean).join(' · ')||'ready — will update on next sign-in';
+const nudge=async s=>{if(!TK)throw new Error('Connect to the backend first (open Student directory).');const b=s.badge,j=await bk('adminNotify',{email:s.email,title:'You are close to the '+b.next.name+' badge',message:'Great work'+(s.name?', '+String(s.name).split(' ')[0]:'')+'! You are '+b.near+'% of the way to the '+b.next.name+' badge. Still needed: '+needTxt(b)+'.'});if(!j.ok)throw new Error(j.message||j.error)};
+function nxTab(body,P){const L=P.filter(s=>s.badge.next&&s.badge.near>=60).sort((a,b)=>b.badge.near-a.badge.near);
+ body.innerHTML='<p class="hint">Students at least 60% of the way to their next badge — a small push gets them over the line.</p>';
+ if(!L.length){body.append(E('p',{className:'hint'},'Nobody is close yet.'));return}
+ const t=E('div',{style:'overflow:auto'});t.innerHTML='<table class="tb"><tr><th>Student</th><th>Now</th><th>Next</th><th>Still needed</th><th>Closeness</th><th></th></tr>'+L.map((s,i)=>'<tr><td>'+esc(s.name)+'<div class="hint">'+esc(s.email)+'</div></td><td>'+badgeCell(s)+'</td><td>'+HMR.shield(s.badge.next.color,22,true)+'</td><td>'+esc(needTxt(s.badge))+'</td><td><b>'+s.badge.near+'%</b></td><td><button class="b mini" data-n="'+i+'">Send nudge</button></td></tr>').join('')+'</table>';body.append(t);
+ t.querySelectorAll('[data-n]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await nudge(L[+b.dataset.n]);b.textContent='Sent ✓';toast('Nudge sent')}catch(x){b.disabled=false;toast(x.message)}});
+ body.append(bt('Nudge everyone listed ('+L.length+')',async()=>{if(!TK)return toast('Connect to the backend first (Student directory).');if(!confirm('Send a notification to '+L.length+' students?'))return;let k=0;for(const s of L){try{await nudge(s);k++}catch(x){toast(x.message);break}}toast('Sent '+k+' nudge(s)')},'p'))}
+
+function auTab(body){
+ const rows=auditRows(),noRec=Object.keys(ST).filter(e=>!hasRec(e)).length+Object.keys(LV).filter(e=>!ST[e]).length;
+ body.innerHTML='<p class="hint">Finds lessons students <b>already did</b> but that the site shows as “not done”: old id formats (e.g. <code>1</code>, <code>w2d1</code>) are recognised, and weeks the student already <i>marked finished, submitted or took the quiz for</i> are counted. Nothing is ever removed. The student site applies this same repair automatically the next time each student signs in and saves it to their record — use this page to <b>preview and verify</b> it against your spreadsheet.</p>';
+ const opt=E('div',{className:'row',style:'margin:8px 0'});const lab=E('label',{className:'chk',style:'flex:none;margin:0'});const cb=E('input',{type:'checkbox',checked:CREDIT});cb.onchange=()=>{CREDIT=cb.checked;badgesView('audit')};lab.append(cb,document.createTextNode('Also count weeks the student finished / submitted / took the quiz for'));opt.append(lab);body.append(opt);
+ if(AF){const f=E('div',{className:'row',style:'margin:6px 0'});f.append(E('span',{className:'chip',textContent:'Showing one student: '+AF}),bt('Show all',()=>{AF='';badgesView('audit')}));body.append(f)}
+ if(noRec)body.append(E('p',{className:'hint warn'},noRec+' student(s) have no full progress record loaded — they cannot be audited here. Use <b>Pull all from backend</b> (Student directory) or import the spreadsheet.'));
+ if(!rows.length){body.append(E('p',{className:'ok'},'✓ Nothing to repair in the records loaded here.'));return}
+ const gain=rows.reduce((a,x)=>a+Math.max(0,x.rc.after-x.rc.effBefore),0),up=rows.filter(x=>x.b1.idx>x.b0.idx||(x.b1.earned&&!x.b0.earned)).length;
+ body.append(E('div',{className:'bd-tiles'},'<div class="bd-tile"><b>'+rows.length+'</b><span>Students affected</span></div><div class="bd-tile"><b>+'+gain+'</b><span>Lessons restored</span></div><div class="bd-tile"><b>'+up+'</b><span>Badge goes up</span></div>'));
+ const bar=E('div',{className:'row',style:'margin:8px 0'});bar.append(bt('Apply repair to all in this browser',()=>{if(!confirm('Repair '+rows.length+' saved record(s) in this browser? Nothing is deleted; download a backup first if unsure.'))return;rows.forEach(x=>applyRepair(x.e));saveST();toast('Repaired '+rows.length+' record(s)');badgesView('audit')},'p'),bt('Download corrected backup (.json)',()=>{const copy=JSON.parse(JSON.stringify(ST)),ctx=getCtx();rows.forEach(x=>{if(copy[x.e]&&copy[x.e].rec){HMR.reconcile(copy[x.e].rec,ctx,{credit:CREDIT});HMR.syncVisits(copy[x.e].rec,[],null)}});dl('students-corrected.json',JSON.stringify({students:copy,extra:EX}),'application/json')}),bt('Export audit CSV',()=>{const cols=['Student','Email','Counted before','After repair','Old ids recognised','Credited weeks','Not recognised','Badge before','Badge after'];dl('progress-audit.csv',[cols.join(',')].concat(rows.map(x=>[x.name,x.e,x.rc.effBefore,x.rc.after,x.rc.remapped.map(m=>m[0]+'→'+m[1]).join(' '),[...new Set(x.rc.credited.map(c=>c.id.split('-')[0]))].map(w=>'W'+w).join(' '),x.rc.unmatched.join(' '),x.b0.badge.name,x.b1.badge.name].map(csvq).join(','))).join('\n'),'text/csv')}));body.append(bar);
+ const t=E('div',{style:'overflow:auto'});t.innerHTML='<table class="tb"><tr><th>Student</th><th>Counted before → after</th><th>Old ids recognised</th><th>Credited from earlier work</th><th>Not recognised</th><th>Badge</th><th></th></tr>'+rows.map((x,i)=>{const wk=[...new Set(x.rc.credited.map(c=>c.id.split('-')[0]))];return '<tr><td>'+esc(x.name)+'<div class="hint">'+esc(x.e)+'</div></td><td><b>'+x.rc.effBefore+' → '+x.rc.after+'</b> / '+getCtx().list.length+'</td><td class="hint">'+esc(x.rc.remapped.slice(0,6).map(m=>m[0]+'→'+m[1]).join(', ')||'—')+(x.rc.remapped.length>6?' +'+(x.rc.remapped.length-6):'')+'</td><td class="hint">'+(wk.length?esc('Week '+wk.join(', ')+' ('+[...new Set(x.rc.credited.map(c=>c.why))].join(', ')+')'):'—')+'</td><td class="hint '+(x.rc.unmatched.length?'warn':'')+'">'+esc(x.rc.unmatched.join(', ')||'—')+'</td><td style="white-space:nowrap">'+HMR.shield(x.b0.badge.color,18,x.b0.earned).replace('display:block','display:inline-block;vertical-align:middle')+' → '+HMR.shield(x.b1.badge.color,18,x.b1.earned).replace('display:block','display:inline-block;vertical-align:middle')+' <b>'+esc(x.b1.badge.name)+'</b></td><td><button class="b mini" data-a="'+i+'">Apply</button></td></tr>'}).join('')+'</table>';body.append(t);
+ t.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const x=rows[+b.dataset.a];applyRepair(x.e);saveST();toast('Repaired '+x.name);badgesView('audit')});
+ body.append(E('p',{className:'hint'},'“Not recognised” ids are kept in the record (as <code>legacyCompleted</code>) but cannot be matched to any current lesson — compare them with your spreadsheet. Resets made with the Progress reset tool stay reset: the earlier-work credit runs only once per student.'))}
+
+function ruTab(body){const B=BAD();body.innerHTML='<p class="hint">A student needs <b>all three</b> numbers to earn a badge. Change them in <b>Student profile &amp; badges</b>.</p><div style="overflow:auto"><table class="tb"><tr><th>Badge</th><th>Progress (lessons done)</th><th>Result (overall grade)</th><th>Visit days</th></tr>'+B.map((b,i)=>'<tr><td><span class="bdg">'+HMR.shield(b.color,24,true)+'<b>'+(i+1)+' · '+esc(b.name)+'</b></span></td><td>'+b.progress+'%</td><td>'+b.result+'%</td><td>'+b.visits+'</td></tr>').join('')+'</table></div><p class="hint">Result = 45% lessons + 25% week-quiz average + 15% Read Me notes + 15% screencasts watched. Visit days are saved inside each student\'s record, so they follow the student across devices.</p>';
+ const r=E('div',{className:'row'});r.append(bt('Edit badge rules',()=>go('profile'),'p'));body.append(r)}
+
+/* ---------- dashboard card ---------- */
+function dashBadges(){const P=people();if(!P.length)return;const B=BAD(),c=E('div',{className:'card'});c.innerHTML='<h3>Student badges</h3><p class="hint">Where your '+P.length+' students stand right now.</p>';
+ const row2=E('div',{className:'bd-tiles'});const none=P.filter(s=>!s.badge.earned).length;row2.innerHTML='<div class="bd-tile">'+HMR.shield('#9aa2b1',24,false)+'<b>'+none+'</b><span>No badge yet</span></div>'+B.map((b,i)=>'<div class="bd-tile">'+HMR.shield(b.color,24,true)+'<b>'+P.filter(s=>s.badge.earned&&s.badge.idx===i).length+'</b><span>'+esc(b.name)+'</span></div>').join('');c.append(row2);
+ const nr=needRepairCount();if(nr)c.append(E('p',{className:'hint warn'},'<b>'+nr+'</b> student record(s) have earlier work the site shows as “not done”. Open the audit to preview the repair.'));
+ const r=E('div',{className:'row'});r.append(bt('Open Badges centre',()=>go('badges'),'p'),bt('Progress audit',()=>go('audit')));c.append(r);$('#view').append(c)}
+
+/* ---------- thumbnail galleries (practice files, released materials) ---------- */
+let galT=null;
+function addGallery(k){const v=$('#view'),old=$('#gal-card');if(old)old.remove();const list=D[k]||[];
+ const c=E('div',{className:'card',id:'gal-card'});c.innerHTML='<h3>Thumbnail preview</h3><p class="hint">This is how each file looks as a card on the student site. “No preview” usually means the Google Drive file is not shared as <b>Anyone with the link</b>, or the file ID is wrong.</p><div class="row"><span class="chip" id="gal-s">'+list.length+' file(s)</span></div><div class="gal" id="gal-g"></div>';
+ v.insertBefore(c,v.firstChild);const g=$('#gal-g',c),st=$('#gal-s',c);let ok=0,no=0;
+ if(!list.length){g.outerHTML='<p class="hint">Nothing in this list yet — import the built-in files below, or add one.</p>';return}
+ const upd=()=>{st.textContent=list.length+' file(s) · '+ok+' with preview · '+no+' without'};
+ list.forEach((it,i)=>{const t=E('div',{className:'gal-t'}),img=E('div',{className:'gal-i'}),id=String(it.id||'').trim();
+  const fail=()=>{img.classList.add('no');img.innerHTML='<div class="nop"><b>📄</b>No preview</div>';no++;upd()};
+  if(!id)fail();else{const ch=HMR.thumbChain(id,400);let n=0;const im=E('img',{loading:'lazy',alt:'',referrerPolicy:'no-referrer'});im.onload=()=>{if(im.naturalWidth<48){im.onerror();return}img.classList.add('ok');ok++;upd()};im.onerror=()=>{if(++n<ch.length)im.src=ch[n];else{im.remove();fail()}};img.append(im);im.src=ch[0]}
+  const m=E('div',{className:'gal-m'});m.innerHTML='<b title="'+esc(it.label||'')+'">'+esc(it.label||('File '+(i+1)))+'</b><small><span>'+esc(id.slice(0,10)+(id.length>10?'…':''))+'</span>'+(id?'<a target="_blank" rel="noopener" href="https://drive.google.com/file/d/'+encodeURIComponent(id)+'/view">Open ↗</a>':'<span class="st-bad">no id</span>')+'</small>';
+  t.append(img,m);g.append(t)});
+ upd()}
+document.addEventListener('input',e=>{if(!e.target.closest||!e.target.closest('#view'))return;if(cur!=='practice'&&cur!=='materials')return;clearTimeout(galT);galT=setTimeout(()=>{if(cur==='practice'||cur==='materials')addGallery(cur)},900)});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-audit]');if(b){AF=b.dataset.audit;TAB='audit';go('audit')}});
+
+/* ---------- routing + navigation ---------- */
+SECT.badges={t:'Badges & leaderboard'};SECT.audit={t:'Progress audit & repair'};
+const MY2={badges:()=>badgesView('overview'),audit:()=>{AF=AF;return badgesView('audit')}};
+const prevGo=go;
+go=function(k){if(MY2[k]){cur=k;$('#ttl').textContent=SECT[k].t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==k));return MY2[k]()}
+ const r=prevGo(k);try{if(src&&(k==='practice'||k==='materials'))addGallery(k);if(k==='dashboard')dashBadges()}catch(e){console.error(e)}return r};
+const g=[...document.querySelectorAll('#nav .cs27-group')].find(x=>x.textContent.indexOf('Student operations')>-1);
+if(g){[['audit','Progress audit & repair','⟲'],['badges','Badges & leaderboard','★']].forEach(([k,l,ic])=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.icon=ic;b.onclick=()=>go(k);g.children[1]?g.children[1].before(b):g.append(b)})}
+}catch(e){console.error('Badges add-on failed',e)}})();
+</script>
+
 </body></html>
