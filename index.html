@@ -10770,5 +10770,77 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
   if(auto) setTimeout(function(){ toggle(true); },600);
 })();
 </script>
+<style id="hm-fix-v1-css">
+#screencasts .scx-group small,#screencasts .scx-group b i{display:none}
+#screencasts .scx-group{margin:14px 4px 4px}
+#screencasts .scx-group b{font:800 12px Inter,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#475467}
+.hmp-chip.right{margin-left:8px;margin-right:0}
+</style>
+<script id="hm-fix-v1">
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function signed(){ try{ return typeof student!=='undefined' && student && student.email && student.email!=='guest-preview@local'; }catch(e){ return false; } }
+  setInterval(function(){
+    if(signed()){ var t=Date.now(); window.__hmLA=t; try{ localStorage.setItem('hm_last_active',String(t)); }catch(e){} }
+  },10000);
+  if(window.HMC && HMC.sync){
+    var _sy=HMC.sync;
+    HMC.sync=function(){
+      var w=$('theaterPlayerWrap');
+      if(w && w.querySelector('iframe') && document.querySelector('#screencasts.active')) return;
+      return _sy.apply(this,arguments);
+    };
+  }
+  window.theaterStartWatchTracking=function(){ var s=$('theaterStage'); if(s) s.classList.add('is-playing'); };
+  window.theaterClearWatchTracking=function(){ var s=$('theaterStage'); if(s) s.classList.remove('is-playing'); };
+  window.theaterPauseForHiddenTab=function(){};
+  var _mark=window.theaterMarkWatched;
+  window.theaterMarkWatched=function(){};
+  var btn=$('theaterWatchedBtn');
+  if(btn){
+    var nb=btn.cloneNode(true); btn.parentNode.replaceChild(nb,btn);
+    nb.addEventListener('click',function(){
+      if(!signed()){ alert('Sign in first.'); return; }
+      var id=theaterCurrentId||((getReleasedScreencasts()[0]||{}).id); if(!id) return;
+      var meta=allScreencasts.find(function(v){return v.id===id;});
+      if(theaterIsWatched(id)){
+        if(student.contentQuizzes.screencasts[id]){ showToast('Already watched and checked ✓'); return; }
+        maybeShowContentQuiz('video',id,screencastQuizPool,'Quick 5-question check for "'+(meta?meta.label:'this recording')+'":');
+        return;
+      }
+      _mark(id);
+    });
+  }
+  window.theaterLoadIframe=function(id,label){
+    var wrap=$('theaterPlayerWrap'); if(!wrap) return;
+    var cur=wrap.querySelector('iframe'); if(cur && cur.dataset.id===id) return;
+    wrap.innerHTML='';
+    var f=document.createElement('iframe');
+    f.dataset.id=id; f.src=driveEmbedUrl(id,true); f.title=label;
+    f.setAttribute('allow','autoplay; fullscreen'); f.setAttribute('allowfullscreen','true');
+    wrap.appendChild(f);
+  };
+  window.theaterShowPoster=function(id,label){ theaterLoadIframe(id,label); };
+  window.theaterStep=function(delta){
+    var rel=scxOrder(), idx=rel.findIndex(function(v){return v.id===theaterCurrentId;});
+    if(idx<0) return;
+    var n=idx+delta; if(n<0||n>=rel.length){ showToast('This is the last released recording.'); return; }
+    var v=rel[n]; theaterPlay(v.id,v.label); theaterBeginPlayback(v.id,v.label);
+  };
+  var MAP=[[/^Weeks? 1/,'Week 1–4'],[/^Week 6/,'Week 6'],[/^Week 8/,'Week 8'],[/^Week 9/,'Week 9'],[/^Additional/,'Additional Technique']];
+  var _rs=window.theaterRenderSide;
+  window.theaterRenderSide=function(){
+    _rs.apply(this,arguments);
+    document.querySelectorAll('#theaterSide .scx-group b').forEach(function(b){
+      var t=b.textContent.trim();
+      MAP.some(function(m){ if(m[0].test(t)){ b.textContent=m[1]; return true; } });
+    });
+  };
+  theaterRenderSide();
+  var chip=$('hmpBtn'), pn=document.querySelector('.hmp-panel');
+  if(chip){ chip.classList.remove('left'); chip.classList.add('right'); }
+  if(pn){ pn.classList.remove('left'); pn.classList.add('right'); }
+})();
+</script>
 </body>
 </html>
