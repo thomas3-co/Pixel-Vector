@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<meta name="hm-build" content="studio-202611081136">
+<meta name="hm-build" content="fix-v3">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
@@ -10842,5 +10842,119 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
   if(pn){ pn.classList.remove('left'); pn.classList.add('right'); }
 })();
 </script>
+<style id="hm-fix-v2-css">
+/* 1) Profile icon: always the last item, pushed to the far right of the top bar */
+.hmp-chip,.hmp-chip.right,.hmp-chip.left{order:99!important;margin-left:8px!important;margin-right:0!important}
+@media (min-width:1561px){.hmp-chip{margin-left:auto!important}}
+/* 2) Screencast list: no group headings at all, one flat list */
+#screencasts .scx-group{display:none!important}
+#screencasts .scx-pill.new{display:none}
+</style>
+<script id="hm-fix-v2">
+(function(){
+  /* keep the profile chip as the very last child of the top bar */
+  var bar=document.querySelector('.topbar'), chip=document.getElementById('hmpBtn');
+  if(bar&&chip&&bar.lastElementChild!==chip) bar.appendChild(chip);
+  /* 3) Login screen and footer: remove the Google Classroom list */
+  function clean(){
+    document.querySelectorAll('#signInGate a[href*="classroom.google.com"]').forEach(function(a){
+      var box=a.parentNode;
+      a.remove();
+      if(box && box.tagName==='DIV' && !box.children.length && !box.textContent.trim()) box.remove();
+    });
+    document.querySelectorAll('footer.appfoot .foot-classroom').forEach(function(n){ n.remove(); });
+  }
+  clean(); setTimeout(clean,1500);
+})();
+</script>
+
+<style id="hm-fix-v3-css">
+.hm-notyou{display:block;margin:-6px 0 14px;font:600 12.5px Inter,Arial,sans-serif;color:#2f6fed;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.hm-notyou:hover{text-decoration:underline}
+</style>
+<script id="hm-fix-v3">
+(function(){
+  "use strict";
+  var $=function(i){return document.getElementById(i);};
+
+  /* ===== A) "Could not connect to server": automatic fallback between the two backend addresses found in this file, with retries ===== */
+  var A='https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec';
+  var B='https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec';
+  var KEY='hm_cloud_pref', _f=window.fetch;
+  function pref(){ try{ var p=localStorage.getItem(KEY); if(p===A||p===B) return p; }catch(e){} return A; }
+  function other(u){ return u===A?B:A; }
+  if(_f){
+    window.fetch=function(input,init){
+      var url=(typeof input==='string')?input:((input&&input.url)||''), b=url.split('?')[0];
+      if(b!==A&&b!==B) return _f.apply(this,arguments);
+      var q=url.slice(b.length), first=pref();
+      if(init&&(init.mode==='no-cors'||init.keepalive)) return _f.call(window,first+q,init);   /* fire-and-forget saves */
+      var order=[first,other(first),first];
+      function run(i){
+        var u=order[i], opts=init;
+        if(i>0){
+          opts=Object.assign({},init||{}); delete opts.signal;
+          if(window.AbortController){ var c=new AbortController(); opts.signal=c.signal; var t=setTimeout(function(){ c.abort(); },25000); opts.__t=t; }
+        }
+        var t0=opts&&opts.__t; if(opts&&opts.__t) delete opts.__t;
+        return _f.call(window,u+q,opts).then(function(r){
+          clearTimeout(t0);
+          if(r.status>=500) throw new Error('http '+r.status);
+          try{ localStorage.setItem(KEY,u); }catch(e){}
+          return r;
+        },function(err){
+          clearTimeout(t0);
+          if(i+1<order.length) return run(i+1);
+          throw err;
+        });
+      }
+      return run(0);
+    };
+  }
+
+  /* ===== B) Login page: same device = fields filled in, password manager works ===== */
+  var LK='hm_last_login';
+  function lastLogin(){ try{ return JSON.parse(localStorage.getItem(LK)||'null'); }catch(e){ return null; } }
+  function remember(s){
+    if(!s||!s.email||s.email==='guest-preview@local') return;
+    try{ localStorage.setItem(LK,JSON.stringify({name:s.name||'',email:s.email})); }catch(e){}
+  }
+  if(typeof window.setCurrentStudent==='function'){
+    var _scs=window.setCurrentStudent;
+    window.setCurrentStudent=function(s){ try{ remember(s); }catch(e){} return _scs.apply(this,arguments); };
+  }
+  var form=$('siForm'), nm=$('siName'), em=$('siEmail'), pw=$('siPass');
+  if(nm){ nm.setAttribute('autocomplete','given-name'); nm.setAttribute('name','name'); }
+  if(em){ em.setAttribute('autocomplete','username'); em.setAttribute('name','email'); em.setAttribute('inputmode','email'); em.setAttribute('autocapitalize','off'); }
+  /* the old hidden duplicate password box confuses password managers: switch it off */
+  var old=$('siPassword'); if(old){ old.removeAttribute('required'); old.setAttribute('autocomplete','off'); old.disabled=true; }
+  if(pw){ pw.setAttribute('name','password'); }
+
+  function prefill(){
+    var L=lastLogin(); if(!L||!form) return;
+    if(nm&&!nm.value) nm.value=L.name||'';
+    if(em&&!em.value) em.value=L.email||'';
+    var h=$('siHeading'); if(h&&L.name) h.textContent='Welcome back, '+String(L.name).split(' ')[0];
+    var p=document.querySelector('.si-card > p'); if(p) p.textContent='This device remembers you. Just enter your password to continue.';
+    var inBtn=document.querySelector('.hma-mode button[data-mode="login"]'); if(inBtn&&!inBtn.classList.contains('on')) inBtn.click();
+    if(!$('hmNotYou')){
+      var b=document.createElement('button'); b.type='button'; b.id='hmNotYou'; b.className='hm-notyou'; b.textContent='Not you? Use a different account';
+      b.onclick=function(){ try{ localStorage.removeItem(LK); }catch(e){} nm.value=''; em.value=''; if(pw) pw.value=''; if(h) h.textContent='Sign in to start'; b.remove(); nm.focus(); };
+      form.parentNode.insertBefore(b,form);
+    }
+    /* put the cursor on the password (or on the first empty field) */
+    setTimeout(function(){
+      var gate=$('signInGate'); if(!gate||gate.classList.contains('hidden')) return;
+      try{ (pw||nm).focus({preventScroll:true}); }catch(e){}
+    },250);
+  }
+  prefill(); setTimeout(prefill,700); setTimeout(prefill,1800);
+  var gate=$('signInGate');
+  if(gate&&window.MutationObserver) new MutationObserver(function(){ if(!gate.classList.contains('hidden')) prefill(); }).observe(gate,{attributes:true,attributeFilter:['class']});
+  /* a signed-in student's details are remembered too (covers students who were already signed in) */
+  setTimeout(function(){ try{ if(typeof student!=='undefined'&&student&&student.email) remember(student); }catch(e){} },3000);
+})();
+</script>
+
 </body>
 </html>
