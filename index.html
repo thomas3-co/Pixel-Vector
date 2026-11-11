@@ -2461,7 +2461,7 @@ img,video,canvas,svg,iframe{max-width:100%}
    ================================================================== */
 window.HM_PROFILE = {
   /* EDIT-ME :: PROFILE SIDE - write "left" or "right" (the side the profile button and drawer sit on) */
-  side:"left",
+  side:"right",
 
   /* EDIT-ME :: PROFILE WORDS - change the text in quotes */
   labels:{
@@ -4462,7 +4462,7 @@ window.HM_BAKED = {
   }
  ],
  "profile": {
-  "side": "left",
+  "side": "right",
   "accents": [
    "#2f6fed",
    "#8b5cf6",
@@ -9087,13 +9087,30 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   }
 
   /* ---------- server calls ---------- */
-  function api(action,payload,timeoutMs){
+  var ALT_URL="https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec";
+  function urlList(){
+    var l=[HMA_CLOUD_URL]; if(ALT_URL&&ALT_URL!==HMA_CLOUD_URL) l.push(ALT_URL);
+    try{ var g=localStorage.getItem('hm_good_url'); if(g&&l.indexOf(g)>0){ l.splice(l.indexOf(g),1); l.unshift(g); } }catch(e){}
+    return l;
+  }
+  function post1(url,action,payload,ms){
     var ctl=('AbortController' in window)?new AbortController():null;
-    var t=ctl?setTimeout(function(){ctl.abort();},timeoutMs||25000):null;
-    return fetch(HMA_CLOUD_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    var t=ctl?setTimeout(function(){ctl.abort();},ms):null;
+    return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',credentials:'omit',cache:'no-store',
         body:JSON.stringify(Object.assign({action:action},payload)),signal:ctl?ctl.signal:undefined})
-      .then(function(r){return r.json();})
-      .then(function(j){ if(t)clearTimeout(t); return j; },function(e){ if(t)clearTimeout(t); throw e; });
+      .then(function(r){return r.text();})
+      .then(function(tx){ if(t)clearTimeout(t); try{ return JSON.parse(tx); }catch(e){ throw new Error('BADREPLY'); } },function(e){ if(t)clearTimeout(t); throw e; });
+  }
+  /* Tries the saved address, then the backup address, then once more (Apps Script can be slow on a cold start). */
+  function api(action,payload,timeoutMs){
+    var ms=timeoutMs||25000, urls=urlList(), seq=urls.concat([urls[0]]), i=0, last;
+    function next(){
+      if(i>=seq.length) return Promise.reject(last||new Error('NETWORK'));
+      var u=seq[i++];
+      return post1(u,action,payload,ms).then(function(j){ try{localStorage.setItem('hm_good_url',u);}catch(e){} return j; },
+        function(e){ last=e; return new Promise(function(r){setTimeout(r,600*i);}).then(next); });
+    }
+    return next();
   }
   function sig(){ try{ var c=Object.assign({},student); delete c.lastSavedAt; return JSON.stringify(c); }catch(e){ return String(Math.random()); } }
 
@@ -9261,7 +9278,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
       busy(false);
       if(!res||!res.ok){ if(res&&res.error==='EXISTS') setMode('login'); if(res&&res.error==='NEEDPASS') setMode('register'); siShowError(MSG[res&&res.error]||'Something went wrong on the server. Please try again.'); return; }
       finishSignIn(res,name,email);
-    }).catch(function(){ busy(false); siShowError('Could not reach the server. Check your internet connection and try again.'); probe(); });
+    }).catch(function(){ busy(false); siShowError(navigator.onLine===false?'You are offline. Connect to the internet and press Sign In again.':'Could not reach the server after several tries. Please press Sign In again in a moment. If it keeps happening, tell your instructor.'); probe(); });
   };
 
   /* ---------- Google Sheet account persistence ----------
@@ -10390,7 +10407,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
   var C=window.HM_PROFILE||{}, LB=C.labels||{}, T=function(k,d){ return LB[k]||d; };
   var ACC=(C.accents&&C.accents.length)?C.accents:['#2f6fed','#8b5cf6','#ef476f','#ff7a2d','#12b886','#0ea5e9'];
   var BAD=(C.badges&&C.badges.length)?C.badges:[{name:'Starter',color:'#b7791f',progress:0,result:0,visits:1},{name:'Explorer',color:'#8a94a6',progress:15,result:50,visits:3},{name:'Creator',color:'#e0a800',progress:40,result:65,visits:6},{name:'Designer',color:'#12b886',progress:70,result:80,visits:10},{name:'Master',color:'#8b5cf6',progress:100,result:90,visits:15}];
-  var SIDE=(C.side==='right')?'right':'left';
+  var SIDE=(C.side==='left')?'left':'right';
   var THM=C.themes&&Object.keys(C.themes).length?C.themes:{light:{name:'Light',bg:'#ffffff',fg:'#1a1d24',muted:'#5b6270',line:'#e3e7ee',surface:'#f3f5f8'}};
   var P={close:'<path d="M18 6 6 18M6 6l12 12"/>',camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
    user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
@@ -10405,7 +10422,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
   function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function shield(color,n,z,on){ return '<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z" fill="'+(on?color:'#9aa2b1')+'"/><path d="M12 2 4 5v6c0 .9.1 1.8.3 2.6L12 11z" fill="rgba(255,255,255,.22)"/><polygon points="12 7.2 13.4 10.4 16.9 10.7 14.3 13 15.1 16.4 12 14.6 8.9 16.4 9.7 13 7.1 10.7 10.6 10.4" fill="#fff"/></svg>'; }
   var scrim=document.createElement('div'); scrim.className='hmp-scrim'; document.body.appendChild(scrim);
-  var pn=document.createElement('aside'); pn.className='hmp-panel'; pn.setAttribute('role','dialog'); pn.setAttribute('aria-modal','true'); pn.setAttribute('aria-label',T('title','My Profile')); pn.classList.add(SIDE); chip.classList.add(SIDE); var mini=document.createElement('span'); mini.className='hmp-mini'; chip.querySelector('.hmp-ring').appendChild(mini);
+  var pn=document.createElement('aside'); pn.className='hmp-panel'; pn.setAttribute('role','dialog'); pn.setAttribute('aria-modal','true'); pn.setAttribute('aria-label',T('title','My Profile')); pn.classList.add(SIDE); chip.classList.add(SIDE); var mini=document.createElement('span'); mini.className='hmp-mini'; chip.insertBefore(mini,chip.querySelector('.hmp-caret'));
   var tabs=[['ov','user',T('tabOverview','Overview')],['ly','layers',T('tabLayers','Layers')],['st','settings',T('tabSettings','Settings')]];
   pn.innerHTML='<div class="hmp-top"><h2>'+ic('user',18)+esc(T('title','My Profile'))+'</h2><button class="hmp-iconbtn" id="hmpX" type="button" aria-label="Close profile">'+ic('close',20)+'</button></div>'
   +'<div class="hmp-scroll" id="hmpScroll"><div class="hmp-cover"></div>'
@@ -10465,7 +10482,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
     var pct=total?Math.min(100,Math.round(done/total*100)):0, qz=Object.keys(student.weekQuizzes||{}).length, vs=visits(), res=g.pct||0, cur=-1;
     BAD.forEach(function(b,i){ if(pct>=b.progress&&res>=b.result&&vs>=b.visits) cur=i; });
     var ci2=Math.max(cur,0), cb=BAD[ci2], nx=BAD[cur+1];
-    $('hmpChipName').textContent=first; $('hmpChipGrade').textContent='Badge '+(ci2+1)+' \u00b7 '+pct+'%'; mini.innerHTML=shield(cb.color,ci2+1,18,cur>=0);
+    $('hmpChipName').textContent=first; $('hmpChipGrade').textContent='Badge '+(ci2+1)+' \u00b7 '+pct+'%'; mini.innerHTML=shield(cb.color,ci2+1,24,cur>=0);
     $('hmpRingV').style.strokeDashoffset=131.95*(1-pct/100);
     $('hmpName').textContent=nm; var lv=$('hmpLvl'); lv.textContent=cb.name+' badge'; lv.style.background=cur>=0?cb.color:'#9aa2b1'; $('hmpMedal').innerHTML=shield(cb.color,ci2+1,64,cur>=0); var bn=$('hmpBn'); bn.innerHTML='Badge <b style="color:'+(cur>=0?cb.color:'inherit')+'">'+(ci2+1)+'</b> of '+BAD.length;
     $('hmpSub').textContent=((student.profile&&student.profile.fullName)?student.profile.fullName+' \u00b7 ':'')+student.email;
@@ -10956,5 +10973,75 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 })();
 </script>
 
+<style id="hm-fix-v2">
+/* profile chip: far right of the top bar; badge sits beside it, no overlap */
+.topbar{padding-right:10px!important}
+.hmp-chip,.hmp-chip.right,.hmp-chip.left{order:9999!important;margin-left:auto!important;margin-right:0!important}
+.hmp-mini{position:static!important;right:auto!important;bottom:auto!important;width:24px!important;height:24px!important;margin:0 2px 0 -2px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.hmp-ring{margin:0 2px}
+/* login v2 */
+.hm-back{display:none;align-items:center;gap:12px;padding:12px 14px;margin:0 0 14px;border-radius:16px;background:linear-gradient(135deg,#eef4ff,#f3edff);border:1px solid #d8e2ff}
+.hm-back.on{display:flex}
+.hm-back .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#2f6fed,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font:800 17px Poppins,Arial,sans-serif;flex:0 0 auto}
+.hm-back b{display:block;font:700 14.5px Poppins,Arial,sans-serif;color:#1a1d24}.hm-back small{display:block;color:#5b6270;font-size:12px;word-break:break-all}
+.hm-back button{margin-left:auto;border:0;background:none;color:#2f6fed;font:700 12px Inter,Arial,sans-serif;cursor:pointer;padding:6px;flex:0 0 auto}
+.hm-compact label[for=siName],.hm-compact #siName,.hm-compact label[for=siEmail],.hm-compact #siEmail{display:none!important}
+.hm-rem{display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:#4b5563;margin:0 0 12px;text-transform:none!important;letter-spacing:0!important}
+.hm-rem input{width:auto!important;height:auto!important;margin:0!important}
+.hm-srv{display:flex;align-items:center;gap:8px;font-size:12px;color:#5b6270;margin:0 0 12px}
+.hm-srv i{width:9px;height:9px;border-radius:50%;background:#cbd2dd;flex:0 0 auto}.hm-srv.ok i{background:#12b886}.hm-srv.bad i{background:#ef476f}
+.hm-srv button{border:0;background:none;color:#2f6fed;font:700 12px Inter,Arial,sans-serif;cursor:pointer;padding:2px 4px}
+</style>
+<script id="hm-login-v2-js">
+(function(){
+  var LK='hm_last_user',$=function(i){return document.getElementById(i);},pend=null;
+  function last(){try{return JSON.parse(localStorage.getItem(LK)||'null');}catch(e){return null;}}
+  function ping(){
+    var el=$('hmSrv'); if(!el) return; el.className='hm-srv'; el.querySelector('span').textContent='Checking connection…';
+    if(!window.hmaCloud){ el.className='hm-srv'; el.querySelector('span').textContent=''; return; }
+    window.hmaCloud.api('ping',{},12000).then(function(){ el.className='hm-srv ok'; el.querySelector('span').textContent='Connected to the course server'; },
+      function(){ el.className='hm-srv bad'; el.querySelector('span').textContent='Cannot reach the server right now'; });
+  }
+  function apply(){
+    var g=$('signInGate'); if(!g||g.classList.contains('hidden')){ if(g) g.dataset.v2=''; return; }
+    var n=$('siName'),e=$('siEmail'),p=$('siPass'),form=$('siForm'),sub=$('siSubmit'); if(!n||!e||!p||!form||!sub||g.dataset.v2==='1') return;
+    g.dataset.v2='1';
+    var u=last(),first=u&&u.name?String(u.name).split(/\s+/)[0]:'';
+    var bk=document.createElement('div'); bk.className='hm-back'; form.insertBefore(bk,form.firstChild);
+    var rem=document.createElement('label'); rem.className='hm-rem'; rem.innerHTML='<input type="checkbox" id="hmRem"'+(localStorage.getItem('hm_remember')==='0'?'':' checked')+'> Remember me on this device'; form.insertBefore(rem,sub);
+    var sv=document.createElement('div'); sv.className='hm-srv'; sv.id='hmSrv'; sv.innerHTML='<i></i><span></span><button type="button">Retry</button>'; form.insertBefore(sv,sub);
+    sv.querySelector('button').onclick=ping; ping();
+    if(u&&u.email){
+      if(!n.value) n.value=u.name||''; if(!e.value) e.value=u.email;
+      bk.innerHTML='<span class="av">'+(first.charAt(0)||'?').toUpperCase()+'</span><div><b>Welcome back, '+first.replace(/[<>&"]/g,'')+'</b><small>'+u.email.replace(/[<>&"]/g,'')+'</small></div><button type="button">Not you?</button>';
+      bk.classList.add('on'); form.classList.add('hm-compact');
+      bk.querySelector('button').onclick=function(){ try{localStorage.removeItem(LK);}catch(x){} n.value=e.value=p.value=''; bk.classList.remove('on'); form.classList.remove('hm-compact'); n.focus(); };
+      try{ if(window.PasswordCredential&&navigator.credentials) navigator.credentials.get({password:true,mediation:'silent'}).then(function(c){ if(c&&c.id&&c.id.toLowerCase()===String(u.email).toLowerCase()&&!p.value) p.value=c.password; }).catch(function(){}); }catch(x){}
+      setTimeout(function(){ if(!p.value) p.focus(); },300);
+    } else { setTimeout(function(){ n.focus(); },300); }
+    form.addEventListener('click',function(ev){ var b=ev.target.closest&&ev.target.closest('.hma-mode button'); if(b&&b.dataset.mode==='register') form.classList.remove('hm-compact'); });
+  }
+  document.addEventListener('submit',function(ev){
+    if(!ev.target||ev.target.id!=='siForm') return;
+    pend={name:$('siName').value.trim(),email:$('siEmail').value.trim().toLowerCase(),pw:$('siPass')?$('siPass').value:'',t:Date.now()};
+    var r=$('hmRem'); try{ localStorage.setItem('hm_remember',r&&!r.checked?'0':'1'); }catch(e){}
+  },true);
+  function done(){
+    var g=$('signInGate'); if(!g||!g.classList.contains('hidden')||!pend||Date.now()-pend.t>90000){ return; }
+    var r=$('hmRem'); if(!r||r.checked){
+      try{ localStorage.setItem(LK,JSON.stringify({name:pend.name,email:pend.email})); }catch(e){}
+      try{ if(window.PasswordCredential&&navigator.credentials&&pend.pw) navigator.credentials.store(new PasswordCredential({id:pend.email,password:pend.pw,name:pend.name})); }catch(e){}
+    } else { try{ localStorage.removeItem(LK); }catch(e){} }
+    pend=null;
+  }
+  function start(){
+    var g=$('signInGate'); if(!g) return;
+    new MutationObserver(function(){ apply(); done(); }).observe(g,{attributes:true,attributeFilter:['class']});
+    var n=0,t=setInterval(function(){ apply(); if(++n>60) clearInterval(t); },300);
+    window.addEventListener('online',function(){ if(!g.classList.contains('hidden')) ping(); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
+</script>
 </body>
 </html>
