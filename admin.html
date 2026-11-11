@@ -36,10 +36,13 @@ details.dragover{outline:2px dashed var(--acc)}details[draggable=true]{opacity:.
 <script>
 /* ===== state ===== */
 const $=(s,r=document)=>r.querySelector(s),E=(t,a={},h='')=>{const e=document.createElement(t);Object.assign(e,a);if(h)e.innerHTML=h;return e};
-let src='',sha='',D={},dirty=false,cur='site',LS=JSON.parse(localStorage.getItem('cs_gh')||'{}');
+let src='',sha='',D={},dirty=false,cur='site',_dt=null,LS=JSON.parse(localStorage.getItem('cs_gh')||'{}');
 const GAS_BACKEND_URL='<?= backendUrl ?>';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function mark(v=true){dirty=v;applyTheme();const s=$('#st');s.textContent=src?(v?'Unpublished changes':'Up to date'):'Not connected';s.className='chip'+(v?' dirty':'')}
+function mark(v=true){dirty=v;applyTheme();const s=$('#st');s.textContent=src?(v?'Unpublished changes':'Up to date'):'Not connected';s.className='chip'+(v?' dirty':'');schedDraft()}
+function schedDraft(){clearTimeout(_dt);_dt=setTimeout(saveDraft,700)}
+async function saveDraft(){try{if(!src)return;await idbSet('draft',{src,D,sha,dirty,savedAt:Date.now()});window.__savedAt=Date.now()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveDraft()});
 /* ===== field specs: [key,label,type,extra] ===== */
 const PAIR=['term','def'];
 const DAY=[['type','Type','s',['lesson','project','practice']],['title','Card title'],['front','Front of card','a'],['idea','Back: big idea (**bold**, lines starting "- " = bullets)','a'],['vocab','Vocabulary — one per line: term | definition','pairs',PAIR],['links','Links — one per line: kind | ref | label (kind = screencast, note, project, url)','pairs',['kind','ref','label']]];
@@ -179,7 +182,7 @@ function impView(v){
 }
 /* ===== students: live from your backend + spreadsheet import ===== */
 let LV={},TK=sessionStorage.getItem('cs_tk')||'',BK={},liveT=null,EDS=null;try{BK=JSON.parse(localStorage.getItem('cs_bk')||'{}')}catch(e){}
-const bkUrl=()=>BK.u||(GAS_BACKEND_URL.indexOf('<?=')===-1?GAS_BACKEND_URL:'')||(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/.exec(src)||[])[1]||'';
+const bkUrl=()=>BK.u||(GAS_BACKEND_URL.indexOf('<?=')===-1?GAS_BACKEND_URL:'')||([...src.matchAll(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/g)].pop()||[])[1]||'';
 async function bk(a,p){const u=bkUrl();if(!u)throw new Error('Enter the web app address first.');
  const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:a,token:TK},p||{}))});const j=await r.json();
  if(j.error==='ADMIN_AUTH'){TK='';sessionStorage.removeItem('cs_tk');throw new Error('Signed out. Please connect again.')}return j}
@@ -439,7 +442,14 @@ $('#bpub').onclick=()=>go('publish');
 const nav=$('#nav');nav.append(E('h1',{},'Course Studio'));
 Object.keys(SECT).forEach(k=>{if(k=='progressReset'||k=='source')nav.append(E('hr'));const b=E('button',{textContent:SECT[k].t});b.dataset.k=k;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};nav.append(b)});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
-go('publish');if(LS.o&&LS.r&&LS.t)pull().then(()=>go('site'));
+go('publish');
+(async()=>{let d=null;try{await stReady;d=await idbGet('draft')}catch(e){}
+ const gh=LS.o&&LS.r&&LS.t;
+ if(d&&d.src){src=d.src;D=d.D||load(d.src);sha=d.sha||'';mark(!!d.dirty);window.__restoredAt=d.savedAt;window.__savedAt=d.savedAt;
+  if(!d.dirty&&gh){try{await pull()}catch(e){}}
+  go('dashboard')}
+ else if(gh){try{await pull();go('site')}catch(e){}}
+})();
 
 /* ===== Course Studio Ultimate layer (safe additive enhancements) ===== */
 (function(){
@@ -732,5 +742,243 @@ const grp=[...document.querySelectorAll('#nav .cs27-group')].find(g=>/Student op
 const hb=E('button',{className:'b',textContent:'\ud83d\udd14 Notify',title:'Notify students'});hb.onclick=()=>go('notify');$('#bpv').before(hb);
 new MutationObserver(()=>{document.querySelectorAll('#tb tr.r:not([data-nb])').forEach(r=>{r.dataset.nb=1;const c=r.lastElementChild;if(!c)return;const b=E('button',{className:'b mini',textContent:'Notify',title:'Notify this student'});b.onclick=e=>{e.stopPropagation();toNotify({aud:'pick',pick:{[r.dataset.e]:true}})};c.append(' ',b)})}).observe(document.body,{childList:true,subtree:true});
 }catch(e){console.error('Notify add-on failed',e)}})();
+</script>
+<script>
+/* ===== DATA CENTRE add-on: saved workspace, site/backend import, spreadsheet explorer, recovery, student follow-up ===== */
+(()=>{try{
+document.head.append(E('style',{},`
+#dc-toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#111827;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:90vw}#dc-toast.on{opacity:1;transform:translate(-50%,0)}
+.dc-sheet{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:12px}.dc-sheet table{border-collapse:collapse;min-width:100%}
+.dc-sheet th,.dc-sheet td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:5px 8px;font-size:12.5px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.dc-sheet td.e{cursor:text}.dc-sheet td.e:hover{background:color-mix(in srgb,var(--acc) 8%,var(--panel))}.dc-sheet th{position:sticky;top:0;background:var(--panel);z-index:2}
+.dc-sheet td.n{color:var(--mut);background:var(--bg);position:sticky;left:0;z-index:1}
+.dc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.dc-tabs .b.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.dc-sec{margin-top:18px}.dc-sec h3{font-size:15px;margin-bottom:6px}.dc-in{width:90px!important;min-width:0!important;flex:none!important}
+.dc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}.dc-grid label{margin:0;font-weight:500;display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink)}.dc-grid input{width:auto}
+.dc-diff .w{color:var(--bad)}.dc-diff .g{color:var(--ok)}
+`));
+/* ---------- helpers ---------- */
+const toast=t=>{let b=$('#dc-toast');if(!b){b=E('div',{id:'dc-toast'});document.body.append(b)}b.textContent=t;b.className='on';clearTimeout(b._t);b._t=setTimeout(()=>b.className='',3500)};
+const dl=(n,d,t='application/json')=>{const a=E('a',{href:URL.createObjectURL(new Blob([d],{type:t})),download:n});a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)};
+const fv=v=>v instanceof Date?(isNaN(v)?'':v.toISOString().replace('T',' ').slice(0,19)):v==null?'':String(v);
+const lc=s=>String(s??'').toLowerCase().trim();
+const short=v=>{const s=fv(v);return s.length>110?s.slice(0,110)+'…':s};
+const colName=i=>{let s='';i++;while(i>0){s=String.fromCharCode(65+(i-1)%26)+s;i=Math.floor((i-1)/26)}return s};
+const setView=(k,t)=>{cur=k;$('#ttl').textContent=t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));const v=$('#view');v.innerHTML='';return v};
+const hero=(sm,t,p)=>X('<section class="cs27-hero"><small>'+sm+'</small><h2>'+t+'</h2><p>'+p+'</p></section>');
+const X=h=>{const d=E('div');d.innerHTML=h;return d.firstElementChild};
+const btn=(t,fn,c='')=>{const b=E('button',{className:'b '+c,textContent:t});b.type='button';b.onclick=fn;return b};
+const fileBtn=(label,accept,fn,c='')=>{const l=E('label',{className:'b '+c,style:'margin:0;cursor:pointer;text-align:center;flex:none'});l.append(label);const i=E('input',{type:'file',accept,hidden:true});i.onchange=async()=>{const f=i.files[0];i.value='';if(f)try{await fn(f)}catch(e){toast('Error: '+e.message)}};l.append(i);return l};
+const tile=(n,l)=>X('<div class="cs27-metric" style="cursor:default"><b>'+esc(n)+'</b><span>'+esc(l)+'</span></div>');
+const people=()=>allKeys().map(e=>Object.assign({email:e},row(e))).map(s=>Object.assign(s,{name:s.name||s.fullName||s.email})).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+/* ---------- spreadsheet workbook kept in the browser ---------- */
+let WB=null;idbGet('wb').then(w=>{WB=w||null}).catch(()=>{});
+let wbT=null;const saveWB=()=>{clearTimeout(wbT);wbT=setTimeout(()=>idbSet('wb',WB).catch(()=>toast('This browser could not store the spreadsheet')),600)};
+const toWb=()=>{const w=XLSX.utils.book_new();WB.names.forEach(n=>XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(WB.sheets[n],{cellDates:true}),n.slice(0,31)));return w};
+async function loadWbFile(f){const wb=await readWb(f),sheets={};wb.SheetNames.forEach(n=>{sheets[n]=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:'',blankrows:true})});
+ WB={file:f.name,loadedAt:Date.now(),names:wb.SheetNames.slice(),sheets,edited:false};await idbSet('wb',WB);return wb}
+const hdrIdx=rows=>{for(let i=0;i<Math.min(rows.length,8);i++)if(rows[i].filter(x=>x!=='').length>=2)return i;return 0};
+const emailsIn=r=>{const o=[];r.forEach(c=>{const m=String(c??'').toLowerCase().match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/g);if(m)m.forEach(x=>o.push(x))});return o};
+/* ---------- backend connection box ---------- */
+function connBox(after){const d=E('div',{className:'row'});
+ if(TK){d.innerHTML='<span class="chip" style="flex:none">Connected to backend</span>';d.append(btn('Disconnect',()=>{TK='';sessionStorage.removeItem('cs_tk');after()},'d mini'))}
+ else{d.innerHTML='<input type="text" placeholder="Web app address (…/exec)" value="'+esc(bkUrl())+'"><input type="password" placeholder="Admin password"><button class="b p" style="flex:none">Connect</button>';
+  const[u,p,b]=d.children;b.onclick=async()=>{BK.u=u.value.trim();localStorage.setItem('cs_bk',JSON.stringify(BK));try{await bkLogin(p.value);toast('Connected');after()}catch(e){toast(e.message)}}}
+ return d}
+/* ---------- site import (practice files, additional materials, screencasts) ---------- */
+function arrText(name){const m=new RegExp('const\\s+'+name+'\\s*=\\s*\\[').exec(src);if(!m)return null;const i=m.index+m[0].length-1;let d=0,q=null;
+ for(let j=i;j<src.length;j++){const c=src[j];if(q){if(c==='\\')j++;else if(c===q)q=null;continue}if(c==="'"||c==='"'||c==='`'){q=c;continue}if(c==='[')d++;else if(c===']'){d--;if(!d)return src.slice(i,j+1)}}return null}
+const evalArr=t=>{if(!t)return null;try{return new Function('return '+t)()}catch(e){return null}};
+function siteLists(){if(!src)throw new Error('Load the student-site index.html first.');
+ const ids=(evalArr(arrText('practiceIds'))||[]).concat(evalArr(arrText('practiceIds2'))||[]),ord=evalArr(arrText('practiceFileOrder'))||[],mat=evalArr(arrText('materialIds'))||[],sc=evalArr(arrText('screencastPlaylist'))||[];
+ return{practice:ids.map((id,i)=>({id,label:'Practice File '+(ord[i]??i+1)})),materials:mat.map((id,i)=>({id,label:'Material '+(i+1)})),screencasts:sc.filter(x=>x&&x.id).map(x=>({id:x.id,title:x.label||x.title||'',desc:x.desc||'',released:true}))}}
+const mergeBy=(cur,add)=>{const have=new Map((cur||[]).map(x=>[x.id,x])),out=add.map(x=>have.get(x.id)||x);(cur||[]).forEach(x=>{if(!add.some(a=>a.id===x.id))out.push(x)});return out};
+const mergeAdd=(cur,add)=>{const out=(cur||[]).slice();add.forEach(x=>{if(!out.some(o=>o.id===x.id))out.push(x)});return out};
+function importSite(what){const L=siteLists(),msg=[];
+ if(what.includes('practice')){D.practice=mergeBy(D.practice,L.practice);msg.push(D.practice.length+' practice files')}
+ if(what.includes('materials')){D.materials=mergeBy(D.materials,L.materials);msg.push(D.materials.length+' additional materials')}
+ if(what.includes('screencasts')){D.items=mergeAdd(D.items,L.screencasts);msg.push(D.items.length+' screencasts')}
+ mark();toast('Imported from the site: '+msg.join(', '));return msg.join(', ')}
+async function loadSiteFile(f){const t=await f.text();if(dirty&&!confirm('Loading this file replaces your unpublished edits. Continue?'))return false;D=load(t);src=t;mark(true);toast('Student site loaded');return true}
+/* ---------- backend import ---------- */
+function applyContent(j){D.weeks=Object.entries(j.weeks||{}).map(([n,x])=>({n:+n,...x})).sort((a,b)=>a.n-b.n);D.items=(j.screencasts||{}).items||[];D.groups=(j.screencasts||{}).groups||[];D.notes=j.notes||[];D.quizzes=j.quizzes||[];D.assessments=j.assessments||[];D.projects=j.projects||[];D.deadlines=j.deadlines||[];D.resources=j.resources||[];D.faq=j.faq||[];if(j.materials)D.materials=j.materials;if(j.practice)D.practice=j.practice;Object.assign(D.site,j.site||{});mark()}
+async function syncBackend(log,what){const all=!what;
+ if(all||what==='content'){log('Published content…');try{const j=await bk('contentGet',{since:0});
+   if(j&&j.ok&&j.content){if(!src)log('Load index.html first so the content has a page to publish into (content not applied).');else if(dirty&&!confirm('Replace your unpublished content edits with the content currently published on the backend?'))log('Content skipped.');else{applyContent(j.content);log('Content imported (version '+j.version+').')}}else log('The backend returned no published content.')}catch(e){log('Content: '+e.message)}}
+ if(all||what==='students'){if(!TK)return log('Connect to the backend to pull students.');log('Students…');let off=0,n=0;
+  for(;;){const j=await bk('adminExportAll',{offset:off,limit:5});if(!j.ok)throw new Error(j.message||j.error||'Student export failed');(j.students||[]).forEach(x=>addSt(x.email,x));n+=(j.students||[]).length;log('Pulled '+n+' of '+j.total);if(j.done)break;off+=5}
+  await saveST();try{await pollLive()}catch(e){}log('Done: '+n+' students with full progress records.')}}
+/* ---------- rebuild the saved draft quickly ---------- */
+const exportAll=()=>JSON.stringify({exportedAt:new Date().toISOString(),content:D,src,students:ST,extra:EX,workbook:WB},null,1);
+async function importAll(f){const j=JSON.parse(await f.text());if(j.content)D=j.content;if(j.src)src=j.src;if(j.students)ST=j.students;if(j.extra)EX=j.extra;if(j.workbook){WB=j.workbook;await idbSet('wb',WB)}
+ await saveST();mark(true);toast('Workspace restored from file')}
+/* ======================= DATA CENTRE ======================= */
+function dataView(){const v=setView('datacentre','Data centre');
+ v.append(hero('WORKSPACE MEMORY · IMPORT · SYNC','Data centre','Everything you load is remembered in this browser and comes back the next time you open this page. Import from the student site, the backend or the spreadsheet, edit it here, then publish.'));
+ const m=E('div',{className:'cs27-metrics'});[[src?Math.round(src.length/1024)+' KB':'—','Student site loaded'],[window.__savedAt?new Date(window.__savedAt).toLocaleTimeString():'—','Last auto-save'],[Object.keys(ST).length,'Students stored'],[WB?WB.names.length:0,'Spreadsheet sheets'],[(EX.backups||[]).length,'Backup snapshots'],[(D.practice||[]).length,'Practice files'],[(D.materials||[]).length,'Additional materials']].forEach(([n,l])=>m.append(tile(n,l)));v.append(m);
+ const c1=E('div',{className:'card'});c1.innerHTML='<h3>Saved workspace</h3><p class="hint">Your edits, student data and spreadsheet are saved automatically in this browser a moment after every change. Use the file below to move them to another computer or keep a safety copy.</p>';
+ const r1=E('div',{className:'row'});r1.append(btn('Save now',async()=>{await saveDraft();toast('Saved'+(window.__savedAt?' at '+new Date(window.__savedAt).toLocaleTimeString():''));dataView()},'p'),btn('Download full workspace file',()=>dl('course-studio-workspace.json',exportAll())),fileBtn('Restore workspace file','.json',async f=>{await importAll(f);dataView()}),btn('Forget saved draft',async()=>{if(confirm('Forget the draft saved in this browser? Student data and the spreadsheet stay.')){await idbSet('draft',null);toast('Saved draft removed')}},'d'));c1.append(r1);v.append(c1);
+ const c2=E('div',{className:'card'});c2.innerHTML='<h3>Import from the student site</h3><p class="hint">Load your current index.html, then bring its built-in practice files, additional materials and screencast list into the editors. Existing edits are kept; built-ins that are missing are added. Publishing a non-empty list replaces the built-in one, so import before you publish.</p>';
+ const r2=E('div',{className:'row'});r2.append(fileBtn('Choose index.html','.html',async f=>{if(await loadSiteFile(f))dataView()},'p'));c2.append(r2);
+ const r3=E('div',{className:'row',style:'margin-top:10px'});[['Practice files',['practice']],['Additional materials',['materials']],['Screencast list',['screencasts']],['Import all three',['practice','materials','screencasts']]].forEach(([l,w],i)=>r3.append(btn(l,()=>{try{importSite(w);dataView()}catch(e){toast(e.message)}},i==3?'p':'')));c2.append(r3);v.append(c2);
+ const c3=E('div',{className:'card'});c3.innerHTML='<h3>Import from the backend (Apps Script)</h3><p class="hint">Pulls the content published on the backend and every student with the full progress record. The page can then show and change it.</p>';c3.append(connBox(dataView));
+ const lg=E('div',{className:'log',style:'margin-top:10px',hidden:true}),L=t=>{lg.hidden=false;lg.textContent+=t+'\n'};const r4=E('div',{className:'row',style:'margin-top:10px'});
+ const run=what=>async()=>{lg.textContent='';try{await syncBackend(L,what);toast('Backend import finished')}catch(e){L('Error: '+e.message)}};
+ r4.append(btn('Sync everything',run(),'p'),btn('Published content only',run('content')),btn('Students and marks only',run('students')));c3.append(r4,lg);v.append(c3);
+ const c4=E('div',{className:'card'});c4.innerHTML='<h3>Spreadsheet</h3><p class="hint">Load the progress spreadsheet (.xlsx) to see every sheet inside this page, edit any cell, recover backups and export it again.</p>';
+ const r5=E('div',{className:'row'});r5.append(fileBtn('Load spreadsheet','.xlsx',async f=>{await loadWbFile(f);const t=impStudents(toWb());toast('Spreadsheet loaded');go('sheets');setTimeout(()=>{const h=$('#shmsg');if(h)h.textContent=t},50)},'p'),btn('Open spreadsheet explorer',()=>go('sheets')),btn('Open recovery centre',()=>go('recovery')));c4.append(r5);v.append(c4)}
+/* ======================= SPREADSHEET EXPLORER ======================= */
+const SH={name:'',q:'',page:0,size:100};
+function sheetsView(){const v=setView('sheets','Spreadsheet explorer');
+ v.append(hero('EVERYTHING IN THE SPREADSHEET','Spreadsheet explorer','Every sheet of the progress spreadsheet, inside this page. Click any cell to edit it. Edits are saved in this browser, can be applied to the student records, and can be exported back to .xlsx.'));
+ const top=E('div',{className:'card'});const r=E('div',{className:'row'});
+ r.append(fileBtn('Load spreadsheet (.xlsx)','.xlsx',async f=>{const wb=await loadWbFile(f);SH.name='';SH.page=0;const t=impStudents(wb);sheetsView();$('#shmsg').textContent='Loaded '+WB.names.length+' sheets. '+t}),btn('Open recovery centre',()=>go('recovery')));top.append(r,E('p',{className:'hint',id:'shmsg'},WB?esc(WB.file||'')+' · '+WB.names.length+' sheets · loaded '+new Date(WB.loadedAt).toLocaleString()+(WB.edited?' · has edits not yet exported':''):'No spreadsheet loaded yet.'));v.append(top);
+ if(!WB){top.append(E('p',{className:'hint'},'Choose GD_progress.xlsx (the Google Sheet downloaded as Excel). It is kept in this browser afterwards.'));return}
+ if(!SH.name||!WB.sheets[SH.name])SH.name=WB.names[0];
+ const tabs=E('div',{className:'dc-tabs'});WB.names.forEach(n=>{const b=btn(n+' ('+Math.max(0,WB.sheets[n].length)+')',()=>{SH.name=n;SH.page=0;SH.q='';sheetsView()},n===SH.name?'on':'');tabs.append(b)});v.append(tabs);
+ const card=E('div',{className:'card'});v.append(card);const tb=E('div',{className:'row'});
+ const q=E('input',{type:'text',placeholder:'Search this sheet…',value:SH.q});tb.append(q,btn('Add row',()=>{const rows=WB.sheets[SH.name],w=Math.max(1,...rows.slice(0,50).map(x=>x.length));rows.push(Array(w).fill(''));edited();SH.page=Math.floor((rows.length-1)/SH.size);draw()}),btn('Add column',()=>{WB.sheets[SH.name].forEach(x=>x.push(''));edited();draw()}),
+  btn('Apply edits to students',()=>{try{const t=impStudents(toWb());$('#shmsg').textContent=t;toast('Student records updated from the sheets')}catch(e){toast(e.message)}},'p'),btn('Download .xlsx',()=>{XLSX.writeFile(toWb(),(WB.file||'GD_progress.xlsx').replace(/\.xlsx$/i,'')+'-edited.xlsx');WB.edited=false;saveWB()}),btn('This sheet as CSV',()=>dl(SH.name+'.csv',XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(WB.sheets[SH.name],{cellDates:true})),'text/csv')));
+ card.append(tb);const info=E('p',{className:'hint'}),box=E('div',{className:'dc-sheet'}),pg=E('div',{className:'row',style:'margin-top:8px'});card.append(info,box,pg);
+ const edited=()=>{WB.edited=true;saveWB()};
+ const edit=(td,ri,ci)=>{const rows=WB.sheets[SH.name],val=rows[ri][ci],s=fv(val),long=s.length>90||s.includes('\n'),inp=E(long?'textarea':'input');inp.value=s;inp.style.cssText='width:100%;min-width:'+(long?'320px':'140px');if(long)inp.style.minHeight='140px';td.className='';td.style.maxWidth='none';td.textContent='';td.append(inp);inp.focus();
+  const done=()=>{let nv=inp.value;if(typeof val==='number'&&nv.trim()!==''&&!isNaN(nv))nv=Number(nv);else if(val instanceof Date&&!isNaN(new Date(nv)))nv=new Date(nv);if(fv(nv)!==fv(val)){rows[ri][ci]=nv;edited();$('#shmsg')&&($('#shmsg').textContent='Edited '+SH.name+' row '+(ri+1)+', column '+colName(ci)+'.')}td.className='e';td.style.maxWidth='';td.textContent=short(rows[ri][ci])};
+  inp.onblur=done;inp.onkeydown=e=>{if(e.key==='Enter'&&!long)inp.blur();if(e.key==='Escape'){inp.value=s;inp.blur()}}};
+ const draw=()=>{const rows=WB.sheets[SH.name],hi=hdrIdx(rows),w=Math.max(1,...rows.slice(0,200).map(x=>x.length)),f=lc(SH.q);
+  let idx=[];rows.forEach((x,i)=>{if(i===hi)return;if(!f||x.some(c=>lc(fv(c)).includes(f)))idx.push(i)});
+  const pages=Math.max(1,Math.ceil(idx.length/SH.size));SH.page=Math.min(SH.page,pages-1);const sl=idx.slice(SH.page*SH.size,(SH.page+1)*SH.size);
+  info.textContent=rows.length+' rows · '+idx.length+' shown · header row '+(hi+1)+' · click a cell to edit';
+  const t=E('table');let h='<tr><th>#</th>';for(let c=0;c<w;c++)h+='<th>'+esc(fv((rows[hi]||[])[c])||colName(c))+'</th>';t.innerHTML=h+'<th>Row</th></tr>';
+  sl.forEach(ri=>{const tr=E('tr'),row0=rows[ri];const n=E('td',{className:'n',textContent:String(ri+1)});tr.append(n);
+   for(let c=0;c<w;c++){const td=E('td',{className:'e',textContent:short(row0[c]),title:fv(row0[c]).slice(0,400)});td.onclick=()=>{if(!td.firstChild||td.firstChild.nodeType===3)edit(td,ri,c)};tr.append(td)}
+   const a=E('td');const em=emailsIn(row0).find(e=>ST[e]||LV[e]);if(em)a.append(btn('Student',()=>csOpenFollow(em),'mini'),' ');a.append(btn('Insert below',()=>{rows.splice(ri+1,0,Array(w).fill(''));edited();draw()},'mini'),' ',btn('Delete',()=>{if(confirm('Delete row '+(ri+1)+' of '+SH.name+'?')){rows.splice(ri,1);edited();draw()}},'mini d'));tr.append(a);t.append(tr)});
+  box.innerHTML='';box.append(t);pg.innerHTML='';pg.append(btn('Previous',()=>{if(SH.page>0){SH.page--;draw()}},'mini'),E('span',{className:'hint',style:'flex:none',textContent:'Page '+(SH.page+1)+' of '+pages}),btn('Next',()=>{if(SH.page<pages-1){SH.page++;draw()}},'mini'))};
+ q.oninput=()=>{SH.q=q.value;SH.page=0;draw()};draw()}
+/* ======================= RECOVERY CENTRE ======================= */
+async function gunz(b64){const bin=Uint8Array.from(atob(String(b64).replace(/\s/g,'')),c=>c.charCodeAt(0));
+ try{return await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}catch(e){return new TextDecoder().decode(bin)}}
+async function decodeBackup(b){const raw=b['Data (gzip + base64)'];if(!raw)throw new Error('This snapshot has no data cell.');let j;try{j=JSON.parse(await gunz(raw))}catch(e){throw new Error('Could not decode it (the spreadsheet may have cut a very long cell). '+e.message)}return j.record||j.rec||j}
+const flat=(o,p='',out={})=>{if(o&&typeof o==='object'&&!Array.isArray(o)){for(const k in o)flat(o[k],p?p+'.'+k:k,out)}else out[p]=Array.isArray(o)?o.slice().map(String).sort().join(', '):o;return out};
+function diffTable(oldR,newR){const a=flat(oldR||{}),b=flat(newR||{}),keys=[...new Set(Object.keys(a).concat(Object.keys(b)))].filter(k=>JSON.stringify(a[k])!==JSON.stringify(b[k])&&!/updatedAt|savedAt|lastSeen/i.test(k)).sort();
+ const t=E('table',{className:'tb dc-diff'});t.innerHTML='<tr><th>Item</th><th>Live / current copy</th><th>Backup</th></tr>';keys.slice(0,400).forEach(k=>t.insertAdjacentHTML('beforeend','<tr><td>'+esc(k)+'</td><td class="w">'+esc(a[k]??'—')+'</td><td class="g">'+esc(b[k]??'—')+'</td></tr>'));
+ return{table:t,count:keys.length}}
+const show=v=>v&&typeof v==='object'?(v.seen?'seen':'not seen')+(v.score!=null?' · '+v.score:''):v===true?'Done':v===false?'Not done':v==null?'—':String(v);
+async function planRestore(e,rec){const j=await bk('adminEditor',{email:e});if(!j.ok)throw new Error(j.message||j.error||'The deployed backend has no progress editor API.');
+ const wq=rec.weekQuizzes||{},cq=rec.contentQuizzes||{},rd=cq.reading||{},sc=cq.screencasts||{},pa=rec.phaseAssessments||{},as=rec.assignmentStatus||{},done=new Set(rec.completed||[]),seenR=new Set(rec.readingSeen||[]),vc=rec.videoConfirmed||{},seenS=new Set(rec.seenScreencasts||[]);
+ const items=[];let skipped=0;
+ (j.catalog||[]).forEach(sec=>(sec.items||[]).forEach(it=>{const ctx=(String(sec.title)+' '+it.label+' '+it.k).toLowerCase(),toks=String(it.k).split(/[^A-Za-z0-9_-]+/).filter(Boolean);
+  let key=toks[toks.length-1]||'';if(toks.length===1)key=key.replace(/^(day|lesson|wq|weekquiz|rq|cq|read|cast|phase|assign|project)[_-]?(?=\d)/i,'');let cat=null,want;
+  if(/phase/.test(ctx))cat='pa';else if(/week/.test(ctx)&&/quiz/.test(ctx))cat='wq';else if(/read ?me|reading/.test(ctx))cat='rd';else if(/screencast|video|recording/.test(ctx))cat='sc';else if(/project|assign|submission/.test(ctx))cat='as';else if(/day|lesson|complet/.test(ctx))cat='ls';
+  if(!cat||!key){skipped++;return}
+  const sco=o=>o[key]&&o[key].score!=null?o[key].score:null;
+  if(it.kind==='check')want=cat==='ls'?done.has(key):cat==='rd'?seenR.has(key):cat==='sc'?(!!vc[key]||seenS.has(key)):null;
+  else if(it.kind==='score')want=cat==='wq'?sco(wq):cat==='rd'?sco(rd):cat==='sc'?sco(sc):cat==='pa'?sco(pa):null;
+  else if(it.kind==='checkscore')want=cat==='rd'?{seen:seenR.has(key),score:sco(rd)}:cat==='sc'?{seen:!!vc[key]||seenS.has(key),score:sco(sc)}:null;
+  else want=cat==='as'?(as[key]&&(as[key].status||as[key])||'Not started'):null;
+  if(want===null||want===undefined){skipped++;return}
+  const cv=(j.vals||{})[it.k];if(JSON.stringify(cv)===JSON.stringify(want))return;items.push({k:it.k,label:it.label,sec:sec.title,cur:cv,want})}));
+ return{items,skipped}}
+async function reviewPush(box,e,rec){box.innerHTML='<p class="hint">Reading the live editor…</p>';let plan;try{plan=await planRestore(e,rec)}catch(x){box.innerHTML='';box.append(E('p',{className:'warn',textContent:x.message}));return}
+ box.innerHTML='';const{items,skipped}=plan;if(!items.length)return box.append(E('p',{className:'hint',textContent:'Nothing to change: the live record already matches this data'+(skipped?' ('+skipped+' editor items could not be matched and were left alone).':'.')}));
+ const t=E('table',{className:'tb'});t.innerHTML='<tr><th></th><th>Item</th><th>Live now</th><th>Will become</th></tr>';
+ items.forEach(x=>{x.on=true;const tr=E('tr'),td=E('td'),c=E('input',{type:'checkbox',checked:true});c.onchange=()=>x.on=c.checked;td.append(c);tr.append(td);tr.insertAdjacentHTML('beforeend','<td>'+esc(x.sec+' · '+x.label)+'</td><td>'+esc(show(x.cur))+'</td><td><b>'+esc(show(x.want))+'</b></td>');t.append(tr)});
+ const nl=E('label',{className:'chk',style:'flex:none'}),nc=E('input',{type:'checkbox'});nl.append(nc,'Notify the student');const r=E('div',{className:'row',style:'margin-top:10px'});
+ const go2=btn('Apply to the live site',async()=>{const ch=items.filter(x=>x.on);if(!ch.length)return;if(!confirm('Write '+ch.length+' mark(s) for '+e+' to the live backend?'))return;go2.disabled=true;try{const j=await bk('adminApplyEdits',{email:e,edits:ch.map(x=>({k:x.k,v:x.want,label:x.label})),notify:nc.checked});if(!j.ok)throw new Error(j.message||j.error);toast('Applied '+(j.count??ch.length)+' change(s)');box.innerHTML='<p class="ok">Applied. Reload the student to verify.</p>'}catch(x){toast(x.message);go2.disabled=false}},'p');
+ r.append(go2,nl);box.append(E('p',{className:'hint',textContent:items.length+' change(s) found; '+skipped+' editor items could not be matched to this record and stay untouched. Check each line, untick what you do not want.'}),t,r)}
+const RC={q:'',open:-1};
+function recoveryView(){const v=setView('recovery','Recovery centre');
+ v.append(hero('RECOVER STUDENT DATA','Recovery centre','Open the automatic backups the backend saved before every reset and change, compare them with the current record, and bring the data back: into this page, into a file, or onto the live site.'));
+ const B=(EX.backups||[]).map((b,i)=>Object.assign({_i:i},b)).sort((a,b)=>String(fv(b['Saved at'])).localeCompare(String(fv(a['Saved at']))));
+ const top=E('div',{className:'card'});top.append(E('p',{className:'hint',textContent:B.length?B.length+' backup snapshots from '+new Set(B.map(b=>b.Email)).size+' students.':'No backups loaded yet. Load the spreadsheet (it has a Backups sheet) on the Spreadsheet explorer page.'}));
+ const r=E('div',{className:'row'}),q=E('input',{type:'text',placeholder:'Search name or email',value:RC.q});r.append(q,fileBtn('Load spreadsheet','.xlsx',async f=>{await loadWbFile(f);toast(impStudents(toWb()));recoveryView()}));top.append(r);v.append(top);
+ const lst=E('div');v.append(lst);
+ const draw=()=>{lst.innerHTML='';const f=lc(RC.q);let n=0;B.filter(b=>!f||lc(b.Email+' '+b.Name).includes(f)).slice(0,150).forEach(b=>{n++;const c=E('div',{className:'card'}),e=lc(b.Email);
+   c.innerHTML='<div class="row"><div><b>'+esc(b.Name||e)+'</b><div class="hint">'+esc(e)+' · saved '+esc(fv(b['Saved at']))+' · lessons done: '+esc(b['Lessons done']??'?')+'</div></div></div>';
+   const out=E('div'),r2=E('div',{className:'row',style:'margin-top:8px'});let rec=null;
+   const need=async()=>{if(!rec)rec=await decodeBackup(b);return rec};
+   r2.append(btn('Compare with current',async()=>{try{await need();out.innerHTML='';const d=diffTable((ST[e]||{}).rec,rec);out.append(E('p',{className:'hint',textContent:d.count?d.count+' difference(s) between the current copy and this backup (red = now, green = backup).':'This backup is identical to the current copy.'}),d.table)}catch(x){out.textContent=x.message}}),
+    btn('Use in this page',async()=>{try{await need();const s=ST[e]=ST[e]||{email:e,name:b.Name};s.rec=rec;await saveST();toast('Backup loaded as the local record of '+e)}catch(x){toast(x.message)}}),
+    btn('Push to live site…',async()=>{try{if(!TK)return toast('Connect to the backend first (Data centre).');await need();reviewPush(out,e,rec)}catch(x){toast(x.message)}},'p'),
+    btn('Download JSON',async()=>{try{await need();dl('backup-'+e.replace(/[^a-z0-9@._-]/gi,'_')+'.json',JSON.stringify({email:e,savedAt:fv(b['Saved at']),record:rec},null,2))}catch(x){toast(x.message)}}),
+    btn('Open student',()=>csOpenFollow(e)));
+   c.append(r2,out);lst.append(c)});if(!n)lst.append(E('p',{className:'hint',textContent:'No snapshots match.'}));
+  const rh=EX.resetHistory||[];if(rh.length&&!f){const c=E('div',{className:'card'});c.innerHTML='<h3>Reset history ('+rh.length+')</h3><p class="hint">Every reset the backend logged. The matching backup is above, taken just before the reset.</p>';const t=E('table',{className:'tb'});t.innerHTML='<tr><th>When</th><th>Student</th><th>By</th><th>Summary</th></tr>';rh.slice(-100).reverse().forEach(x=>t.insertAdjacentHTML('beforeend','<tr><td>'+esc(fv(x.at))+'</td><td>'+esc(x.email)+'</td><td>'+esc(x.by)+'</td><td>'+esc(x.summary)+'</td></tr>'));c.append(t);lst.append(c)}};
+ q.oninput=()=>{RC.q=q.value;draw()};draw()}
+/* ======================= STUDENT FOLLOW-UP ======================= */
+const FU={email:'',q:''};window.csOpenFollow=e=>{FU.email=lc(e);go('follow')};
+const needTK=()=>{if(TK)return true;toast('Connect to the backend first (Data centre).');return false};
+function liveEditor(e){go('students');let n=0;const t=setInterval(()=>{const r=document.querySelector('#tb tr.r[data-e="'+e.replace(/"/g,'\\"')+'"]');if(r||++n>40){clearInterval(t);if(r){r.click();setTimeout(()=>{const b=$('#el');if(b)b.click()},250)}}},100)}
+function openReset(e){go('progressReset');const q=$('#rsearch');if(q){q.value=e;q.dispatchEvent(new Event('input'));$('#rstudent').value=e;$('#rstudent').dispatchEvent(new Event('change'))}}
+function marksEditor(box,e){const st=ST[e]=ST[e]||{email:e},W=JSON.parse(JSON.stringify(st.rec||{}));
+ W.completed=W.completed||[];W.weekQuizzes=W.weekQuizzes||{};W.contentQuizzes=W.contentQuizzes||{};W.contentQuizzes.reading=W.contentQuizzes.reading||{};W.contentQuizzes.screencasts=W.contentQuizzes.screencasts||{};W.phaseAssessments=W.phaseAssessments||{};W.weekSubmissions=W.weekSubmissions||{};
+ const name=(map,k)=>{const o=(map||[]).find(x=>x.id===k);return o?(o.title||k):k};
+ const qt=(title,obj,lab)=>{const s=E('div',{className:'dc-sec'});s.append(E('h3',{textContent:title}));const t=E('table',{className:'tb'});t.innerHTML='<tr><th>Item</th><th>Score</th><th>Out of</th><th></th></tr>';
+  Object.keys(obj).sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})).forEach(k=>{const o=obj[k]=(obj[k]&&typeof obj[k]==='object')?obj[k]:{score:obj[k]},tr=E('tr');tr.innerHTML='<td>'+esc(lab(k))+'</td>';
+   const mk=f=>{const td=E('td'),i=E('input',{type:'number',className:'dc-in',value:o[f]??''});i.onchange=()=>{o[f]=i.value===''?'':Number(i.value)};td.append(i);return td};tr.append(mk('score'),mk('total'));const x=E('td');x.append(btn('Remove',()=>{delete obj[k];draw()},'mini d'));tr.append(x);t.append(tr)});
+  const add=E('div',{className:'row',style:'margin-top:6px'}),k=E('input',{type:'text',placeholder:'Key (e.g. week number or id)'}),sc=E('input',{type:'number',placeholder:'Score',className:'dc-in'}),tt=E('input',{type:'number',placeholder:'Out of',className:'dc-in'});
+  add.append(k,sc,tt,btn('Add mark',()=>{if(!k.value.trim())return;obj[k.value.trim()]={score:Number(sc.value||0),total:Number(tt.value||0),completedAt:new Date().toISOString()};draw()},'mini'));s.append(t,add);return s};
+ const draw=()=>{box.innerHTML='';
+  const keys=[];(D.weeks||[]).forEach(w=>(w.days||[]).forEach((d,i)=>keys.push([w.n+'-'+(i+1),d.title||('Week '+w.n+' Day '+(i+1))])));W.completed.forEach(k=>{if(!keys.some(x=>x[0]===k))keys.push([k,'Day '+k])});
+  const ds=E('div',{className:'dc-sec'});ds.append(E('h3',{textContent:'Completed lessons ('+W.completed.length+')'}));const g=E('div',{className:'dc-grid'});
+  keys.forEach(([k,l])=>{const lb=E('label',{title:l}),c=E('input',{type:'checkbox',checked:W.completed.includes(k)});c.onchange=()=>{const i=W.completed.indexOf(k);if(c.checked&&i<0)W.completed.push(k);if(!c.checked&&i>=0)W.completed.splice(i,1)};lb.append(c,k);g.append(lb)});
+  const rr=E('div',{className:'row',style:'margin-top:6px'});rr.append(btn('Mark all done',()=>{W.completed=keys.map(x=>x[0]);draw()},'mini'),btn('Clear all',()=>{W.completed=[];draw()},'mini d'));ds.append(g,rr);box.append(ds);
+  box.append(qt('Week quizzes',W.weekQuizzes,k=>'Week '+k+' quiz'),qt('Read Me quizzes',W.contentQuizzes.reading,k=>name(D.notes,k)),qt('Screencast quizzes',W.contentQuizzes.screencasts,k=>name(D.items,k)),qt('Phase assessments',W.phaseAssessments,k=>k));
+  const ws=E('div',{className:'dc-sec'});ws.append(E('h3',{textContent:'Weekly submissions'}));const t=E('table',{className:'tb'});t.innerHTML='<tr><th>Week</th><th>Date</th><th>Late</th><th>Note</th><th></th></tr>';
+  Object.keys(W.weekSubmissions).sort((a,b)=>a-b).forEach(k=>{const o=W.weekSubmissions[k]=W.weekSubmissions[k]||{},tr=E('tr');tr.innerHTML='<td>Week '+esc(k)+'</td>';const d=E('td'),di=E('input',{type:'text',value:String(o.at||'').slice(0,10),className:'dc-in',placeholder:'YYYY-MM-DD'});di.onchange=()=>o.at=di.value;d.append(di);const l=E('td'),lci=E('input',{type:'checkbox',checked:!!o.late});lci.onchange=()=>o.late=lci.checked;l.append(lci);const n=E('td'),ni=E('input',{type:'text',value:o.note||''});ni.onchange=()=>o.note=ni.value;n.append(ni);const x=E('td');x.append(btn('Remove',()=>{delete W.weekSubmissions[k];draw()},'mini d'));tr.append(d,l,n,x);t.append(tr)});
+  const add=E('div',{className:'row',style:'margin-top:6px'}),wk=E('input',{type:'number',placeholder:'Week',className:'dc-in'});add.append(wk,btn('Add submission',()=>{if(wk.value){W.weekSubmissions[wk.value]={at:new Date().toISOString().slice(0,10),late:false};draw()}},'mini'));ws.append(t,add);box.append(ws);
+  const f=E('div',{className:'row dc-sec'});const g1=E('div'),tg=E('input',{type:'text',value:st.teacherGrade||''});g1.append(E('label',{textContent:'Teacher grade'}),tg);const g2=E('div'),nt=E('textarea');nt.value=st.note||'';g2.append(E('label',{textContent:'Private note'}),nt);f.append(g1,g2);box.append(f);
+  const act=E('div',{className:'row',style:'margin-top:12px'}),pb=E('div');
+  act.append(btn('Save changes in this page',async()=>{st.rec=W;st.teacherGrade=tg.value;st.note=nt.value;await saveST();toast('Saved in this browser');followView()},'p'),btn('Download corrected record',()=>dl('record-'+e.replace(/[^a-z0-9@._-]/gi,'_')+'.json',JSON.stringify({email:e,record:W},null,2))),btn('Push these marks to the live site…',()=>{if(needTK())reviewPush(pb,e,W)}),btn('Discard changes',()=>{followView()},'d'));box.append(act,pb)};
+ draw()}
+function followView(){const v=setView('follow','Student follow-up');
+ v.append(hero('STUDENT 360','Student follow-up','Every record of one student in one place: marks and progress (editable), live actions, spreadsheet rows, messages, devices, backups. Reset, correct marks, recover data.'));
+ const P=people(),pick=E('div',{className:'card'}),r=E('div',{className:'row'}),q=E('input',{type:'text',placeholder:'Search name or email',value:FU.q}),sel=E('select');r.append(q,sel);pick.append(r);v.append(pick);
+ const det=E('div');v.append(det);
+ const fill=()=>{const f=lc(FU.q),L=P.filter(s=>!f||lc(s.name+' '+s.email).includes(f));sel.innerHTML='<option value="">Select a student ('+L.length+')</option>'+L.map(s=>'<option value="'+esc(s.email)+'">'+esc(s.name+' — '+s.email)+'</option>').join('');sel.value=L.some(s=>s.email===FU.email)?FU.email:''};
+ const show1=()=>{det.innerHTML='';if(FU.email)detail(det,FU.email)};
+ q.oninput=()=>{FU.q=q.value;fill()};sel.onchange=()=>{FU.email=sel.value;show1()};
+ if(!P.length)pick.append(E('p',{className:'hint',textContent:'No students loaded yet. Load the spreadsheet or sync the backend from the Data centre.'}));fill();show1()}
+function detail(root,e){const s=Object.assign({email:e},row(e)),r=s.rec||{};
+ const c=E('div',{className:'card',style:'margin-top:14px'});c.innerHTML='<h3>'+esc(s.name||e)+'</h3><p class="hint">'+esc(e)+' · '+esc(stat(s))+(s.reasons&&s.reasons.length?' · '+esc(s.reasons.join('; ')):'')+'</p>';
+ const tg=E('div',{className:'tg'});[['Progress',s.overall!=null?s.overall+'%':s.progress],['Grade',s.letter||s.p1g],['Lessons',lessonsOf(s)],['Week quizzes',s.wq],['Weekly check-ins',s.weeklyDue!=null?s.weeklyDone+'/'+s.weeklyDue:''],['Sign-ins',s.logins??s.signIns],['Devices',(s.devs||[]).length||s.devices],['Teacher grade',s.teacherGrade]].forEach(([l,x])=>tg.append(X('<div><b>'+esc(x??'-')+'</b>'+l+'</div>')));c.append(tg);
+ const a=E('div',{className:'row',style:'margin-top:12px'}),msg=E('p',{className:'hint'});
+ const act=(fn,ok)=>async()=>{if(!needTK())return;msg.textContent='Working…';try{const j=await fn();msg.textContent=j.ok?ok:(j.message||j.error)}catch(x){msg.textContent=x.message}};
+ a.append(btn('Reset progress…',()=>openReset(e),'d'),btn('Live marks editor (day by day)',()=>liveEditor(e)),
+  btn('Pull this student from backend',act(async()=>{const j=await bk('adminResetPreview',{email:e});if(j.ok&&j.record){ST[e]=Object.assign(ST[e]||{email:e},{rec:j.record});await saveST();followView()}return j},'Live record pulled.')),
+  btn('Reset password',()=>{if(confirm('Reset the password for '+(s.name||e)+'? Progress is kept.'))act(()=>bk('adminResetPassword',{email:e}),'Password reset.')()}),
+  btn('Sign out everywhere',act(()=>bk('adminSignOut',{email:e}),'Signed out of every device.')),
+  btn('Notify',()=>{const t=prompt('Message for '+(s.name||e));if(t)act(()=>bk('adminNotify',{email:e,title:'Message from your instructor',message:t}),'Notification sent.')()}),
+  btn('Backups',()=>{RC.q=e;go('recovery')}));c.append(a,msg);root.append(c);
+ const m=E('div',{className:'card'});m.innerHTML='<h3>Marks and progress (editable)</h3><p class="hint">'+(Object.keys(r).length?'Change any mark below, then save it in this page, download it, or push it to the live site after a review.':'There is no progress record for this student yet. Pull it from the backend or load the spreadsheet.')+'</p>';const mb=E('div');m.append(mb);root.append(m);marksEditor(mb,e);
+ const sh=E('div',{className:'card'});sh.innerHTML='<h3>Spreadsheet rows for this student</h3>';
+ if(!WB)sh.append(E('p',{className:'hint',textContent:'Load the spreadsheet to see every sheet row that mentions this student.'}));
+ else{let n=0;WB.names.forEach(nm=>{const rows=WB.sheets[nm],hi=hdrIdx(rows),hits=[];rows.forEach((x,i)=>{if(i!==hi&&emailsIn(x).includes(e))hits.push(i)});if(!hits.length)return;n+=hits.length;
+   const d=E('details'),sm=E('summary');sm.append(E('span',{textContent:nm+' · '+hits.length+' row'+(hits.length>1?'s':'')}),btn('Edit in explorer',ev=>{ev&&ev.stopPropagation&&ev.stopPropagation();SH.name=nm;SH.q=e;SH.page=0;go('sheets')},'mini'));d.append(sm);
+   const bx=E('div',{className:'in dc-sheet'}),t=E('table');t.innerHTML='<tr>'+(rows[hi]||[]).map((h,i)=>'<th>'+esc(fv(h)||colName(i))+'</th>').join('')+'</tr>';hits.slice(0,30).forEach(i=>{const tr=E('tr');rows[i].forEach(cell=>tr.append(E('td',{textContent:short(cell),title:fv(cell).slice(0,400)})));t.append(tr)});bx.append(t);d.append(bx);sh.append(d)});
+  if(!n)sh.append(E('p',{className:'hint',textContent:'No rows mention this email in the loaded spreadsheet.'}))}
+ root.append(sh);
+ const ex=E('div',{className:'card'});ex.innerHTML='<h3>Messages, notices, devices and history</h3>';
+ const tbl=(title,h,rows)=>{const d=E('details'),sm=E('summary');sm.append(E('span',{textContent:title+' ('+rows.length+')'}));d.append(sm);const b=E('div',{className:'in',style:'overflow:auto'}),t=E('table',{className:'tb'});t.innerHTML='<tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.slice(0,100).map(x=>'<tr>'+x.map(y=>'<td>'+esc(short(y))+'</td>').join('')+'</tr>').join('');b.append(t);d.append(b);ex.append(d)};
+ const mine=a=>(a||[]).filter(x=>lc(x.email||x.Email||x.student)===e);
+ let hp=mine(EX.help);if(!hp.length)hp=(r.complaints||[]).map(x=>({at:x.at,topic:x.topic,text:x.text}));
+ tbl('Help messages',['Sent','Topic','Message','Status','Reply'],hp.map(x=>[x.at,x.topic,x.text,x.status,x.reply]));
+ tbl('Notices sent',['Created','Title','Message','Read'],mine(EX.notices).map(x=>[x.created,x.title,x.message,x.read?'Yes':'No']));
+ tbl('Devices',['Device','Sign-ins','Last'],(s.devs||[]).map(x=>[x.label||'Unknown',x.n||1,x.last]));
+ tbl('Reset history',['When','By','Summary','Undoable'],mine(EX.resetHistory).map(x=>[x.at,x.by,x.summary,x.undoable]));
+ tbl('Activity log',['When','By','Action','Details'],(EX.log||[]).filter(x=>lc(x.student)===e).slice(-100).reverse().map(x=>[x.at,x.by,x.action,x.details]));
+ tbl('Backup snapshots',['Saved','Lessons done'],(EX.backups||[]).filter(x=>lc(x.Email)===e).map(x=>[fv(x['Saved at']),x['Lessons done']]));
+ root.append(ex)}
+/* ---------- routing, navigation, dashboard, practice/materials import card ---------- */
+SECT.datacentre={t:'Data centre'};SECT.sheets={t:'Spreadsheet explorer'};SECT.recovery={t:'Recovery centre'};SECT.follow={t:'Student follow-up'};
+const MY={datacentre:dataView,sheets:sheetsView,recovery:recoveryView,follow:followView};
+const prevGo=go;
+go=function(k){if(MY[k])return MY[k]();const r=prevGo(k);
+ try{if(src&&(k==='practice'||k==='materials'||k==='items')){const w=k==='items'?'screencasts':k,c=E('div',{className:'card'});c.innerHTML='<h3>Built-in list from the student site</h3><p class="hint">'+(k==='items'?'Bring the built-in screencast list (titles and descriptions) into this editor.':'The student site has its own built-in '+(k==='practice'?'practice files':'additional materials')+'. Import them here so you can rename, reorder, add or remove them. Publishing a non-empty list replaces the built-in one, so import first.')+' Currently in the editor: <b>'+(D[k]||[]).length+'</b>.</p>';c.append(btn('Import from the student site',()=>{try{importSite([w]);go(k)}catch(e){toast(e.message)}},'p'));$('#view').prepend(c)}
+  if(k==='dashboard'){const c=E('div',{className:'card'});c.innerHTML='<h3>Saved workspace</h3><p class="hint">'+(window.__restoredAt?'Your previous session was restored ('+new Date(window.__restoredAt).toLocaleString()+'). ':'')+'Edits, students and the spreadsheet are remembered in this browser.</p>';const r2=E('div',{className:'row'});r2.append(btn('Data centre',()=>go('datacentre'),'p'),btn('Student follow-up',()=>go('follow')),btn('Spreadsheet explorer',()=>go('sheets')),btn('Recovery centre',()=>go('recovery')));c.append(r2);$('#view').append(c)}}catch(e){console.error(e)}
+ return r};
+const addNav=(grpName,k,label,icon,first)=>{const g=[...document.querySelectorAll('#nav .cs27-group')].find(x=>x.textContent.indexOf(grpName)>-1);if(!g)return;const b=E('button',{textContent:label});b.dataset.k=k;b.dataset.icon=icon;b.onclick=()=>go(k);if(first&&g.children[1])g.children[1].before(b);else g.append(b)};
+addNav('Student operations','follow','Student follow-up','◉');addNav('Student operations','recovery','Recovery centre','⟲');addNav('Data & deployment','datacentre','Data centre','▣',true);addNav('Data & deployment','sheets','Spreadsheet explorer','▦');
+window.csSaveWB=saveWB;
+}catch(e){console.error('Data centre add-on failed',e)}})();
 </script>
 </body></html>
