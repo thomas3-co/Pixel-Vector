@@ -28,7 +28,7 @@
     setTimeout(fin,400);
   }
   function check(force){
-    if(busy) return; var n=Date.now(); if(!force&&n-last<60000) return; last=n;
+    if(busy) return; var n=Date.now(); if(!force&&n-last<15000) return; last=n;
     remote().then(function(b){
       if(!b||b===BUILD) return;
       var seen=''; try{ seen=sessionStorage.getItem(KEY)||''; }catch(e){}
@@ -12485,5 +12485,120 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
 })();
 </script>
+<style id="hm-up-css">
+.scxn-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 2px 10px}
+.scxn-bar button{border:1px solid var(--line,#e3e7ee);background:#fff;border-radius:999px;padding:6px 12px;font:600 12px Inter,sans-serif;cursor:pointer}
+.scxn-bar .scxn-go{background:#2f6fed;color:#fff;border-color:#2f6fed}
+.scx-group{cursor:pointer;user-select:none;position:relative}
+.scx-group:after{content:"\25BE";position:absolute;right:10px;top:10px;transition:transform .2s;color:#8a93a5}
+.scx-group.scxn-closed:after{transform:rotate(-90deg)}
+.scx-group:focus-visible,.scx-item:focus-visible{outline:2px solid #2f6fed;outline-offset:2px}
+.hm-ph{margin-top:22px}.hm-ph-card{background:#fff;border:1px solid var(--line,#e3e7ee);border-left:5px solid #10b981;border-radius:16px;padding:18px;margin:12px 0}
+.hm-ph-card h3{margin:0 0 6px}.hm-ph-card p{margin:0 0 12px;color:#5b6270}.hm-ph-card button.hm-go{background:#10b981;color:#fff;border:0;border-radius:10px;padding:10px 18px;font:700 14px Inter,sans-serif;cursor:pointer}
+.hm-ph-card button.hm-go[disabled]{background:#cbd2dd;cursor:not-allowed}
+.hm-phm{position:fixed;inset:0;z-index:100000;background:#0b1220cc;display:grid;place-items:center;padding:14px}
+.hm-phm>div{background:#fff;border-radius:18px;width:min(820px,100%);max-height:94vh;overflow:auto;padding:22px}
+.hm-phq{border:1px solid #e3e7ee;border-radius:12px;padding:12px;margin:10px 0}.hm-phq label{display:block;padding:7px 8px;border-radius:8px;cursor:pointer}.hm-phq label:hover{background:#f3f5f8}
+</style>
+<script id="hm-upgrades">
+(function(){
+/* A. Read Me: every reading note gets the Mark as Read button (= pop-out quiz) and the drop-down */
+function fixNotes(){
+  try{
+    document.querySelectorAll('.note-section[data-reading]').forEach(function(s){
+      var key=s.dataset.reading; if(s.querySelector('.note-mark')) return;
+      var act=s.querySelector('.note-actions');
+      if(!act){ act=document.createElement('div'); act.className='note-actions'; s.insertBefore(act,s.firstChild); }
+      var b=document.createElement('button'); b.type='button'; b.className='note-mark'; b.dataset.readingKey=key;
+      b.innerHTML='<span aria-hidden="true" class="nm-circle"></span><span class="nm-label">Mark as Read</span>';
+      b.addEventListener('click',function(){ markReadingRead(key,b); });
+      act.appendChild(b);
+      try{ if(readingSeen.has(key)){ b.classList.add('done'); b.disabled=true; b.querySelector('.nm-label').textContent='Read'; } }catch(e){}
+    });
+    if(typeof initNoteAccordion==='function') initNoteAccordion();
+  }catch(e){}
+}
+fixNotes();
+var nv=document.getElementById('notes')||document.body, t=null;
+try{ new MutationObserver(function(){ clearTimeout(t); t=setTimeout(fixNotes,250); }).observe(nv,{childList:true,subtree:true}); }catch(e){}
+
+/* B. Screencast list: collapsible groups, Continue button, jump chips, keyboard arrows */
+var KEY='hm_scx_closed', closed={}; try{ closed=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+function saveC(){ try{ localStorage.setItem(KEY,JSON.stringify(closed)); }catch(e){} }
+function enhance(){
+  var side=document.getElementById('theaterSide'); if(!side) return;
+  var searching=!!(typeof theaterSearchTerm!=='undefined'&&theaterSearchTerm);
+  var bar=document.getElementById('scxNavBar');
+  if(!bar){ bar=document.createElement('div'); bar.id='scxNavBar'; bar.className='scxn-bar'; side.parentNode.insertBefore(bar,side);
+    bar.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
+      if(b.dataset.a==='go'){ var n=side.querySelector('.scx-item:not(.learning-complete)')||side.querySelector('.scx-item'); if(n) n.click(); }
+      else if(b.dataset.a==='all'||b.dataset.a==='none'){ side.querySelectorAll('.scx-group').forEach(function(g){ var t=g.querySelector('b').textContent.trim(); if(b.dataset.a==='none') closed[t]=1; else delete closed[t]; }); saveC(); enhance(); }
+      else if(b.dataset.g){ var g=side.querySelectorAll('.scx-group')[+b.dataset.g]; if(g){ delete closed[g.querySelector('b').textContent.trim()]; saveC(); enhance(); g.scrollIntoView({behavior:'smooth',block:'nearest'}); } } });
+    side.addEventListener('click',function(e){ var g=e.target.closest('.scx-group'); if(!g) return; var t=g.querySelector('b').textContent.trim(); if(closed[t]) delete closed[t]; else closed[t]=1; saveC(); enhance(); });
+    side.addEventListener('keydown',function(e){ var k=e.key, a=document.activeElement;
+      if(a&&a.classList.contains('scx-group')&&(k==='Enter'||k===' ')){ e.preventDefault(); a.click(); return; }
+      if(k!=='ArrowDown'&&k!=='ArrowUp') return;
+      var els=[].slice.call(side.querySelectorAll('.scx-group,.scx-item')).filter(function(x){return !x.hidden;}), i=els.indexOf(a); if(i<0) return;
+      e.preventDefault(); var n=els[i+(k==='ArrowDown'?1:-1)]; if(n) n.focus(); });
+  }
+  var gi=-1, groups=[];
+  [].slice.call(side.children).forEach(function(k){
+    if(k.classList.contains('scx-group')){ gi++; var t=k.querySelector('b').textContent.trim(); groups.push(t); k.tabIndex=0; k.setAttribute('role','button'); k.classList.toggle('scxn-closed',!searching&&!!closed[t]); }
+    else if(k.classList.contains('scx-item')&&gi>=0){ k.hidden=!searching&&!!closed[groups[gi]]; }
+  });
+  var left=side.querySelectorAll('.scx-item:not(.learning-complete)').length;
+  bar.innerHTML='<button class="scxn-go" data-a="go">\u25B6 Continue'+(left?' ('+left+' to go)':'')+'</button><button data-a="all">Expand all</button><button data-a="none">Collapse all</button>'+groups.map(function(t,i){return '<button data-g="'+i+'">'+t.replace(/</g,'&lt;')+'</button>';}).join('');
+}
+function install(){
+  var o=window.theaterRenderSide; if(typeof o!=='function'||o.__up) return false;
+  var w=function(){ var r=o.apply(this,arguments); try{ enhance(); }catch(e){} return r; }; w.__up=1; window.theaterRenderSide=w; try{ w(); }catch(e){} return true;
+}
+if(!install()) window.addEventListener('load',install);
+
+/* C. Extra phase assessments published from the admin (HM_BAKED.phases) */
+function phases(){ var b=window.HM_BAKED||{}; return (b.phases||[]).filter(function(p){ return p&&p.released!==false&&(p.questions||[]).length; }); }
+function unlocked(p){ try{ return courseWeekNumber(new Date())>=(+p.unlockWeek||1); }catch(e){ return true; } }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function renderPhases(){
+  var host=document.getElementById('hmExtraPhases'), view=document.getElementById('phase-assessment'); if(!view) return;
+  var list=phases();
+  if(!host){ host=document.createElement('div'); host.id='hmExtraPhases'; host.className='hm-ph'; view.appendChild(host); }
+  if(!list.length){ host.innerHTML=''; return; }
+  var st=(typeof student!=='undefined'&&student)?student:null;
+  host.innerHTML='<h3 style="margin:0 0 4px">More phase assessments</h3>'+list.map(function(p){
+    var done=st&&st.phaseAssessments&&st.phaseAssessments[p.id]&&st.phaseAssessments[p.id].completedAt, r=done?st.phaseAssessments[p.id]:null, open=unlocked(p);
+    return '<div class="hm-ph-card"><h3>'+esc(p.title)+'</h3><p>'+esc(p.desc||'')+'</p>'+
+      (done?'<b>Completed: '+r.score+' / '+r.total+'</b>':'<button class="hm-go" data-p="'+esc(p.id)+'"'+((!st||!open)?' disabled':'')+'>'+(!st?'Sign in to start':open?'Start assessment':'Unlocks in Week '+(p.unlockWeek||1))+'</button>')+'</div>'; }).join('');
+  host.querySelectorAll('.hm-go').forEach(function(b){ b.onclick=function(){ start(list.filter(function(p){return p.id===b.dataset.p;})[0]); }; });
+}
+function start(p){
+  if(!p||typeof student==='undefined'||!student) return;
+  var pool=p.questions.slice(); pool=pool.sort(function(){return Math.random()-.5;});
+  var n=+p.draw>0?Math.min(+p.draw,pool.length):pool.length, qs=pool.slice(0,n).map(function(q){
+    var opts=(q.opts||[]).map(function(t,i){return {t:t,i:i};}).filter(function(o){return String(o.t).trim();}).sort(function(){return Math.random()-.5;}); return {q:q.q,opts:opts,a:Number(q.a)||0}; });
+  var m=document.createElement('div'); m.className='hm-phm';
+  m.innerHTML='<div><h2 style="margin-top:0">'+esc(p.title)+'</h2><p>One attempt. '+qs.length+' questions.</p>'+qs.map(function(q,i){
+    return '<div class="hm-phq"><b>'+(i+1)+'. '+esc(q.q)+'</b>'+q.opts.map(function(o){return '<label><input type="radio" name="hq'+i+'" value="'+o.i+'"> '+esc(o.t)+'</label>';}).join('')+'</div>'; }).join('')+
+    '<button class="hm-go" style="background:#2f6fed;color:#fff;border:0;border-radius:10px;padding:11px 20px;font:700 14px Inter,sans-serif;cursor:pointer" id="hmPhSub">Submit assessment</button> <button id="hmPhX" style="border:1px solid #ccd;background:#fff;border-radius:10px;padding:10px 16px;cursor:pointer">Cancel</button></div>';
+  document.body.appendChild(m);
+  m.querySelector('#hmPhX').onclick=function(){ m.remove(); };
+  m.querySelector('#hmPhSub').onclick=function(){
+    var un=qs.filter(function(q,i){return !m.querySelector('input[name="hq'+i+'"]:checked');}).length;
+    if(un&&!confirm(un+' question(s) unanswered. Submit anyway?')) return;
+    var mk=+p.marks||1, score=0, answers=qs.map(function(q,i){ var c=m.querySelector('input[name="hq'+i+'"]:checked'), v=c?+c.value:-1, ok=v===q.a; if(ok) score+=mk; return {q:q.q,picked:v,correct:ok}; });
+    student.phaseAssessments=student.phaseAssessments||{};
+    student.phaseAssessments[p.id]={score:score,total:qs.length*mk,answers:answers,completedAt:new Date().toISOString()};
+    try{ saveStudentRecord(student); }catch(e){} try{ updateGrade(); }catch(e){}
+    m.remove(); renderPhases(); alert('Submitted. Your mark: '+score+' / '+(qs.length*mk)); };
+}
+var orp=window.renderPhaseAssessment;
+if(typeof orp==='function'){ window.renderPhaseAssessment=function(){ var r=orp.apply(this,arguments); try{ renderPhases(); }catch(e){} return r; }; }
+renderPhases();
+
+/* D. Faster live updates: check for a new published build every 20 seconds */
+setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) window.hmCheckForUpdate(); }catch(e){} },20000);
+})();
+</script>
+
 </body>
 </html>
