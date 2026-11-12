@@ -382,9 +382,9 @@ button{font-family:inherit;}
 .note-mark.just-done .nm-circle{animation:nmPop .45s ease;}
 .note-tool,.note-tip,.note-visual{border-left:4px solid var(--c-notes);padding:.9rem 1.1rem;border-radius:10px;margin:1.1rem 0;background:#f5f2ff;font-size:.92rem;line-height:1.55;position:relative;padding-left:2.6rem;}
 .note-tool::before,.note-tip::before,.note-visual::before{position:absolute;left:.9rem;top:.85rem;font-size:1.05rem;}
-.note-tool::before{content:"🛠️";}
-.note-tip::before{content:"💡";}
-.note-visual::before{content:"👁️";}
+.note-tool::before{content:"";}
+.note-tip::before{content:"";}
+.note-visual::before{content:"";}
 .note-tip{border-left-color:var(--c-projects);background:#fff5ec;}
 .note-visual{border-left-color:#f59e0b;background:#fffaf0;}
 .note-steps{background:#f5f2ff;border-left:4px solid var(--c-notes);padding:1rem 1.2rem;border-radius:10px;margin:0.6rem 0;line-height:1.6;}
@@ -1194,13 +1194,13 @@ img,video,canvas,svg,iframe{max-width:100%}
 <button aria-selected="false" class="tab" data-tab="phase-assessment" role="tab">Phase Assessment</button>
 </nav>
 <button class="progress-nav-btn" id="progressNavBtn" type="button">My Progress</button>
+<button class="hmp-chip" id="hmpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open my profile" style="display:none"><span class="hmp-ring"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="t" cx="24" cy="24" r="21"/><circle class="v" id="hmpRingV" cx="24" cy="24" r="21"/></svg><span class="hmp-av" id="hmpAv">?</span></span><span class="hmp-meta"><b id="hmpChipName">Student</b><small id="hmpChipGrade">-</small></span><svg class="hmp-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
 <div class="student-badge" id="studentBadge" style="display:none;">
 <span class="sb-name" id="sbName"></span>
 <span class="sb-grade" id="sbGrade">—</span>
 </div>
 <div class="hn-wrap" id="hnWrap" style="display:none"><button aria-expanded="false" aria-haspopup="dialog" aria-label="Notifications" class="hn-bell" id="hnBell" type="button"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="hn-badge" hidden id="hnBadge">0</span></button></div>
 <button aria-controls="layersPanel" aria-expanded="false" class="panel-toggle" id="lpToggle">Layers ▸</button>
-<button class="hmp-chip" id="hmpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open my profile" style="display:none"><span class="hmp-ring"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="t" cx="24" cy="24" r="21"/><circle class="v" id="hmpRingV" cx="24" cy="24" r="21"/></svg><span class="hmp-av" id="hmpAv">?</span></span><span class="hmp-meta"><b id="hmpChipName">Student</b><small id="hmpChipGrade">-</small></span><svg class="hmp-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
 </header>
 <div class="workspace">
 <main class="canvas" id="mainContent">
@@ -1396,7 +1396,7 @@ img,video,canvas,svg,iframe{max-width:100%}
         <span class="vocab" data-def="An editing approach that keeps the original information available for later changes." tabindex="0">Non-Destructive Workflow</span><span class="vocab-def"> — An editing approach that keeps the original information available for later changes.</span></p>
 <div class="vocab-title">Big Ideas</div>
 <p class="big-ideas">Use Transform for controlled size, position, rotation, and perspective changes. Use Puppet Warp when you need more flexible, pin-based reshaping. Work non-destructively so the portrait can be adjusted again.</p>
-<div class="lesson-links"><span class="ll-label">Open this lesson</span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo')">▶ Puppet Warp Tool</button><button type="button" class="llq" aria-label="Quiz: Puppet Warp Tool" title="Quiz: Puppet Warp Tool" onclick="event.stopPropagation();hmQuiz('video','1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo')">🧠</button></span></div>
+<div class="lesson-links"><span class="ll-label">Open this lesson</span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo')">▶ Puppet Warp Tool</button><button type="button" class="llq" aria-label="Quiz: Puppet Warp Tool" title="Quiz: Puppet Warp Tool" onclick="event.stopPropagation();hmQuiz('video','1GPnPtOIV2Sgb3uyPIpb2wnTt8riCEXTo')">Quiz</button></span></div>
 </div></div></div>
 </div><!-- /day-grid -->
 </div><!-- /week4 -->
@@ -1450,7 +1450,7 @@ img,video,canvas,svg,iframe{max-width:100%}
         <span class="vocab" data-def="A non-destructive layer that changes the look of the layers beneath it." tabindex="0">Adjustment Layer</span><span class="vocab-def"> — A non-destructive layer that changes the look of the layers beneath it.</span>,
         <span class="vocab" data-def="The bright shiny spots on fabric that must be rebuilt after a big colour change." tabindex="0">Specular Highlights</span><span class="vocab-def"> — The bright shiny spots on fabric that must be rebuilt after a big colour change.</span></p>
 <div class="big-ideas">Real eyes have texture, contrast and a small catchlight, but never a glassy glow. A good colour change keeps the original highlights, shadows and fabric detail.</div>
-<div class="lesson-links"><span class="ll-label">Open this lesson</span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1')">▶ Eyes &amp; Reflections 1</button><button type="button" class="llq" aria-label="Quiz: Eyes &amp; Reflections 1" title="Quiz: Eyes &amp; Reflections 1" onclick="event.stopPropagation();hmQuiz('video','1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1')">🧠</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1T5-Q5M56LtTljcvAnAjURpwmWguRN80o')">▶ Clothing Colour 2</button><button type="button" class="llq" aria-label="Quiz: Clothing Colour 2" title="Quiz: Clothing Colour 2" onclick="event.stopPropagation();hmQuiz('video','1T5-Q5M56LtTljcvAnAjURpwmWguRN80o')">🧠</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD')">▶ Clothing Colour 1</button><button type="button" class="llq" aria-label="Quiz: Clothing Colour 1" title="Quiz: Clothing Colour 1" onclick="event.stopPropagation();hmQuiz('video','1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD')">🧠</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenReadMe('readme-week6')">📖 Read Me</button><button type="button" class="llq" aria-label="Quiz: Read Me note" title="Quiz: Read Me note" onclick="event.stopPropagation();hmQuiz('reading','readme-week6')">🧠</button></span></div>
+<div class="lesson-links"><span class="ll-label">Open this lesson</span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1')">▶ Eyes &amp; Reflections 1</button><button type="button" class="llq" aria-label="Quiz: Eyes &amp; Reflections 1" title="Quiz: Eyes &amp; Reflections 1" onclick="event.stopPropagation();hmQuiz('video','1Y1kl-zMa5cMcTAysIrRK-1kwhfe93sW1')">Quiz</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1T5-Q5M56LtTljcvAnAjURpwmWguRN80o')">▶ Clothing Colour 2</button><button type="button" class="llq" aria-label="Quiz: Clothing Colour 2" title="Quiz: Clothing Colour 2" onclick="event.stopPropagation();hmQuiz('video','1T5-Q5M56LtTljcvAnAjURpwmWguRN80o')">Quiz</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD')">▶ Clothing Colour 1</button><button type="button" class="llq" aria-label="Quiz: Clothing Colour 1" title="Quiz: Clothing Colour 1" onclick="event.stopPropagation();hmQuiz('video','1bTuJ8yUYKXAOakIObT6kz_vh8NehMEiD')">Quiz</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenReadMe('readme-week6')">Read Me</button><button type="button" class="llq" aria-label="Quiz: Read Me note" title="Quiz: Read Me note" onclick="event.stopPropagation();hmQuiz('reading','readme-week6')">Quiz</button></span></div>
 </div></div></div>
 <div class="flip-card" data-day="6-2"><div class="flip-card-inner">
 <div class="flip-card-front"><h4>Day 2: Eyes, Reflections &amp; Teeth</h4><p>Add realistic reflections to the eyes, whiten teeth naturally, then put it all into one finishing workflow.</p><span class="flip-hint">Tap to flip</span></div>
@@ -1463,7 +1463,7 @@ img,video,canvas,svg,iframe{max-width:100%}
         <span class="vocab" data-def="Brightening only the chosen area while keeping natural texture and gloss." tabindex="0">Selective Brightness</span><span class="vocab-def"> — Brightening only the chosen area while keeping natural texture and gloss.</span>,
         <span class="vocab" data-def="Adjusting the colour and tone of skin so it looks even and natural." tabindex="0">Skin Color Grading</span><span class="vocab-def"> — Adjusting the colour and tone of skin so it looks even and natural.</span></p>
 <div class="big-ideas">Add light only where the light in the photo would fall. Whiten teeth by removing yellow, not by painting them white, and stop before the person looks artificial.</div>
-<div class="lesson-links"><span class="ll-label">Open this lesson</span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1Pc0NNb3xMy_vXsri7keAP28856xXsEP5')">▶ Eyes &amp; Reflections 2</button><button type="button" class="llq" aria-label="Quiz: Eyes &amp; Reflections 2" title="Quiz: Eyes &amp; Reflections 2" onclick="event.stopPropagation();hmQuiz('video','1Pc0NNb3xMy_vXsri7keAP28856xXsEP5')">🧠</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6')">▶ Teeth Whitening</button><button type="button" class="llq" aria-label="Quiz: Teeth Whitening" title="Quiz: Teeth Whitening" onclick="event.stopPropagation();hmQuiz('video','1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6')">🧠</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj')">▶ Teeth &amp; Eye Workflow</button><button type="button" class="llq" aria-label="Quiz: Teeth &amp; Eye Workflow" title="Quiz: Teeth &amp; Eye Workflow" onclick="event.stopPropagation();hmQuiz('video','1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj')">🧠</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenReadMe('readme-week6')">📖 Read Me</button><button type="button" class="llq" aria-label="Quiz: Read Me note" title="Quiz: Read Me note" onclick="event.stopPropagation();hmQuiz('reading','readme-week6')">🧠</button></span></div>
+<div class="lesson-links"><span class="ll-label">Open this lesson</span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1Pc0NNb3xMy_vXsri7keAP28856xXsEP5')">▶ Eyes &amp; Reflections 2</button><button type="button" class="llq" aria-label="Quiz: Eyes &amp; Reflections 2" title="Quiz: Eyes &amp; Reflections 2" onclick="event.stopPropagation();hmQuiz('video','1Pc0NNb3xMy_vXsri7keAP28856xXsEP5')">Quiz</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6')">▶ Teeth Whitening</button><button type="button" class="llq" aria-label="Quiz: Teeth Whitening" title="Quiz: Teeth Whitening" onclick="event.stopPropagation();hmQuiz('video','1QQA6LEBWIn7iPkLY5Jfk81BVNUzl4qm6')">Quiz</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenScreencast('1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj')">▶ Teeth &amp; Eye Workflow</button><button type="button" class="llq" aria-label="Quiz: Teeth &amp; Eye Workflow" title="Quiz: Teeth &amp; Eye Workflow" onclick="event.stopPropagation();hmQuiz('video','1V0DwbaQaJsRiGsmrPIjk5k4evZ8Xrbmj')">Quiz</button></span><span class="llp"><button type="button" class="ll" onclick="event.stopPropagation();hmOpenReadMe('readme-week6')">Read Me</button><button type="button" class="llq" aria-label="Quiz: Read Me note" title="Quiz: Read Me note" onclick="event.stopPropagation();hmQuiz('reading','readme-week6')">Quiz</button></span></div>
 </div></div></div>
 </div>
 </div>
@@ -1473,10 +1473,10 @@ img,video,canvas,svg,iframe{max-width:100%}
 <div class="day-grid">
 <div class="flip-card project-day" data-day="7-1"><div class="flip-card-inner">
 <div class="flip-card-front"><div class="project-label">PROJECT DAY</div><h4>Day 1: Choose Your City &amp; Remove the Background</h4><p>Pick your city and cut your subject out cleanly.</p><span class="flip-hint">Tap to flip</span></div>
-<div class="flip-card-back"><p><strong>Objective:</strong> Prepare a clean cut-out of yourself for the city scene.</p><ul><li>Choose one of the city options on the Group Projects page.</li><li>Remove the background and clean the white fringe (Smudge Tool, Filter → Other → Minimum).</li><li>Keep a layer mask so the cut-out stays reversible.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenScreencast('1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ')">▶ Screencast: Change Background &amp; Smudge Tool</button><button type="button" class="wk-btn q" onclick="event.stopPropagation();hmQuiz('video','1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ')">🧠 Quiz</button></div><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('world')">📁 Open the project page</button></div></div></div></div>
+<div class="flip-card-back"><p><strong>Objective:</strong> Prepare a clean cut-out of yourself for the city scene.</p><ul><li>Choose one of the city options on the Group Projects page.</li><li>Remove the background and clean the white fringe (Smudge Tool, Filter → Other → Minimum).</li><li>Keep a layer mask so the cut-out stays reversible.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenScreencast('1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ')">▶ Screencast: Change Background &amp; Smudge Tool</button><button type="button" class="wk-btn q" onclick="event.stopPropagation();hmQuiz('video','1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ')">Quiz</button></div><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('world')">Open the project page</button></div></div></div></div>
 <div class="flip-card project-day" data-day="7-2"><div class="flip-card-inner">
 <div class="flip-card-front"><div class="project-label">PROJECT DAY</div><h4>Day 2: Composite, Add Depth &amp; Submit</h4><p>Place the subject in the city, blend it and submit.</p><span class="flip-hint">Tap to flip</span></div>
-<div class="flip-card-back"><p><strong>Objective:</strong> Make the subject look like it belongs in the city.</p><ul><li>Match scale, light and colour with the background.</li><li>Use <strong>Gaussian Blur</strong> on the far background for depth.</li><li>Submit via Group Projects tab → “Week 7 · Around the World with a Twist”.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('world')">📁 Open the project page</button></div></div></div></div>
+<div class="flip-card-back"><p><strong>Objective:</strong> Make the subject look like it belongs in the city.</p><ul><li>Match scale, light and colour with the background.</li><li>Use <strong>Gaussian Blur</strong> on the far background for depth.</li><li>Submit via Group Projects tab → “Week 7 · Around the World with a Twist”.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('world')">Open the project page</button></div></div></div></div>
 </div>
 </div>
 <!-- EDIT-ME :: WEEK 8 CURRICULUM CARDS (day flip cards, vocabulary, links) -->
@@ -1632,10 +1632,10 @@ img,video,canvas,svg,iframe{max-width:100%}
 <div class="day-grid">
 <div class="flip-card project-day" data-day="16-1"><div class="flip-card-inner">
 <div class="flip-card-front"><div class="project-label">FINAL PROJECT · DAY 1</div><h4>Day 1: Concept &amp; Base Portrait</h4><p>Choose your element and prepare your portrait.</p><span class="flip-hint">Tap to flip</span></div>
-<div class="flip-card-back"><p><strong>Objective:</strong> Plan a surreal Elemental Being and prepare the portrait you will fuse with it.</p><ul><li>Pick one elemental force (fire, water, air, earth…).</li><li>Prepare a clean, well-lit portrait and collect reference images.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('elemental')">📁 Open the project page</button></div></div></div></div>
+<div class="flip-card-back"><p><strong>Objective:</strong> Plan a surreal Elemental Being and prepare the portrait you will fuse with it.</p><ul><li>Pick one elemental force (fire, water, air, earth…).</li><li>Prepare a clean, well-lit portrait and collect reference images.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('elemental')">Open the project page</button></div></div></div></div>
 <div class="flip-card project-day" data-day="16-2"><div class="flip-card-inner">
 <div class="flip-card-front"><div class="project-label">FINAL PROJECT · DAY 2</div><h4>Day 2: Fusion, Finish &amp; Submit</h4><p>Blend the portrait with the element so it feels real.</p><span class="flip-hint">Tap to flip</span></div>
-<div class="flip-card-back"><p><strong>Objective:</strong> Finish the capstone project of Class of 2028.</p><ul><li>Fuse the element with the portrait using masks and blend modes.</li><li>Add your character name and a short origin story.</li><li>Submit via Group Projects tab → “Week 16 · Elemental Portraits”.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('elemental')">📁 Open the project page</button></div></div></div></div>
+<div class="flip-card-back"><p><strong>Objective:</strong> Finish the capstone project of Class of 2028.</p><ul><li>Fuse the element with the portrait using masks and blend modes.</li><li>Add your character name and a short origin story.</li><li>Submit via Group Projects tab → “Week 16 · Elemental Portraits”.</li></ul><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject('elemental')">Open the project page</button></div></div></div></div>
 </div>
 </div>
 </div><!-- /month-block m4 -->
@@ -2433,7 +2433,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 <b id="lpGradeLetter">—</b>
 <span id="lpGradeDetail">Sign in to start tracking.</span>
 </div>
-<button class="lp-report-btn" id="lpReportBtn">✉ Send Progress Report</button>
+<button class="lp-report-btn" id="lpReportBtn">Send Progress Report</button>
 <div id="lpReportStatus" style="font-size:10.5px;color:#8f96a6;margin-top:6px;min-height:12px;"></div>
 
 <button class="lp-signout" id="lpSignOutBtn">Sign out of this device</button>
@@ -2443,7 +2443,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 <!-- EDIT-ME :: PAGE FOOTER - contact email and Google Classroom links -->
 <footer class="appfoot">
     Graphic Design &amp; Photoshop — Class of 2028
-    <div class="foot-contact">✉ <a href="mailto:thomas@hmacademy.org">thomas@hmacademy.org</a></div>
+    <div class="foot-contact"><a href="mailto:thomas@hmacademy.org">thomas@hmacademy.org</a></div>
     <div class="foot-classroom" aria-label="Google Classroom links">
       <a href="https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd" target="_blank" rel="noopener noreferrer">Section B — Google Classroom</a>
       <a href="https://classroom.google.com/c/ODg5MDA0NTM0Mjc5?cjc=547gadfs" target="_blank" rel="noopener noreferrer">Section C — Google Classroom</a>
@@ -2746,8 +2746,6 @@ window.HM_BAKED = {
   "stats": [],
   "tabs": {},
   "eyebrow": "Thomas",
-  "title": "Project of the month",
-  "intro": "Cc/.7,.<>",
   "bannerOn": true,
   "bannerText": "hi",
   "bannerTone": "good",
@@ -6205,7 +6203,7 @@ function applyCalendarWeekState(){
     if(!lockPanel){
       lockPanel = document.createElement('div');
       lockPanel.className = 'locked-week-panel';
-      lockPanel.innerHTML = '<div><div class=\"lock-icon\" aria-hidden=\"true\">🔒</div><strong>Week '+w+' is locked</strong><span>This lesson content will unlock when its calendar week begins.</span></div>';
+      lockPanel.innerHTML = '<div><div class=\"lock-icon\" aria-hidden=\"true\"></div><strong>Week '+w+' is locked</strong><span>This lesson content will unlock when its calendar week begins.</span></div>';
       card.appendChild(lockPanel);
     }
   }
@@ -7418,7 +7416,7 @@ function studyBannerEl(){
 }
 function showStudyBanner(w,left){
   const el = studyBannerEl(); const m = Math.floor(left/60), s = String(left%60).padStart(2,'0');
-  el.innerHTML = `<div class="sb-ico" aria-hidden="true">📖</div><div class="sb-copy"><b>Study time · Week ${w}</b><span>Review your lesson card. Your quiz opens automatically when the timer ends.</span></div><div class="sb-time">${m}:${s}</div>`;
+  el.innerHTML = `<div class="sb-ico" aria-hidden="true"></div><div class="sb-copy"><b>Study time · Week ${w}</b><span>Review your lesson card. Your quiz opens automatically when the timer ends.</span></div><div class="sb-time">${m}:${s}</div>`;
   el.classList.add('show');
 }
 function hideStudyBanner(){ const el = document.getElementById('studyBanner'); if(el) el.classList.remove('show'); }
@@ -7547,7 +7545,7 @@ function takeCachedRecord(email){
 function ensureReportModal(){
   if(document.getElementById('reportPermModal')) return;
   const wrap = document.createElement('div'); wrap.id = 'reportPermModal'; wrap.className = 'rp-backdrop';
-  wrap.innerHTML = `<div class="rp-box" role="dialog" aria-modal="true" aria-labelledby="rpTitle"><h3 id="rpTitle">Share your progress report?</h3><p>Nothing is downloaded or sent unless you choose an option below.</p><div class="rp-actions"><button type="button" class="rp-btn" id="rpPdf">⬇ Download PDF report</button><button type="button" class="rp-btn" id="rpMail">✉ Email my instructor</button><button type="button" class="rp-btn ghost" id="rpNo">Not now</button></div><small>Emailing opens your own mail app so you can read the message before sending it.</small></div>`;
+  wrap.innerHTML = `<div class="rp-box" role="dialog" aria-modal="true" aria-labelledby="rpTitle"><h3 id="rpTitle">Share your progress report?</h3><p>Nothing is downloaded or sent unless you choose an option below.</p><div class="rp-actions"><button type="button" class="rp-btn" id="rpPdf">Download PDF report</button><button type="button" class="rp-btn" id="rpMail">Email my instructor</button><button type="button" class="rp-btn ghost" id="rpNo">Not now</button></div><small>Emailing opens your own mail app so you can read the message before sending it.</small></div>`;
   document.body.appendChild(wrap);
   const close = ()=>wrap.classList.remove('open');
   wrap.addEventListener('click', e=>{ if(e.target === wrap) close(); });
@@ -8428,7 +8426,7 @@ function renderMediaCard({ id, label, kind, accent, trackKey }){
   card.dataset.mid=id; card.dataset.mkind=kind; card.dataset.mkey=trackKey||(kind==='video'?'seenScreencasts':'seenPractice');
   card.className = 'media-card' + (mediaComplete ? ' learning-complete' : '');
   card.style.setProperty('--card-accent', accent);
-  const icon = kind === 'video' ? '▶' : '⭳';
+  const icon = kind === 'video' ? '▶' : '';
   const posterLabel = kind === 'video' ? 'Play in card' : 'Preview file';
   const openUrl = driveViewUrl(id);
   const embedUrl = driveEmbedUrl(id);
@@ -8942,7 +8940,7 @@ function theaterRenderSide(){
   if(theaterFilterMode==='all'){
     const locked = document.createElement('div');
     locked.className='theater-locked-panel';
-    locked.innerHTML='<div class="tlp-icon" aria-hidden="true">🔒</div><strong>Additional recordings are locked</strong><p>More screencasts will unlock automatically according to the course calendar.</p><span>Search and navigation only include recordings that are currently released.</span>';
+    locked.innerHTML='<div class="tlp-icon" aria-hidden="true"></div><strong>Additional recordings are locked</strong><p>More screencasts will unlock automatically according to the course calendar.</p><span>Search and navigation only include recordings that are currently released.</span>';
     side.appendChild(locked);
   }
 }
@@ -9207,7 +9205,7 @@ function markRevisionRead(key, btnEl){
 function openFeedbackModal(key){
   fbKey=key; fbRating=0;
   const rate=document.getElementById('fbRate');
-  const faces=[['😕','Unclear'],['🙂','Okay'],['😀','Clear'],['🤩','Very clear']];
+  const faces=[['','Unclear'],['','Okay'],['','Clear'],['','Very clear']];
   rate.innerHTML=faces.map((f,i)=>`<button type="button" class="fb-face" role="radio" aria-checked="false" data-v="${i+1}"><span>${f[0]}</span><small>${f[1]}</small></button>`).join('');
   rate.querySelectorAll('.fb-face').forEach(b=>b.addEventListener('click',()=>{ fbRating=Number(b.dataset.v); rate.querySelectorAll('.fb-face').forEach(x=>{const on=x===b; x.classList.toggle('on',on); x.setAttribute('aria-checked',on?'true':'false');}); }));
   document.getElementById('fbComment').value=''; document.getElementById('fbStatus').textContent='';
@@ -9350,7 +9348,7 @@ function renderHomeLearning(){
     <div class="phase-workflow-body">
       <div class="phase-workflow-summary"><div><span>${phase}</span><strong>${detail}</strong></div><button type="button" class="hbtn ghost phase-collapse-action">Collapse</button></div>
       <div class="phase-step-grid">${steps.map((x,i)=>`<button type="button" class="phase-step ${x.done?'is-done':''} ${x.locked?'is-locked':''}" data-phase-step="${phase==='Phase One'?'1':'2'}-${x.n}" ${x.locked?'aria-disabled="true"':''}>
-        <span class="phase-step-number">${x.done?'✓':x.locked?'🔒':String(x.n).padStart(2,'0')}</span><span class="phase-step-copy"><b>${x.label}</b><small>${x.sub}</small></span><span class="phase-step-arrow">→</span>
+        <span class="phase-step-number">${x.done?'✓':x.locked?'–':String(x.n).padStart(2,'0')}</span><span class="phase-step-copy"><b>${x.label}</b><small>${x.sub}</small></span><span class="phase-step-arrow">→</span>
       </button>`).join('')}</div>
     </div>
    </section>`;
@@ -9367,7 +9365,7 @@ function renderHomeLearning(){
    <div class="workflow-track-wrap"><div class="workflow-track">
      ${homeSteps.map((x,i)=>`<div class="workflow-node">
        <button type="button" class="workflow-click ${x.done?'done-step':''} ${x.locked?'workflow-lock':''} ${nextStep===x?'active-step':''}" data-home-workflow-step="${x.n}" ${x.locked?'aria-disabled="true"':''}>
-         <span class="workflow-node-top"><span class="workflow-number">${x.done?'✓':x.locked?'🔒':String(x.n).padStart(2,'0')}</span><span class="workflow-node-status">${x.done?'Complete':x.locked?'Locked':'Continue'}</span></span>
+         <span class="workflow-node-top"><span class="workflow-number">${x.done?'✓':x.locked?'–':String(x.n).padStart(2,'0')}</span><span class="workflow-node-status">${x.done?'Complete':x.locked?'Locked':'Continue'}</span></span>
          <h4>${x.label}</h4><small>${x.sub}</small>
          <span class="workflow-grade"><span><i class="workflow-status-dot"></i>Exact mark</span><b>${x.mark}</b></span>
        </button>
@@ -9441,7 +9439,7 @@ function ensurePhaseModal(){
 function openPhaseAssessmentModal(){
  ensurePhaseModal();
  const modal=document.getElementById('phaseAssessmentModal'); const body=document.getElementById('phaseModalBody'); const submit=document.getElementById('phaseModalSubmit');
- if(!phaseAssessmentAvailable()){ body.innerHTML=`<div class="phase-lock-card"><div class="phase-lock-icon">🔒</div><h3>Available in Week 5</h3><p>The Phase 1 Assessment opens when Week 5 begins. Your workflow will unlock the clickable assessment automatically then.</p><div class="phase-launch-meta" style="justify-content:center;margin-top:16px"><span>15 questions</span><span>20 marks</span><span>Shuffled order</span></div></div>`; document.getElementById('phaseModalProgress').textContent='Locked until Week 5'; submit.style.display='none'; modal.classList.add('open'); return; }
+ if(!phaseAssessmentAvailable()){ body.innerHTML=`<div class="phase-lock-card"><div class="phase-lock-icon"></div><h3>Available in Week 5</h3><p>The Phase 1 Assessment opens when Week 5 begins. Your workflow will unlock the clickable assessment automatically then.</p><div class="phase-launch-meta" style="justify-content:center;margin-top:16px"><span>15 questions</span><span>20 marks</span><span>Shuffled order</span></div></div>`; document.getElementById('phaseModalProgress').textContent='Locked until Week 5'; submit.style.display='none'; modal.classList.add('open'); return; }
  const saved=student?.phaseAssessments?.phase1;
  if(saved?.completedAt){ const pct=Math.round(saved.score/saved.total*100); body.innerHTML=`<div class="phase-complete-card"><div class="hero-eyebrow">PHASE 1 COMPLETE</div><div class="phase-score">${saved.score}/${saved.total}</div><p style="margin:7px 0;color:#667085">Submitted ${new Date(saved.completedAt).toLocaleString()}. This official phase result is locked.</p><div class="phase-progress"><i style="width:${pct}%"></i></div></div>`; document.getElementById('phaseModalProgress').textContent=`Saved score · ${saved.score}/${saved.total}`; submit.style.display='none'; modal.classList.add('open'); return; }
  submit.style.display='inline-flex';
@@ -9486,7 +9484,7 @@ function maybeShowCourseCelebrations(){
 }
 function showCourseCelebration(title,message){
   let el=document.getElementById('courseCelebration');
-  if(!el){el=document.createElement('div');el.id='courseCelebration';el.className='capture-warning';el.innerHTML='<div class="cw-card celebration-card"><div style="font-size:34px;margin-bottom:8px">🎉</div><div class="hero-eyebrow">MILESTONE UNLOCKED</div><h3 id="celebrationTitle"></h3><p id="celebrationMessage"></p><button type="button" class="hbtn primary" id="celebrationClose" style="margin-top:18px">Continue</button></div>';document.body.appendChild(el);el.querySelector('#celebrationClose').onclick=()=>{el.classList.remove('show');el.setAttribute('aria-hidden','true');};}
+  if(!el){el=document.createElement('div');el.id='courseCelebration';el.className='capture-warning';el.innerHTML='<div class="cw-card celebration-card"><div style="font-size:34px;margin-bottom:8px"></div><div class="hero-eyebrow">MILESTONE UNLOCKED</div><h3 id="celebrationTitle"></h3><p id="celebrationMessage"></p><button type="button" class="hbtn primary" id="celebrationClose" style="margin-top:18px">Continue</button></div>';document.body.appendChild(el);el.querySelector('#celebrationClose').onclick=()=>{el.classList.remove('show');el.setAttribute('aria-hidden','true');};}
   el.querySelector('#celebrationTitle').textContent=title; el.querySelector('#celebrationMessage').textContent=message; el.classList.add('show'); el.setAttribute('aria-hidden','false');
 }
 function initLearningUpgrade(){ renderAssignments(); renderHomeLearning(); updatePracticeCreditUI(); setTimeout(maybeShowCourseCelebrations,300); }
@@ -10021,8 +10019,8 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     if(typeof weekMeta!=='undefined') weekMeta[7]='Around the World with a Twist (Project Week)';
     var c7a=document.querySelector('#week7 .flip-card[data-day="7-1"]'), c7b=document.querySelector('#week7 .flip-card[data-day="7-2"]');
     [c7a,c7b].forEach(function(card){ if(card){ card.classList.remove('practice-day'); card.classList.add('project-day'); } });
-    var BTN_SC='<div class="wk-title">Open this lesson</div><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenScreencast(\'1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ\')">▶ Screencast: Change Background &amp; Smudge Tool</button><button type="button" class="wk-btn q" onclick="event.stopPropagation();hmQuiz(\'video\',\'1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ\')">🧠 Quiz</button></div>';
-    var BTN_PJ='<div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject(\'world\')">📁 Open the project page</button></div>';
+    var BTN_SC='<div class="wk-title">Open this lesson</div><div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenScreencast(\'1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ\')">▶ Screencast: Change Background &amp; Smudge Tool</button><button type="button" class="wk-btn q" onclick="event.stopPropagation();hmQuiz(\'video\',\'1khSdxt8enMJ7NW60dp-gLxFGEKmbOzOJ\')">Quiz</button></div>';
+    var BTN_PJ='<div class="wk-act"><button type="button" class="wk-btn p" onclick="event.stopPropagation();hmOpenProject(\'world\')">Open the project page</button></div>';
     if(c7a){
       c7a.querySelector('.flip-card-front').innerHTML='<div class="project-label">PROJECT DAY</div><h4>Day 1: Around the World — Individual Project</h4><p>Choose one of the 50 cities and replace your portrait background.</p><span class="flip-hint">Tap to flip</span>';
       c7a.querySelector('.flip-card-back').innerHTML='<p><strong>Objective:</strong> Apply everything from Weeks 1–6 in one finished project.</p><ul><li>Choose one of the 50 cities and cut out your portrait cleanly.</li><li>Clean the white fringe (Smudge Tool, Filter → Other → Minimum).</li><li>Use your Week 6 retouching skills to finish the face naturally.</li><li>Work non-destructively and keep your editable PSD.</li></ul>'+BTN_SC+BTN_PJ;
@@ -10058,7 +10056,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     var modal=document.getElementById('phaseAssessmentModal'), body=document.getElementById('phaseModalBody'), submit=document.getElementById('phaseModalSubmit');
     var intro=document.getElementById('phaseModalIntro'); if(intro) intro.textContent='20 questions · 20 marks · different for every student';
     if(!phaseAssessmentAvailable()){
-      body.innerHTML='<div class="phase-lock-card"><div class="phase-lock-icon">🔒</div><h3>Available in Week 5</h3><p>The Phase 1 Assessment opens when Week 5 begins.</p><div class="phase-launch-meta" style="justify-content:center;margin-top:16px"><span>20 questions</span><span>20 marks</span><span>Your own shuffled paper</span></div></div>';
+      body.innerHTML='<div class="phase-lock-card"><div class="phase-lock-icon"></div><h3>Available in Week 5</h3><p>The Phase 1 Assessment opens when Week 5 begins.</p><div class="phase-launch-meta" style="justify-content:center;margin-top:16px"><span>20 questions</span><span>20 marks</span><span>Your own shuffled paper</span></div></div>';
       document.getElementById('phaseModalProgress').textContent='Locked until Week 5'; submit.style.display='none'; modal.classList.add('open'); return;
     }
     var saved=student&&student.phaseAssessments&&student.phaseAssessments.phase1;
@@ -10171,7 +10169,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   var GUESTID='guest-preview@local';
 
   var bo=document.createElement('div'); bo.className='hma-blackout'; bo.setAttribute('role','alert');
-  bo.innerHTML='<div><div style="font-size:42px;margin-bottom:10px">🔒</div>Screenshots and screen recording are not allowed.<div style="font-weight:500;font-size:13px;color:#aab3c7;margin-top:8px">This attempt was recorded.</div></div>';
+  bo.innerHTML='<div><div style="font-size:42px;margin-bottom:10px"></div>Screenshots and screen recording are not allowed.<div style="font-weight:500;font-size:13px;color:#aab3c7;margin-top:8px">This attempt was recorded.</div></div>';
   document.body.appendChild(bo);
   var boT=null, lastAt=0;
   function blackout(){ bo.classList.add('show'); clearTimeout(boT); boT=setTimeout(function(){ bo.classList.remove('show'); },2600); }
@@ -10218,7 +10216,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     var total=(typeof STUDY_SECONDS!=='undefined'?STUDY_SECONDS:120), el=studyBannerEl();
     var m=Math.floor(left/60), s=String(left%60).padStart(2,'0'), pct=Math.max(0,Math.min(100,left/total*100));
     el.classList.toggle('urgent',left<=20);
-    el.innerHTML='<div class="sb-ico" aria-hidden="true">📖</div><div class="sb-copy"><b>Study time · Week '+w+'</b><span>Review your lesson card. Your quiz opens automatically when the timer ends.</span></div><div class="sb-time">'+m+':'+s+'</div><div class="sb-bar"><i style="width:'+pct+'%"></i></div>';
+    el.innerHTML='<div class="sb-ico" aria-hidden="true"></div><div class="sb-copy"><b>Study time · Week '+w+'</b><span>Review your lesson card. Your quiz opens automatically when the timer ends.</span></div><div class="sb-time">'+m+':'+s+'</div><div class="sb-bar"><i style="width:'+pct+'%"></i></div>';
     el.classList.add('show');
   };
 
@@ -10339,7 +10337,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   document.body.appendChild(chat);
   var ov=document.createElement('div'); ov.id='hmaChatOverlay'; ov.hidden=true;
   ov.innerHTML='<div id="hmaChatModal" role="dialog" aria-modal="true" aria-labelledby="hcTitle">'+
-    '<div class="hc-head"><div class="hc-ava" aria-hidden="true">🎓</div><div class="hc-ttl"><b id="hcTitle">Chat with your instructor</b><small>Your message goes straight to your instructor · replies appear here</small></div>'+
+    '<div class="hc-head"><div class="hc-ava" aria-hidden="true"></div><div class="hc-ttl"><b id="hcTitle">Chat with your instructor</b><small>Your message goes straight to your instructor · replies appear here</small></div>'+
     '<button type="button" class="hc-send hc-top" id="hcSendTop">Send ➤</button><button type="button" class="hc-x" id="hmaChatClose" aria-label="Close chat">✕</button></div>'+
     '<div class="hc-body" id="hmaChatBody"></div>'+
     '<div class="hc-comp"><div class="hc-chips" id="hcChips" role="radiogroup" aria-label="Topic"></div><div class="hc-starters" id="hcStarters"></div>'+
@@ -10366,13 +10364,13 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   function renderChat(newIds){
     var body=cid('hmaChatBody'), list=((student&&student.complaints)||[]).slice().sort(byAt);
     if(!list.length){
-      body.innerHTML='<div class="hc-empty"><div class="hc-empty-ic">💬</div><b>How can your instructor help?</b><p>Choose a topic below, write your message and press Send. Replies appear right here.</p>'+
+      body.innerHTML='<div class="hc-empty"><div class="hc-empty-ic"></div><b>How can your instructor help?</b><p>Choose a topic below, write your message and press Send. Replies appear right here.</p>'+
         '<div class="hc-faq"><span>Quick answers</span>'+FAQ.map(function(f){ return '<details><summary>'+esc2(f[0])+'</summary><p>'+esc2(f[1])+'</p></details>'; }).join('')+'</div></div>'; return;
     }
     var last='', h='';
     list.forEach(function(c){
       var d=dayLabel(c.at); if(d!==last){ h+='<div class="hc-day"><span>'+esc2(d)+'</span></div>'; last=d; }
-      var r=replies[c.id], st=r&&r.status==='Resolved'?'<span class="hc-st-ok">✔ Resolved</span>':(r&&r.reply?'<span class="hc-st-ok">✓✓ Replied</span>':'<span>✓ Sent · waiting for a reply</span>');
+      var r=replies[c.id], st=r&&r.status==='Resolved'?'<span class="hc-st-ok">✓ Resolved</span>':(r&&r.reply?'<span class="hc-st-ok">✓✓ Replied</span>':'<span>✓ Sent · waiting for a reply</span>');
       h+='<div class="hc-b me"><em>'+esc2(c.topic)+'</em>'+esc2(c.text).replace(/\n/g,'<br>')+'<small>'+fmtT(c.at)+' · '+st+'</small></div>';
       if(r&&r.reply){ var isNew=newIds&&newIds[c.id]; h+='<div class="hc-b ins'+(isNew?' new':'')+'"><em>Instructor'+(isNew?' · new':'')+'</em>'+esc2(r.reply).replace(/\n/g,'<br>')+'<small>'+dayLabel(r.repliedAt)+' '+fmtT(r.repliedAt)+'</small></div>'; }
     });
@@ -10503,7 +10501,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   /* ---------- sync indicator (inside the Layers panel) ---------- */
   function setSync(state){
     var el=$('hmaSync'); if(!el) return;
-    var t={ok:'☁ Saved to your account',saving:'☁ Saving…',offline:'☁ Offline — will save when online',auth:'☁ Please sign in again',err:'☁ Could not save yet — retrying'}[state]||'';
+    var t={ok:'Saved to your account',saving:'Saving…',offline:'Offline — will save when online',auth:'Please sign in again',err:'Could not save yet — retrying'}[state]||'';
     el.textContent=t; el.className='hma-sync '+(state==='ok'?'ok':(state==='saving'?'':'bad'));
   }
 
@@ -10860,7 +10858,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   var out=document.getElementById('lpSignOutBtn');
   if(out&&!standalone&&!document.getElementById('hmaInstallBtn')){
     var b=document.createElement('button'); b.id='hmaInstallBtn'; b.type='button'; b.className='lp-report-btn'; b.style.marginTop='8px';
-    b.textContent='📲 Install as app';
+    b.textContent='Install as app';
     b.addEventListener('click',function(){
       if(deferred){ deferred.prompt(); deferred.userChoice&&deferred.userChoice.then(function(){ deferred=null; }); return; }
       var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -10993,7 +10991,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     if(s<604800) return Math.floor(s/86400)+' d ago';
     return new Date(t).toLocaleDateString([], {month:'short',day:'numeric'});
   }
-  function icon(n){ return n.priority==='urgent'?'🚨':n.kind==='announcement'?'📢':(/progress|reset|record|data/i.test(n.title)?'📈':'🔔'); }
+  function icon(n){ return n.priority==='urgent'?'':n.kind==='announcement'?'':(/progress|reset|record|data/i.test(n.title)?'':''); }
   function unread(){ return list.filter(function(n){return !n.read;}).length; }
   function render(){
     var u=unread();
@@ -11004,8 +11002,8 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     var items=list.filter(function(n){return filter==='all'||!n.read;}).sort(function(a,b){ return ((b.priority==='urgent'&&!b.read)?1:0)-((a.priority==='urgent'&&!a.read)?1:0); });
     $('hnList').innerHTML=items.length?items.map(function(n){
       return '<button class="hn-item'+(n.read?'':' unread')+(n.priority==='urgent'?' urgent':'')+'" data-id="'+esc(n.id)+'" type="button"><span class="hn-ico '+esc(n.kind)+'" aria-hidden="true">'+icon(n)+'</span>'+
-        '<span class="hn-body"><span class="hn-t">'+esc(n.title)+'</span><span class="hn-m">'+esc(String(n.message||'').replace(/\n\nAttachment:\s*https?:\/\/\S+/i,''))+'</span>'+(n.attachmentUrl&&/^https?:\/\//i.test(n.attachmentUrl)?'<span class="hn-attachment" role="link" tabindex="0" data-attachment="'+esc(n.attachmentUrl)+'">📎 Open announcement attachment</span>':'')+'<span class="hn-time">'+esc(ago(n.created))+(n.kind==='announcement'?' · Announcement':'')+(n.priority==='urgent'?' · Urgent':'')+'</span></span>'+(n.read?'':'<i class="hn-dot" aria-label="Unread"></i>')+'</button>';
-    }).join(''):'<div class="hn-empty"><span>'+(filter==='all'?'🔔':'✅')+'</span>'+(filter==='all'?'No notifications yet. Announcements and updates from your instructor will appear here.':'No unread notifications.')+(filter==='all'&&window.__hnDebug?'<small style="display:block;margin-top:10px;font-size:11px;color:#98a2b3">Server check: '+window.__hnDebug.forYou+' of '+window.__hnDebug.announcements+' announcements apply to you'+(window.__hnDebug.hidden&&window.__hnDebug.hidden.length?' · hidden: '+esc(window.__hnDebug.hidden.join('; ')):'')+'</small>':'')+'</div>';
+        '<span class="hn-body"><span class="hn-t">'+esc(n.title)+'</span><span class="hn-m">'+esc(String(n.message||'').replace(/\n\nAttachment:\s*https?:\/\/\S+/i,''))+'</span>'+(n.attachmentUrl&&/^https?:\/\//i.test(n.attachmentUrl)?'<span class="hn-attachment" role="link" tabindex="0" data-attachment="'+esc(n.attachmentUrl)+'">Open announcement attachment</span>':'')+'<span class="hn-time">'+esc(ago(n.created))+(n.kind==='announcement'?' · Announcement':'')+(n.priority==='urgent'?' · Urgent':'')+'</span></span>'+(n.read?'':'<i class="hn-dot" aria-label="Unread"></i>')+'</button>';
+    }).join(''):'<div class="hn-empty"><span>'+(filter==='all'?'':'')+'</span>'+(filter==='all'?'No notifications yet. Announcements and updates from your instructor will appear here.':'No unread notifications.')+(filter==='all'&&window.__hnDebug?'<small style="display:block;margin-top:10px;font-size:11px;color:#98a2b3">Server check: '+window.__hnDebug.forYou+' of '+window.__hnDebug.announcements+' announcements apply to you'+(window.__hnDebug.hidden&&window.__hnDebug.hidden.length?' · hidden: '+esc(window.__hnDebug.hidden.join('; ')):'')+'</small>':'')+'</div>';
   }
   function place(){
     var r=bell.getBoundingClientRect(), vw=document.documentElement.clientWidth, w=Math.min(380,vw-16);
@@ -11030,7 +11028,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   function urgentPop(arr){
     if(upOpen||!arr.length) return; upOpen=true; var n=arr[0];
     var o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,20,40,.62);display:flex;align-items:center;justify-content:center;padding:18px';
-    o.innerHTML='<div role="alertdialog" aria-modal="true" style="background:#fff;border-radius:20px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4);font-family:inherit"><div style="background:linear-gradient(135deg,#ef476f,#ff7a2d);color:#fff;padding:16px 20px;font-weight:800;letter-spacing:.04em"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>URGENT MESSAGE</div><div style="padding:20px"><h3 style="margin:0 0 8px;font-size:20px">'+esc(String(n.title).replace(/^🚨\s*/,''))+'</h3><p style="margin:0;white-space:pre-wrap;line-height:1.55;color:#333;max-height:42vh;overflow:auto">'+esc(String(n.message||'').replace(/\n\nAttachment:\s*https?:\/\/\S+/i,''))+'</p>'+(n.attachmentUrl?'<p><a href="'+esc(n.attachmentUrl)+'" target="_blank" rel="noopener">📎 Open attachment</a></p>':'')+'<button type="button" style="margin-top:16px;width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px;color:#fff;background:#2f6fed;cursor:pointer">Got it</button></div></div>';
+    o.innerHTML='<div role="alertdialog" aria-modal="true" style="background:#fff;border-radius:20px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4);font-family:inherit"><div style="background:linear-gradient(135deg,#ef476f,#ff7a2d);color:#fff;padding:16px 20px;font-weight:800;letter-spacing:.04em"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>URGENT MESSAGE</div><div style="padding:20px"><h3 style="margin:0 0 8px;font-size:20px">'+esc(String(n.title).replace(/^\s*/,''))+'</h3><p style="margin:0;white-space:pre-wrap;line-height:1.55;color:#333;max-height:42vh;overflow:auto">'+esc(String(n.message||'').replace(/\n\nAttachment:\s*https?:\/\/\S+/i,''))+'</p>'+(n.attachmentUrl?'<p><a href="'+esc(n.attachmentUrl)+'" target="_blank" rel="noopener">Open attachment</a></p>':'')+'<button type="button" style="margin-top:16px;width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px;color:#fff;background:#2f6fed;cursor:pointer">Got it</button></div></div>';
     o.querySelector('button').onclick=function(){ o.remove(); upOpen=false; markRead([n.id],false); setTimeout(function(){ urgentPop(list.filter(function(x){return x.priority==='urgent'&&!x.read;})); },300); };
     document.body.appendChild(o);
   }
@@ -11055,7 +11053,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
       if(first&&unread()) ring();
       if(fresh.length){
         ring();
-        try{ if(typeof showToast==='function') showToast('🔔 '+fresh[0].title+(fresh.length>1?' (+'+(fresh.length-1)+' more)':'')); }catch(e){}
+        try{ if(typeof showToast==='function') showToast(''+fresh[0].title+(fresh.length>1?' (+'+(fresh.length-1)+' more)':'')); }catch(e){}
         try{ if(window.hmaCloud.pull) window.hmaCloud.pull(true); }catch(e){}   /* pick up the instructor's progress changes right away */
       }
     }).catch(function(){ busy=false; info('Status: cannot reach the server (check internet / deployment access = Anyone)'); });
@@ -11696,17 +11694,17 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
 </style>
 <script>
 (function(){
-  var btn=document.createElement('button'); btn.id='hmDocBtn'; btn.type='button'; btn.textContent='🩺 Connection'; btn.title='Check that this site is connected to your instructor and your account';
+  var btn=document.createElement('button'); btn.id='hmDocBtn'; btn.type='button'; btn.textContent='Connection'; btn.title='Check that this site is connected to your instructor and your account';
   var pan=document.createElement('div'); pan.id='hmDocP'; pan.setAttribute('role','dialog'); pan.setAttribute('aria-label','Connection doctor');
   function add(){ if(!document.body) return setTimeout(add,300); document.body.appendChild(btn); document.body.appendChild(pan); }
   add();
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-  function row(ok,t,d){ return '<div class="r"><span>'+(ok===true?'✅':ok===false?'❌':'⚠️')+'</span><div><b>'+esc(t)+'</b><small>'+esc(d||'')+'</small></div></div>'; }
+  function row(ok,t,d){ return '<div class="r"><span>'+(ok===true?'OK':ok===false?'Fail':'Check')+'</span><div><b>'+esc(t)+'</b><small>'+esc(d||'')+'</small></div></div>'; }
   var running=false, last=null;
   function T(p,ms){ return Promise.race([p,new Promise(function(_,no){ setTimeout(function(){ no(new Error('no answer')); },ms||15000); })]); }
   async function check(){
     if(running) return; running=true; var h='', bad=0, c=window.hmaCloud||{}, s=null; try{ s=c.session&&c.session(); }catch(e){}
-    pan.innerHTML='<h4>🩺 Connection doctor</h4><div style="opacity:.7">Checking…</div>';
+    pan.innerHTML='<h4>Connection doctor</h4><div style="opacity:.7">Checking…</div>';
     h+=row(navigator.onLine,'Internet', navigator.onLine?'Connected':'You are offline — your work saves when the connection returns.'); if(!navigator.onLine) bad++;
     if(!c.url){ h+=row(false,'Account sync','This copy of the site is not connected to the course server.'); bad++; }
     else{
@@ -11723,11 +11721,11 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
         if(g&&g.ok){ var same=(g.version===mine); h+=row(same?true:null,'Course content','Your copy: v'+mine+' · latest from instructor: v'+g.version+(same?' (up to date)':' — updating, the page will reload by itself')); }
         else { h+=row(false,'Course content','The server did not return the course.'); bad++; }
       }catch(e){ h+=row(false,'Course content','No answer ('+e.message+')'); bad++; }
-      var sy=document.getElementById('hmaSync'); if(sy&&sy.textContent) h+=row(!/Could not|Offline|sign in/i.test(sy.textContent),'Saving',sy.textContent.replace(/^☁\s*/,''));
+      var sy=document.getElementById('hmaSync'); if(sy&&sy.textContent) h+=row(!/Could not|Offline|sign in/i.test(sy.textContent),'Saving',sy.textContent.replace(/^\s*/,''));
     }
-    last=bad; btn.classList.toggle('bad',bad>0); btn.textContent=bad?'🩺 Problem':'🩺 Connection';
-    pan.innerHTML='<h4>🩺 Connection doctor</h4><div style="opacity:.75;margin-bottom:4px">'+(bad?bad+' problem(s) found. Press Repair.':'Everything is connected.')+'</div>'+h+
-      '<button id="hmDocRep" type="button">🛠 Repair my connection</button><button class="g" id="hmDocChk" type="button">Check again</button><button class="g" id="hmDocX" type="button">Close</button>';
+    last=bad; btn.classList.toggle('bad',bad>0); btn.textContent=bad?'Problem':'Connection';
+    pan.innerHTML='<h4>Connection doctor</h4><div style="opacity:.75;margin-bottom:4px">'+(bad?bad+' problem(s) found. Press Repair.':'Everything is connected.')+'</div>'+h+
+      '<button id="hmDocRep" type="button">Repair my connection</button><button class="g" id="hmDocChk" type="button">Check again</button><button class="g" id="hmDocX" type="button">Close</button>';
     running=false;
   }
   async function repair(){
@@ -11736,7 +11734,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
     try{ localStorage.removeItem('hm_content_v1'); sessionStorage.removeItem('hm_content_reload'); }catch(e){}
     try{ if(window.hmaCloud&&hmaCloud.pull) hmaCloud.pull(true); }catch(e){}
     try{ if(window.HMC){ HMC.version=-1; window.__hmForceSync=true; HMC.sync(true); } }catch(e){}
-    pan.innerHTML='<h4>🛠 Repairing…</h4><div>Your work was saved first. The page refreshes with the newest course from your instructor.</div>';
+    pan.innerHTML='<h4>Repairing…</h4><div>Your work was saved first. The page refreshes with the newest course from your instructor.</div>';
     setTimeout(function(){ if(!/Repairing/.test(pan.innerHTML)) return; running=false; check(); },6000);
   }
   btn.onclick=function(){ pan.classList.toggle('on'); if(pan.classList.contains('on')) check(); };
@@ -12032,8 +12030,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
     var bl=document.createElement('div'); bl.className='si-brandline'; bl.textContent=L.brandLine||'Class of 2028'; card.insertBefore(bl,card.firstChild);
     var pw=document.getElementById('siPassword');
     if(pw){ var w=document.createElement('div'); w.className='si-pw'; pw.parentNode.insertBefore(w,pw); w.appendChild(pw);
-      var b=document.createElement('button'); b.type='button'; b.className='si-eye'; b.setAttribute('aria-label','Show password'); b.innerHTML=EYE;
-      b.onclick=function(){ var sh=pw.type==='password'; pw.type=sh?'text':'password'; b.innerHTML=sh?EYE2:EYE; b.setAttribute('aria-label',sh?'Hide password':'Show password'); }; w.appendChild(b);
+      
       var caps=document.createElement('div'); caps.className='si-caps'; caps.textContent='Caps Lock is on'; w.parentNode.insertBefore(caps,w.nextSibling);
       pw.addEventListener('keyup',function(e){ caps.style.display=(e.getModifierState&&e.getModifierState('CapsLock'))?'block':'none'; }); }
     var mins=Number(S.idleMinutes)||60, idleTxt=mins%60===0?(mins/60)+(mins===60?' hour':' hours'):mins+' minutes';
@@ -12486,13 +12483,19 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 })();
 </script>
 <style id="hm-up-css">
-.scxn-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 2px 10px}
-.scxn-bar button{border:1px solid var(--line,#e3e7ee);background:#fff;border-radius:999px;padding:6px 12px;font:600 12px Inter,sans-serif;cursor:pointer}
+.si-eye{display:none!important}
+#screencasts .scx{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+#screencasts .scx-side{position:static!important;max-height:none!important;background:rgba(16,24,40,.035);border:1px solid rgba(16,24,40,.06);border-radius:18px;padding:12px 12px 4px}
+#screencasts .scx-side-head,#screencasts #theaterFilters,#screencasts .scx-group,#screencasts .scx-locked,#screencasts .scx-m,#screencasts .scx-dur{display:none!important}
+#screencasts .scx-list{position:relative;display:flex!important;flex-direction:row!important;gap:12px!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x proximity;padding:4px 2px 12px!important}
+#screencasts .scx-item{flex:0 0 200px!important;width:200px!important;max-width:200px!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;padding:8px!important;background:rgba(255,255,255,.55)!important;border:1.5px solid transparent!important;box-shadow:none!important;opacity:.55;scroll-snap-align:start;transition:opacity .2s}
+#screencasts .scx-item:hover,#screencasts .scx-item:focus-visible,#screencasts .scx-item.active{opacity:1}
+#screencasts .scx-item.active{border-color:#2f6fed!important;background:#fff!important}
+#screencasts .scx-thumb{width:100%!important}
+#screencasts .scx-thumb .scx-tick{top:6px!important;right:6px!important;width:22px!important;height:22px!important}
+.scxn-bar{display:flex;gap:6px;align-items:center;padding:2px 2px 8px}
+.scxn-bar button{border:1px solid #e3e7ee;background:#fff;border-radius:999px;padding:6px 14px;font:600 12px Inter,sans-serif;cursor:pointer}
 .scxn-bar .scxn-go{background:#2f6fed;color:#fff;border-color:#2f6fed}
-.scx-group{cursor:pointer;user-select:none;position:relative}
-.scx-group:after{content:"\25BE";position:absolute;right:10px;top:10px;transition:transform .2s;color:#8a93a5}
-.scx-group.scxn-closed:after{transform:rotate(-90deg)}
-.scx-group:focus-visible,.scx-item:focus-visible{outline:2px solid #2f6fed;outline-offset:2px}
 .hm-ph{margin-top:22px}.hm-ph-card{background:#fff;border:1px solid var(--line,#e3e7ee);border-left:5px solid #10b981;border-radius:16px;padding:18px;margin:12px 0}
 .hm-ph-card h3{margin:0 0 6px}.hm-ph-card p{margin:0 0 12px;color:#5b6270}.hm-ph-card button.hm-go{background:#10b981;color:#fff;border:0;border-radius:10px;padding:10px 18px;font:700 14px Inter,sans-serif;cursor:pointer}
 .hm-ph-card button.hm-go[disabled]{background:#cbd2dd;cursor:not-allowed}
@@ -12502,7 +12505,14 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 </style>
 <script id="hm-upgrades">
 (function(){
-/* A. Read Me: every reading note gets the Mark as Read button (= pop-out quiz) and the drop-down */
+/* A. Read Me: every reading note gets Mark as Read (= pop-out quiz) and a working drop-down */
+function addToggle(s){
+  var h3=s.querySelector('h3'); if(!h3||h3.querySelector('.note-toggle')||!s.querySelector('.note-body')) return;
+  var t=document.createElement('button'); t.type='button'; t.className='note-toggle';
+  t.setAttribute('aria-label','Click to expand and read this section, or collapse it'); t.setAttribute('aria-expanded',s.classList.contains('collapsed')?'false':'true');
+  t.innerHTML='<span class="nt-arrow" aria-hidden="true">\u25BE</span>'; h3.classList.add('note-h3-clickable'); h3.appendChild(t);
+  h3.addEventListener('click',function(){ var c=s.classList.toggle('collapsed'); t.setAttribute('aria-expanded',c?'false':'true'); });
+}
 function fixNotes(){
   try{
     document.querySelectorAll('.note-section[data-reading]').forEach(function(s){
@@ -12516,38 +12526,30 @@ function fixNotes(){
       try{ if(readingSeen.has(key)){ b.classList.add('done'); b.disabled=true; b.querySelector('.nm-label').textContent='Read'; } }catch(e){}
     });
     if(typeof initNoteAccordion==='function') initNoteAccordion();
+    document.querySelectorAll('.note-section').forEach(addToggle);
   }catch(e){}
 }
 fixNotes();
 var nv=document.getElementById('notes')||document.body, t=null;
 try{ new MutationObserver(function(){ clearTimeout(t); t=setTimeout(fixNotes,250); }).observe(nv,{childList:true,subtree:true}); }catch(e){}
 
-/* B. Screencast list: collapsible groups, Continue button, jump chips, keyboard arrows */
-var KEY='hm_scx_closed', closed={}; try{ closed=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
-function saveC(){ try{ localStorage.setItem(KEY,JSON.stringify(closed)); }catch(e){} }
+/* B. Screencast list: one clean low-opacity strip under the player */
+var lastAct='';
 function enhance(){
   var side=document.getElementById('theaterSide'); if(!side) return;
-  var searching=!!(typeof theaterSearchTerm!=='undefined'&&theaterSearchTerm);
   var bar=document.getElementById('scxNavBar');
   if(!bar){ bar=document.createElement('div'); bar.id='scxNavBar'; bar.className='scxn-bar'; side.parentNode.insertBefore(bar,side);
+    bar.innerHTML='<button class="scxn-go" data-a="go" type="button">Continue</button><button data-a="l" type="button" aria-label="Scroll left">&#8249;</button><button data-a="r" type="button" aria-label="Scroll right">&#8250;</button>';
     bar.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
       if(b.dataset.a==='go'){ var n=side.querySelector('.scx-item:not(.learning-complete)')||side.querySelector('.scx-item'); if(n) n.click(); }
-      else if(b.dataset.a==='all'||b.dataset.a==='none'){ side.querySelectorAll('.scx-group').forEach(function(g){ var t=g.querySelector('b').textContent.trim(); if(b.dataset.a==='none') closed[t]=1; else delete closed[t]; }); saveC(); enhance(); }
-      else if(b.dataset.g){ var g=side.querySelectorAll('.scx-group')[+b.dataset.g]; if(g){ delete closed[g.querySelector('b').textContent.trim()]; saveC(); enhance(); g.scrollIntoView({behavior:'smooth',block:'nearest'}); } } });
-    side.addEventListener('click',function(e){ var g=e.target.closest('.scx-group'); if(!g) return; var t=g.querySelector('b').textContent.trim(); if(closed[t]) delete closed[t]; else closed[t]=1; saveC(); enhance(); });
-    side.addEventListener('keydown',function(e){ var k=e.key, a=document.activeElement;
-      if(a&&a.classList.contains('scx-group')&&(k==='Enter'||k===' ')){ e.preventDefault(); a.click(); return; }
-      if(k!=='ArrowDown'&&k!=='ArrowUp') return;
-      var els=[].slice.call(side.querySelectorAll('.scx-group,.scx-item')).filter(function(x){return !x.hidden;}), i=els.indexOf(a); if(i<0) return;
-      e.preventDefault(); var n=els[i+(k==='ArrowDown'?1:-1)]; if(n) n.focus(); });
+      else side.scrollBy({left:(b.dataset.a==='l'?-1:1)*side.clientWidth*.8,behavior:'smooth'}); });
+    side.addEventListener('keydown',function(e){ var k=e.key; if(k!=='ArrowRight'&&k!=='ArrowLeft') return;
+      var els=[].slice.call(side.querySelectorAll('.scx-item')), i=els.indexOf(document.activeElement); if(i<0) return;
+      e.preventDefault(); var n=els[i+(k==='ArrowRight'?1:-1)]; if(n) n.focus(); });
   }
-  var gi=-1, groups=[];
-  [].slice.call(side.children).forEach(function(k){
-    if(k.classList.contains('scx-group')){ gi++; var t=k.querySelector('b').textContent.trim(); groups.push(t); k.tabIndex=0; k.setAttribute('role','button'); k.classList.toggle('scxn-closed',!searching&&!!closed[t]); }
-    else if(k.classList.contains('scx-item')&&gi>=0){ k.hidden=!searching&&!!closed[groups[gi]]; }
-  });
-  var left=side.querySelectorAll('.scx-item:not(.learning-complete)').length;
-  bar.innerHTML='<button class="scxn-go" data-a="go">\u25B6 Continue'+(left?' ('+left+' to go)':'')+'</button><button data-a="all">Expand all</button><button data-a="none">Collapse all</button>'+groups.map(function(t,i){return '<button data-g="'+i+'">'+t.replace(/</g,'&lt;')+'</button>';}).join('');
+  var p=document.getElementById('theaterProgressText'); if(p) p.textContent=p.textContent.replace(/watched/gi,'completed');
+  var a=side.querySelector('.scx-item.active'), id=a?a.dataset.screencastId:'';
+  if(a&&id!==lastAct){ lastAct=id; side.scrollLeft=a.offsetLeft-(side.clientWidth-a.offsetWidth)/2; }
 }
 function install(){
   var o=window.theaterRenderSide; if(typeof o!=='function'||o.__up) return false;
