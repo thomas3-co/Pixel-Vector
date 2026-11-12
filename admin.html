@@ -422,7 +422,7 @@ function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test
  if(d.weeks.length)B.weeks=Object.fromEntries(d.weeks.filter(w=>w.n).map(({n,...r})=>[n,r]));
  if(d.items.length||d.groups.length)B.screencasts={items:d.items,groups:d.groups};
  ['notes','projects','materials','practice','deadlines','resources','faq'].forEach(k=>d[k]&&d[k].length&&(B[k]=d[k]));
- const customQuizzes=(d.quizzes||[]).filter(q=>(q.questions||[]).length>=5);if(customQuizzes.length)B.quizzes=customQuizzes;
+ const customQuizzes=(d.quizzes||[]).filter(q=>{const n=(q.questions||[]).length;return n>=5||(+q.draw>0&&n>=1)});if(customQuizzes.length)B.quizzes=customQuizzes;
  if(d.assessments&&d.assessments.length)B.assessments=d.assessments;if(d.phases&&d.phases.length)B.phases=d.phases;
  B.profile=d.profile;B.session=d.session;B.login=d.login;
  let t=src.replace(RE9,()=>'<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(B,null,1).replace(/<\//g,'<\\/')+';\n<\/script>');
@@ -449,7 +449,11 @@ async function push(retry){const w=retry?[]:check();if(w.length&&!confirm('Warni
  const out=bake(),msg=$('#cm').value||'Update course content from Course Studio';log(retry?'Publishing on top of the newest GitHub file…':'Publishing…');
  const r=await api('',{method:'PUT',body:JSON.stringify({message:msg,content:b64(out),sha,branch:LS.b||'main'})});const j=await r.json();
  if(!r.ok){if((r.status===409||r.status===422)&&!retry)return resolveConflict();return log('Error: '+r.status+' '+(j.message||''))}
- sha=j.content.sha;src=out;mark(false);log('Published. GitHub Pages usually updates in 1–2 minutes; students then refresh automatically.')}
+ sha=j.content.sha;src=out;mark(false);
+ const bid=(/name="hm-build" content="([^"]*)"/.exec(out)||[])[1]||'';
+ try{const ref='?ref='+encodeURIComponent(LS.b||'main')+'&_='+Date.now(),vr=await api(ref),vj=await vr.json();const vt=vj.content?u8(vj.content):await(await api(ref,{headers:{Accept:'application/vnd.github.raw+json'}})).text();const vb=(/name="hm-build" content="([^"]*)"/.exec(vt)||[])[1]||'';
+  log('Published build '+bid+'. '+(vb===bid?'Confirmed: GitHub now holds this version. ':'WARNING: GitHub still shows build '+(vb||'unknown')+' - check the repository, file path and branch in the connection settings. ')+'GitHub Pages usually updates in 1–2 minutes; students then refresh automatically.')}
+ catch(e){log('Published build '+bid+'. GitHub Pages usually updates in 1–2 minutes; students then refresh automatically.')}}
 /* GitHub says the file changed after it was loaded (e.g. a newer index.html was uploaded). Keep GitHub's newest file and re-apply the Course Studio edits on top of it. */
 async function resolveConflict(){log('GitHub has a newer version of the file. Fetching it…');
  const ref='?ref='+encodeURIComponent(LS.b||'main'),g=await api(ref);if(!g.ok)return log('Error: could not read the newest file ('+g.status+'). Press “Load from GitHub” and try again.');
