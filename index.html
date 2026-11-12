@@ -2357,6 +2357,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 <section class="view" id="screencasts">
 <div class="scx" id="screencastTheater">
  <div class="scx-main">
+  <div class="scx-mark scx-mark-top"><button type="button" class="tn-mark" id="theaterWatchedBtn">&#10003; Mark as watched</button><span id="theaterWatchedNote"></span></div>
   <div class="scx-stage" id="theaterStage"><div class="scx-player" id="theaterPlayerWrap"></div></div>
   <div class="scx-now">
    <div class="scx-now-top"><span class="scx-badge" id="scxBadge">Screencast</span><span class="scx-chip" id="scxDur" hidden></span><span class="scx-chip" id="scxState"></span></div>
@@ -2370,7 +2371,6 @@ img,video,canvas,svg,iframe{max-width:100%}
     <span class="scx-index" id="theaterIndex">&mdash;</span>
     <button class="tn-btn scx-next" id="theaterNextBtn" type="button"><span>Next</span><span class="tn-arrow" aria-hidden="true">&#8250;</span></button>
    </div>
-   <div class="scx-mark"><button type="button" class="tn-mark" id="theaterWatchedBtn">&#10003; Mark as watched</button><span id="theaterWatchedNote"></span></div>
   </div>
  </div>
  <aside class="scx-side" aria-label="Recordings">
@@ -2380,8 +2380,7 @@ img,video,canvas,svg,iframe{max-width:100%}
    <div class="scx-prog-bar"><i id="theaterProgressBar" style="width:0%"></i></div>
   </div>
   <div class="scx-tools">
-   <input aria-label="Search recordings" id="theaterSearchInput" placeholder="Search recordings&hellip;" type="search"/>
-   <div class="scx-filters" id="theaterFilters"><button class="tf-chip active" data-filter="all" type="button">All</button><button class="tf-chip" data-filter="unwatched" type="button">To watch</button><button class="tf-chip" data-filter="watched" type="button">Watched</button></div>
+      <div class="scx-filters" id="theaterFilters"><button class="tf-chip active" data-filter="all" type="button">All</button><button class="tf-chip" data-filter="unwatched" type="button">To watch</button><button class="tf-chip" data-filter="watched" type="button">Watched</button></div>
   </div>
   <div class="scx-side-head" id="theaterSideHead"></div>
   <div class="scx-list" id="theaterSide"></div>
@@ -8944,7 +8943,7 @@ function theaterRenderSide(){
     side.appendChild(locked);
   }
 }
-document.getElementById('theaterSearchInput').addEventListener('input', e=>{
+var _tsi=document.getElementById('theaterSearchInput'); if(_tsi) _tsi.addEventListener('input', e=>{
   theaterSearchTerm = e.target.value.toLowerCase().trim();
   theaterRenderSide();
 });
@@ -12602,5 +12601,24 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
 })();
 </script>
 
+<style id="hm-nav-order-v4">
+/* profile chip sits right next to the My Progress button */
+.topbar .progress-nav-btn{margin-left:auto!important;order:0!important}
+.topbar .hmp-chip,.topbar .hmp-chip.left,.topbar .hmp-chip.right{margin-left:6px!important;margin-right:0!important;order:0!important}
+@media (max-width:1559px){.topbar .progress-nav-btn,.topbar .hmp-chip{order:1!important}}
+/* watched bar at the top of the screencast page */
+#screencasts .scx-mark-top{margin:0 0 12px}
+</style>
+<script id="hm-nav-order-v4-js">
+(function(){
+  function place(){
+    var p=document.getElementById('progressNavBtn'), c=document.getElementById('hmpBtn');
+    if(p&&c&&p.nextElementSibling!==c) p.parentNode.insertBefore(c,p.nextSibling);
+  }
+  place(); [400,1500,3500].forEach(function(t){ setTimeout(place,t); });
+  var bar=document.querySelector('.topbar');
+  if(bar&&window.MutationObserver) new MutationObserver(place).observe(bar,{childList:true});
+})();
+</script>
 </body>
 </html>
