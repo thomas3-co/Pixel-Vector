@@ -1190,7 +1190,7 @@ function addGallery(k){const v=$('#view'),old=$('#gal-card');if(old)old.remove()
  if(!list.length){g.outerHTML='<p class="hint">Nothing in this list yet — import the built-in files below, or add one.</p>';return}
  const upd=()=>{st.textContent=list.length+' file(s) · '+ok+' with preview · '+no+' without'};
  list.forEach((it,i)=>{const t=E('div',{className:'gal-t'}),img=E('div',{className:'gal-i'}),id=String(it.id||'').trim();
-  const fail=()=>{img.classList.add('no');img.innerHTML='<div class="nop"><b>📄</b>No preview</div>';no++;upd()};
+  const fail=()=>{img.classList.add('no');img.innerHTML='<div class="nop"><b></b>No preview</div>';no++;upd()};
   if(!id)fail();else{const ch=HMR.thumbChain(id,400);let n=0;const im=E('img',{loading:'lazy',alt:'',referrerPolicy:'no-referrer'});im.onload=()=>{if(im.naturalWidth<48){im.onerror();return}img.classList.add('ok');ok++;upd()};im.onerror=()=>{if(++n<ch.length)im.src=ch[n];else{im.remove();fail()}};img.append(im);im.src=ch[0]}
   const m=E('div',{className:'gal-m'});m.innerHTML='<b title="'+esc(it.label||'')+'">'+esc(it.label||('File '+(i+1)))+'</b><small><span>'+esc(id.slice(0,10)+(id.length>10?'…':''))+'</span>'+(id?'<a target="_blank" rel="noopener" href="https://drive.google.com/file/d/'+encodeURIComponent(id)+'/view">Open ↗</a>':'<span class="st-bad">no id</span>')+'</small>';
   t.append(img,m);g.append(t)});
@@ -1236,7 +1236,7 @@ const css=`
 const gate=E('div',{id:'cs28-gate'});gate.hidden=true;
 gate.innerHTML=`<div class="g28"><small>HMA · Admin workspace</small><h1>Course Studio</h1><p>Sign in to manage students, publish content and control the live student site.</p>
 <label>Backend web app address</label><input type="text" id="g28u" placeholder="https://script.google.com/.../exec">
-<label>Admin password</label><div class="pw"><input type="password" id="g28p" autocomplete="current-password"><button type="button" id="g28s">Show</button></div>
+<label>Admin password</label><div class="pw"><input type="password" id="g28p" autocomplete="current-password"></div>
 <button class="b p go" id="g28b">Sign in</button><div class="er" id="g28e"></div><button class="sk" id="g28k">Continue without the backend (content editing only)</button></div>`;
 document.body.append(gate);
 const gq=s=>gate.querySelector(s);
@@ -1246,7 +1246,6 @@ async function doLogin(){const b=gq('#g28b');b.disabled=true;b.textContent='Sign
  try{BK.u=gq('#g28u').value.trim();localStorage.setItem('cs_bk',JSON.stringify(BK));await bkLogin(gq('#g28p').value);gate.hidden=true;sessionStorage.removeItem('cs28_skip');try{await pollLive()}catch(e){}toast('Signed in');if(cur==='roster')rosterView()}
  catch(e){gq('#g28e').textContent=e.message}b.disabled=false;b.textContent='Sign in'}
 gq('#g28b').onclick=doLogin;gq('#g28p').onkeydown=e=>{if(e.key==='Enter')doLogin()};gq('#g28u').onkeydown=gq('#g28p').onkeydown;
-gq('#g28s').onclick=()=>{const p=gq('#g28p'),h=p.type==='password';p.type=h?'text':'password';gq('#g28s').textContent=h?'Hide':'Show'};
 gq('#g28k').onclick=()=>{sessionStorage.setItem('cs28_skip','1');gate.hidden=true};
 if(!TK&&!sessionStorage.getItem('cs28_skip'))showGate();
 const hd=$('header');
@@ -1268,7 +1267,7 @@ function letterIx(s){const m=/^\(?([A-Ha-h])\)?[\).:]?$/.exec(String(s).trim());
 function parseText(t){const out=[];let cur=null,last=null;const push=()=>{if(cur&&cur.q&&cur.opts.length>=2){if(cur.a<0)cur.a=0;out.push(cur)}cur=null;last=null};
  t.replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.replace(/\u00a0/g,' ').trim();if(!l)return;let m;
   if((m=/^(?:answer|ans|correct(?: answer)?)\s*[:\-=]\s*(.+)$/i.exec(l))&&cur){const v=m[1].trim();let ix=letterIx(v.split(/[\s.)]/)[0]);if(ix<0&&/^\d+$/.test(v))ix=+v-1;if(ix<0)ix=cur.opts.findIndex(o=>o.toLowerCase()===v.toLowerCase());cur.a=ix;last=null;return}
-  if((m=/^\(?([A-Ha-h])[\).:]\s*(.+)$/.exec(l))&&cur){let x=m[2].trim(),ok=false;if(/(\*|✓|✔|\(correct\))\s*$/i.test(x)){ok=true;x=x.replace(/(\*|✓|✔|\(correct\))\s*$/i,'').trim()}cur.opts.push(x);if(ok)cur.a=cur.opts.length-1;last='o';return}
+  if((m=/^\(?([A-Ha-h])[\).:]\s*(.+)$/.exec(l))&&cur){let x=m[2].trim(),ok=false;if(/(\*|✓|✓|\(correct\))\s*$/i.test(x)){ok=true;x=x.replace(/(\*|✓|✓|\(correct\))\s*$/i,'').trim()}cur.opts.push(x);if(ok)cur.a=cur.opts.length-1;last='o';return}
   if(m=/^(?:q(?:uestion)?\s*)?\d+\s*[\).:\-]\s*(.+)$/i.exec(l)){push();cur={q:m[1].trim(),opts:[],a:-1};last='q';return}
   if(cur){if(last==='o')cur.opts[cur.opts.length-1]+=' '+l;else if(!cur.opts.length){cur.q+=' '+l}}else if(/\?\s*$/.test(l)){cur={q:l,opts:[],a:-1};last='q'}});push();return out}
 function parseRows(rows){const out=[];rows.forEach(r=>{r=r.map(x=>String(x??'').trim());if(!r[0]||/^question$/i.test(r[0]))return;let ans=r[r.length-1],cells=r.slice(1,-1).filter(Boolean);if(r.length<4)return;let a=letterIx(ans);if(a<0&&/^\d+$/.test(ans))a=+ans-1;if(a<0)a=cells.findIndex(o=>o.toLowerCase()===ans.toLowerCase());if(a<0){cells=r.slice(1).filter(Boolean);a=0}out.push({q:r[0],opts:cells,a})});return out}
@@ -1312,7 +1311,7 @@ async function runMany(emails,label,fn){if(!need()||!emails.length)return;const 
 const rowsNow=()=>{const q=RQ.q.toLowerCase();let L=allKeys().map(e=>Object.assign({_e:e},row(e))).filter(s=>(String(s.name)+s.email+(s.fullName||'')).toLowerCase().includes(q)).filter(s=>{const m=mins(s),f=RQ.f;return f=='on'?(m!=null&&m<3):f=='q'?(m!=null&&m>=10080):f=='r'?risky(s):f=='n'?m==null:1});
  const k={name:(a,b)=>String(a.name).localeCompare(String(b.name)),prog:(a,b)=>(+b.overall||0)-(+a.overall||0),grade:(a,b)=>(+b.grade||0)-(+a.grade||0),act:(a,b)=>(mins(a)??1e12)-(mins(b)??1e12)}[RQ.s];return L.sort(k)};
 function drawRoster(){const tb=$('#r28tb');if(!tb)return;const L=rowsNow();$('#r28n').textContent=allKeys().length+' students · '+L.length+' shown · '+SEL.size+' selected';
- tb.innerHTML='<thead><tr><th><input type="checkbox" id="r28all"></th><th>Student</th><th>Status</th><th>Progress</th><th>Grade</th><th>Lessons</th><th>Tools</th></tr></thead><tbody>'+L.map(s=>{const e=s.email||s._e,p=s.overall!=null?+s.overall:(parseFloat(s.progress)||0);return`<tr class="${SEL.has(e)?'sel':''}" data-e="${esc(e)}"><td><input type="checkbox" class="r28c" ${SEL.has(e)?'checked':''}></td><td><b>${esc(s.name)}</b><div class="hint">${esc(e)}</div></td><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:${dotc(s)}"></span>${esc(stat(s))}</td><td><div class="r28-pbar"><i style="width:${Math.min(100,p)}%"></i></div><small>${p?Math.round(p)+'%':'-'}</small></td><td>${esc(s.letter||s.p1g||'')} ${s.grade!=null?s.grade+'%':''}</td><td>${esc(lessonsOf(s))}</td><td><div class="r28-act"><button class="b mini" data-a="n">Notify</button><button class="b mini" data-a="p">Reset password</button><button class="b mini" data-a="o">Sign out</button><button class="b mini d" data-a="r">Reset progress</button><button class="b mini" data-a="d">Details</button></div></td></tr>`}).join('')+'</tbody>';
+ tb.innerHTML='<thead><tr><th><input type="checkbox" id="r28all"></th><th>Student</th><th>Status</th><th>Progress</th><th>Grade</th><th>Lessons</th><th>Tools</th></tr></thead><tbody>'+L.map(s=>{const e=s.email||s._e,p=s.overall!=null?+s.overall:(parseFloat(s.progress)||0);return`<tr class="${SEL.has(e)?'sel':''}" data-e="${esc(e)}"><td><input type="checkbox" class="r28c" ${SEL.has(e)?'checked':''}></td><td><b>${esc(s.name)}</b><div class="hint">${esc(e)}</div></td><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:${dotc(s)}"></span>${esc(stat(s))}</td><td><div class="r28-pbar"><i style="width:${Math.min(100,p)}%"></i></div><small>${p?Math.round(p)+'%':'-'}</small></td><td>${esc(s.letter||s.p1g||'')} ${s.grade!=null?s.grade+'%':''}</td><td>${esc(lessonsOf(s))}</td><td><div class="r28-act"><button class="b mini" data-a="n">Notify</button><button class="b mini" data-a="p">Reset password</button><button class="b mini" data-a="o">Sign out</button><button class="b mini d" data-a="r">Reset...</button><button class="b mini" data-a="d">Details</button></div></td></tr>`}).join('')+'</tbody>';
  $('#r28all').checked=L.length>0&&L.every(s=>SEL.has(s.email||s._e));$('#r28all').onchange=ev=>{L.forEach(s=>ev.target.checked?SEL.add(s.email||s._e):SEL.delete(s.email||s._e));drawRoster()};
  tb.querySelectorAll('tr[data-e]').forEach(tr=>{const e=tr.dataset.e;tr.querySelector('.r28c').onchange=ev=>{ev.target.checked?SEL.add(e):SEL.delete(e);tr.classList.toggle('sel',ev.target.checked);$('#r28n').textContent=allKeys().length+' students · '+L.length+' shown · '+SEL.size+' selected'};
   tr.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>one(e,b.dataset.a))})}
@@ -1323,11 +1322,33 @@ function one(e,a){const nm=row(e).name||e;
  if(a=='d'){go('students');setTimeout(()=>{const q=$('#sq');if(q){q.value=e;q.dispatchEvent(new Event('input'));setTimeout(()=>{const r=document.querySelector('#tb tr.r');r&&r.click()},100)}},150);return}
  if(a=='p'){if(confirm('Reset the password for '+nm+'?'))runMany([e],'Resetting password',x=>bk('adminResetPassword',{email:x}))}
  if(a=='o')runMany([e],'Signing out',x=>bk('adminSignOut',{email:x}));
- if(a=='r'){if(prompt('This clears ALL course progress for '+nm+' (a backup is made first). Type RESET to confirm.')==='RESET')runMany([e],'Resetting progress',x=>bk('adminReset',{email:x,scope:'all'}))}}
+ if(a=='r')resetBox([e])}
+function resetBox(emails){
+ const m=E('div',{className:'m28'}),b=E('div');m.append(b);const days=[];(D.weeks||[]).forEach(w=>(w.days||[]).forEach((d,i)=>days.push([w.n+'-'+(i+1),'Week '+w.n+' Day '+(i+1)+(d.title?' - '+d.title:'')])));
+ b.innerHTML='<h3>Reset progress for '+emails.length+' student(s)</h3><p class="hint">Tick what to reset. Everything not ticked stays exactly as it is.</p>'+
+ '<label class="chk"><input type="checkbox" id="x-day"> Daily lessons</label><select id="x-dsel"><option value="">All days</option>'+days.map(d=>'<option value="'+esc(d[0])+'">'+esc(d[1])+'</option>').join('')+'</select>'+
+ '<label class="chk"><input type="checkbox" id="x-quiz"> Weekly quizzes</label>'+
+ '<label class="chk"><input type="checkbox" id="x-read"> Read Me (viewed status and pop-out quizzes)</label>'+
+ '<label class="chk"><input type="checkbox" id="x-cast"> Screencasts (watched status and pop-out quizzes)</label>'+
+ '<label class="chk"><input type="checkbox" id="x-asm"> Assessments (Phase 1 and extra phases)</label>'+
+ '<label class="chk" style="color:var(--bad)"><input type="checkbox" id="x-all"> Everything (full reset, backup made first)</label>'+
+ '<div class="row" style="margin-top:14px"><button class="b d" id="x-go">Reset selected</button><button class="b" id="x-no">Cancel</button></div><p class="hint" id="x-m"></p>';
+ const q=s=>b.querySelector(s),on=s=>q(s).checked;q('#x-no').onclick=()=>m.remove();
+ q('#x-go').onclick=()=>{const all=on('#x-all'),day=on('#x-day'),quiz=on('#x-quiz'),read=on('#x-read'),cast=on('#x-cast'),asm=on('#x-asm'),dsel=q('#x-dsel').value;
+  if(!(all||day||quiz||read||cast||asm)){q('#x-m').textContent='Tick at least one item.';return}
+  if(!confirm('Reset the ticked progress for '+emails.length+' student(s)? This cannot be undone from here.'))return;if(all&&prompt('Full reset. Type RESET to confirm.')!=='RESET')return;m.remove();
+  runMany(emails,'Resetting',async e=>{if(all)return bk('adminReset',{email:e,scope:'all'});
+   const p=await bk('adminResetPreview',{email:e});if(!p.ok)return p;const r=p.record||{},o=x=>x&&typeof x==='object'?x:{},items=[],add=(t,k)=>k.forEach(x=>items.push({type:t,key:x}));
+   if(day)add('lesson',dsel?[dsel]:(r.completed||[]));if(quiz)add('weekQuiz',Object.keys(o(r.weekQuizzes)));
+   if(read){add('read',r.readingSeen||[]);add('readQuiz',Object.keys(o(o(r.contentQuizzes).reading)))}
+   if(cast){add('cast',[...new Set([...(r.seenScreencasts||[]),...Object.keys(o(r.videoConfirmed)).filter(k=>r.videoConfirmed[k])])]);add('castQuiz',Object.keys(o(o(r.contentQuizzes).screencasts)))}
+   if(asm)add('phase',Object.keys(o(r.phaseAssessments)));
+   for(const it of items){const j=await bk('adminResetItem',{email:e,type:it.type,key:it.key});if(!j.ok)return{ok:false,message:(j.message||j.error)+' ('+it.type+' '+it.key+')'}}return{ok:true}})};
+ document.body.append(m)}
 function rosterView(){setOn('roster','All students');const v=$('#view');v.innerHTML='';clearInterval(rT);
  const c=E('div',{className:'card'});c.innerHTML=`<h3>All students · control list</h3><p class="hint">Every student with every tool, one by one or on a ticked group. Changes to student accounts apply the moment the backend confirms; content changes reach the student site when published (turn on Auto-publish at the top for instant publishing).</p>
  <div class="row"><input type="text" id="r28q" placeholder="Search name or email" value="${esc(RQ.q)}"><select id="r28f"><option value="">All students</option><option value="on">Online now</option><option value="r">At risk</option><option value="q">Quiet 7+ days</option><option value="n">Never signed in</option></select><select id="r28s"><option value="name">Sort: name</option><option value="prog">Sort: progress</option><option value="grade">Sort: grade</option><option value="act">Sort: last active</option></select><button class="b" id="r28rf" style="flex:none">Refresh</button></div><p class="hint" id="r28n"></p>
- <div class="r28-bulk"><b>Selected students:</b><button class="b mini" id="b-n">Notify</button><button class="b mini" id="b-p">Reset passwords</button><button class="b mini" id="b-o">Sign out everywhere</button><button class="b mini d" id="b-r">Reset all progress</button><button class="b mini" id="b-c">Export CSV</button><button class="b mini" id="b-m">Copy emails</button><button class="b mini" id="b-x">Clear</button><span class="hint" id="r28m"></span></div>
+ <div class="r28-bulk"><b>Selected students:</b><button class="b mini" id="b-n">Notify</button><button class="b mini" id="b-p">Reset passwords</button><button class="b mini" id="b-o">Sign out everywhere</button><button class="b mini d" id="b-r">Reset progress...</button><button class="b mini" id="b-c">Export CSV</button><button class="b mini" id="b-m">Copy emails</button><button class="b mini" id="b-x">Clear</button><span class="hint" id="r28m"></span></div>
  <div class="r28-wrap"><table class="r28-tb" id="r28tb"></table></div>`;v.append(c);
  $('#r28f').value=RQ.f;$('#r28s').value=RQ.s;$('#r28q').oninput=e=>{RQ.q=e.target.value;drawRoster()};$('#r28f').onchange=e=>{RQ.f=e.target.value;drawRoster()};$('#r28s').onchange=e=>{RQ.s=e.target.value;drawRoster()};
  const ems=()=>[...SEL];const need1=()=>ems().length?true:(toast('Tick at least one student first'),false);
@@ -1335,7 +1356,7 @@ function rosterView(){setOn('roster','All students');const v=$('#view');v.innerH
  $('#b-n').onclick=()=>need1()&&notifyBox(ems());
  $('#b-p').onclick=()=>need1()&&confirm('Reset the password of '+SEL.size+' student(s)?')&&runMany(ems(),'Resetting passwords',e=>bk('adminResetPassword',{email:e}));
  $('#b-o').onclick=()=>need1()&&runMany(ems(),'Signing out',e=>bk('adminSignOut',{email:e}));
- $('#b-r').onclick=()=>need1()&&prompt('This clears ALL course progress for '+SEL.size+' student(s) (backups are made first). Type RESET ALL to confirm.')==='RESET ALL'&&runMany(ems(),'Resetting progress',e=>bk('adminReset',{email:e,scope:'all'}));
+ $('#b-r').onclick=()=>need1()&&resetBox(ems());
  $('#b-c').onclick=()=>{if(!need1())return;const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"',cols=['name','email','overall','grade','lessons','logins','lastActive'];const csv=[cols.join(',')].concat(ems().map(e=>{const s=row(e);return cols.map(k=>q(s[k])).join(',')})).join('\n');E('a',{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'selected-students.csv'}).click()};
  $('#b-m').onclick=()=>{if(need1()){navigator.clipboard.writeText(ems().join(', '));toast('Emails copied')}};$('#b-x').onclick=()=>{SEL.clear();drawRoster()};
  drawRoster();if(!TK)showGate('Sign in to load live student data.');else pollLive().then(drawRoster).catch(()=>{});
