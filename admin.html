@@ -416,7 +416,7 @@ function load(t){src=t;const w={HM_CONTENT:{}};['cc-0-profile','cc-1-curriculum'
 function readTheme(){const o={},m=/:root\s*\{[\s\S]*?\}/.exec(src);(m?m[0]:'').replace(/--c-(curriculum|projects|notes|screen|practice)\s*:\s*(#[0-9a-fA-F]{3,8})/g,(a,n,c)=>o[n]=c);return o}
 function applyTheme(){Object.entries(D.theme||{}).forEach(([n,c])=>document.documentElement.style.setProperty('--c-'+n,c))}
 function clean(o){if(Array.isArray(o))return o.map(clean);if(o&&typeof o=='object'){const r={};for(const k in o){if(o[k]===''||o[k]==null||(typeof o[k]=='number'&&isNaN(o[k])))continue;r[k]=clean(o[k])}return r}return o}
-function bake(){const B={},d=clean(D);
+function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test(d.site.title||''))delete d.site.title;if(/^Cc\//.test(d.site.intro||''))delete d.site.intro}
  if(Object.keys(d.site||{}).some(k=>{const v=d.site[k];return Array.isArray(v)?v.length!==0:!!v}))B.site=d.site;
  if(d.weeks.length)B.weeks=Object.fromEntries(d.weeks.filter(w=>w.n).map(({n,...r})=>[n,r]));
  if(d.items.length||d.groups.length)B.screencasts={items:d.items,groups:d.groups};
