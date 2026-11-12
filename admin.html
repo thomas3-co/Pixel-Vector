@@ -410,7 +410,7 @@ function load(t){src=t;const w={HM_CONTENT:{}};['cc-0-profile','cc-1-curriculum'
  let quizzes=pick('quizzes',[]).slice();const addQuiz=(type,key)=>{if(!quizzes.some(q=>q.type===type&&q.key===key))quizzes.push({type,key,questions:[]})};
  notes.filter(n=>n&&n.quiz&&!n.hidden).forEach(n=>addQuiz('reading',n.id));items.filter(it=>it&&it.id&&!it.removed&&it.released!==false).forEach(it=>addQuiz('video',it.id));
  return{site:Object.assign({stats:[],tabs:{}},pick('site',{})),weeks:Object.entries(wk).map(([n,x])=>({n:Number(n),...x})).sort((a,b)=>a.n-b.n),items:items,groups:sc.groups||[],
- notes:notes,quizzes:quizzes,assessments:assessments,projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),deadlines:pick('deadlines',[]),resources:pick('resources',[]),faq:pick('faq',[]),
+ notes:notes,quizzes:quizzes,assessments:assessments,phases:pick('phases',[]),projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),deadlines:pick('deadlines',[]),resources:pick('resources',[]),faq:pick('faq',[]),
  profile:{side:pf.side||P.side||'left',accents:pf.accents||P.accents||[],badges:JSON.parse(JSON.stringify(pf.badges||P.badges||[]))},
  session:Object.assign({idleMinutes:60,warnMinutes:2},w.HM_SESSION,b.session),login:Object.assign({notes:[]},w.HM_LOGIN,b.login),theme:readTheme()}}
 function readTheme(){const o={},m=/:root\s*\{[\s\S]*?\}/.exec(src);(m?m[0]:'').replace(/--c-(curriculum|projects|notes|screen|practice)\s*:\s*(#[0-9a-fA-F]{3,8})/g,(a,n,c)=>o[n]=c);return o}
@@ -422,7 +422,7 @@ function bake(){const B={},d=clean(D);
  if(d.items.length||d.groups.length)B.screencasts={items:d.items,groups:d.groups};
  ['notes','projects','materials','practice','deadlines','resources','faq'].forEach(k=>d[k]&&d[k].length&&(B[k]=d[k]));
  const customQuizzes=(d.quizzes||[]).filter(q=>(q.questions||[]).length>=5);if(customQuizzes.length)B.quizzes=customQuizzes;
- if(d.assessments&&d.assessments.length)B.assessments=d.assessments;
+ if(d.assessments&&d.assessments.length)B.assessments=d.assessments;if(d.phases&&d.phases.length)B.phases=d.phases;
  B.profile=d.profile;B.session=d.session;B.login=d.login;
  let t=src.replace(RE9,()=>'<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(B,null,1).replace(/<\//g,'<\\/')+';\n<\/script>');
  t=t.replace(/:root\s*\{[\s\S]*?\}/,b=>b.replace(/(--c-(curriculum|projects|notes|screen|practice)\s*:\s*)(#[0-9a-fA-F]{3,8})/g,(m,a,n,c)=>a+((D.theme||{})[n]||c)));
@@ -1207,6 +1207,172 @@ go=function(k){if(MY2[k]){cur=k;$('#ttl').textContent=SECT[k].t;document.querySe
 const g=[...document.querySelectorAll('#nav .cs27-group')].find(x=>x.textContent.indexOf('Student operations')>-1);
 if(g){[['audit','Progress audit & repair','⟲'],['badges','Badges & leaderboard','★']].forEach(([k,l,ic])=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.icon=ic;b.onclick=()=>go(k);g.children[1]?g.children[1].before(b):g.append(b)})}
 }catch(e){console.error('Badges add-on failed',e)}})();
+</script>
+
+<script id="cs28-addon">
+/* ===== Course Studio 28: secure login, All-students control list, multi-phase assessments, import from documents, auto-publish ===== */
+(function(){try{
+const css=`
+#cs28-gate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:radial-gradient(1200px 600px at 20% 0,#2b4fb8 0,#101828 60%),#101828;color:#fff}
+#cs28-gate[hidden]{display:none}
+.g28{width:min(430px,100%);background:#ffffff0f;border:1px solid #ffffff26;border-radius:22px;padding:30px;backdrop-filter:blur(14px);box-shadow:0 30px 80px #0008}
+.g28 small{letter-spacing:.16em;font-size:10px;text-transform:uppercase;color:#c7d2fe;font-weight:700}.g28 h1{font:700 28px Poppins;margin:6px 0 4px}.g28 p{color:#cbd5e8;margin:0 0 18px;font-size:13px}
+.g28 label{color:#cbd5e8}.g28 input{background:#0b1220!important;color:#fff!important;border-color:#3a4a6b!important}
+.g28 .pw{position:relative}.g28 .pw button{position:absolute;right:6px;top:5px;background:none;border:0;color:#9fb0d0;cursor:pointer;font-weight:600}
+.g28 .go{width:100%;margin-top:18px;padding:12px;font-size:14px}.g28 .sk{display:block;text-align:center;margin-top:14px;color:#9fb0d0;font-size:12.5px;cursor:pointer;background:none;border:0;width:100%}
+.g28 .er{color:#ffb4c4;font-size:12.5px;min-height:18px;margin-top:10px}
+.r28-bulk{position:sticky;top:64px;z-index:4;background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:10px 12px;margin:10px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 8px 24px #1725541a}
+.r28-bulk b{margin-right:6px}.r28-tb{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.r28-tb th,.r28-tb td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:middle}.r28-tb th{background:var(--bg);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);position:sticky;top:0}
+.r28-tb tr.sel{background:#2f6fed14}.r28-act{display:flex;gap:4px;flex-wrap:wrap}.r28-wrap{overflow-x:auto;max-height:68vh;border-radius:14px}
+.r28-pbar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;width:90px}.r28-pbar i{display:block;height:100%;background:var(--acc)}
+.m28{position:fixed;inset:0;z-index:9000;background:#0009;display:grid;place-items:center;padding:16px}.m28>div{background:var(--panel);color:var(--ink);border-radius:18px;padding:20px;width:min(760px,100%);max-height:90vh;overflow:auto}
+.m28 pre{background:var(--bg);padding:10px;border-radius:9px;font-size:12px;white-space:pre-wrap}.pq28{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:13px}.pq28 .ok{font-weight:700}
+.ph28{border:1px solid var(--line);border-left:5px solid #12b886;border-radius:14px;background:var(--panel);padding:14px;margin:12px 0}
+.ap28{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mut);margin-left:8px}.ap28 input{width:auto}
+`;document.head.append(E('style',{},css));
+
+/* ---------- 1. Login gate + idle lock ---------- */
+const gate=E('div',{id:'cs28-gate'});gate.hidden=true;
+gate.innerHTML=`<div class="g28"><small>HMA · Admin workspace</small><h1>Course Studio</h1><p>Sign in to manage students, publish content and control the live student site.</p>
+<label>Backend web app address</label><input type="text" id="g28u" placeholder="https://script.google.com/.../exec">
+<label>Admin password</label><div class="pw"><input type="password" id="g28p" autocomplete="current-password"><button type="button" id="g28s">Show</button></div>
+<button class="b p go" id="g28b">Sign in</button><div class="er" id="g28e"></div><button class="sk" id="g28k">Continue without the backend (content editing only)</button></div>`;
+document.body.append(gate);
+const gq=s=>gate.querySelector(s);
+const lockedMsg={BADPW:'Wrong admin password.',LOCKED:'Too many wrong tries. Wait 15 minutes.'};
+function showGate(why){gq('#g28u').value=bkUrl();gq('#g28p').value='';gq('#g28e').textContent=why||'';gate.hidden=false;setTimeout(()=>gq('#g28p').focus(),50)}
+async function doLogin(){const b=gq('#g28b');b.disabled=true;b.textContent='Signing in...';gq('#g28e').textContent='';
+ try{BK.u=gq('#g28u').value.trim();localStorage.setItem('cs_bk',JSON.stringify(BK));await bkLogin(gq('#g28p').value);gate.hidden=true;sessionStorage.removeItem('cs28_skip');try{await pollLive()}catch(e){}toast('Signed in');if(cur==='roster')rosterView()}
+ catch(e){gq('#g28e').textContent=e.message}b.disabled=false;b.textContent='Sign in'}
+gq('#g28b').onclick=doLogin;gq('#g28p').onkeydown=e=>{if(e.key==='Enter')doLogin()};gq('#g28u').onkeydown=gq('#g28p').onkeydown;
+gq('#g28s').onclick=()=>{const p=gq('#g28p'),h=p.type==='password';p.type=h?'text':'password';gq('#g28s').textContent=h?'Hide':'Show'};
+gq('#g28k').onclick=()=>{sessionStorage.setItem('cs28_skip','1');gate.hidden=true};
+if(!TK&&!sessionStorage.getItem('cs28_skip'))showGate();
+const hd=$('header');
+const lock=E('button',{className:'b',textContent:'Lock / sign out',title:'Sign out of the backend and lock this screen'});
+lock.onclick=()=>{TK='';sessionStorage.removeItem('cs_tk');sessionStorage.removeItem('cs28_skip');LV={};showGate('Signed out.')};hd.append(lock);
+let idleAt=Date.now();['mousemove','keydown','click','touchstart'].forEach(ev=>addEventListener(ev,()=>idleAt=Date.now(),{passive:true}));
+setInterval(()=>{const m=+(localStorage.getItem('cs28_idle')||30);if(TK&&Date.now()-idleAt>m*60000){TK='';sessionStorage.removeItem('cs_tk');LV={};showGate('Locked after '+m+' minutes without activity. Your unpublished edits are kept.')}},20000);
+
+/* ---------- 2. Auto-publish: every change goes live to students ---------- */
+const ap=E('label',{className:'ap28',title:'Publishes about 6 seconds after your last change. Students reload on their own within ~20 seconds of the site updating.'});
+ap.innerHTML='<input type="checkbox"> Auto-publish';const apc=ap.firstChild;apc.checked=localStorage.getItem('cs28_auto')==='1';
+apc.onchange=()=>{localStorage.setItem('cs28_auto',apc.checked?'1':'0');if(apc.checked&&dirty)sched()};hd.insertBefore(ap,$('#bpv'));
+let at=null;function sched(){clearTimeout(at);if(!apc.checked||!src||!LS.t)return;at=setTimeout(async()=>{if(!dirty)return;const w=check();if(w.length){toast('Auto-publish paused: '+w[0]);return}try{await push(true);toast('Published automatically')}catch(e){toast('Auto-publish failed: '+e.message)}},6000)}
+const _mark=mark;mark=function(v){const r=_mark.apply(this,arguments);if(v!==false)sched();return r};
+
+/* ---------- 3. Import questions from documents ---------- */
+const LET='ABCDEFGH';
+function letterIx(s){const m=/^\(?([A-Ha-h])\)?[\).:]?$/.exec(String(s).trim());return m?LET.indexOf(m[1].toUpperCase()):-1}
+function parseText(t){const out=[];let cur=null,last=null;const push=()=>{if(cur&&cur.q&&cur.opts.length>=2){if(cur.a<0)cur.a=0;out.push(cur)}cur=null;last=null};
+ t.replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.replace(/\u00a0/g,' ').trim();if(!l)return;let m;
+  if((m=/^(?:answer|ans|correct(?: answer)?)\s*[:\-=]\s*(.+)$/i.exec(l))&&cur){const v=m[1].trim();let ix=letterIx(v.split(/[\s.)]/)[0]);if(ix<0&&/^\d+$/.test(v))ix=+v-1;if(ix<0)ix=cur.opts.findIndex(o=>o.toLowerCase()===v.toLowerCase());cur.a=ix;last=null;return}
+  if((m=/^\(?([A-Ha-h])[\).:]\s*(.+)$/.exec(l))&&cur){let x=m[2].trim(),ok=false;if(/(\*|✓|✔|\(correct\))\s*$/i.test(x)){ok=true;x=x.replace(/(\*|✓|✔|\(correct\))\s*$/i,'').trim()}cur.opts.push(x);if(ok)cur.a=cur.opts.length-1;last='o';return}
+  if(m=/^(?:q(?:uestion)?\s*)?\d+\s*[\).:\-]\s*(.+)$/i.exec(l)){push();cur={q:m[1].trim(),opts:[],a:-1};last='q';return}
+  if(cur){if(last==='o')cur.opts[cur.opts.length-1]+=' '+l;else if(!cur.opts.length){cur.q+=' '+l}}else if(/\?\s*$/.test(l)){cur={q:l,opts:[],a:-1};last='q'}});push();return out}
+function parseRows(rows){const out=[];rows.forEach(r=>{r=r.map(x=>String(x??'').trim());if(!r[0]||/^question$/i.test(r[0]))return;let ans=r[r.length-1],cells=r.slice(1,-1).filter(Boolean);if(r.length<4)return;let a=letterIx(ans);if(a<0&&/^\d+$/.test(ans))a=+ans-1;if(a<0)a=cells.findIndex(o=>o.toLowerCase()===ans.toLowerCase());if(a<0){cells=r.slice(1).filter(Boolean);a=0}out.push({q:r[0],opts:cells,a})});return out}
+function parseCsv(t){const rows=[];let row=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){row.push(f);f=''}else if(c=='\n'){row.push(f);rows.push(row);row=[];f=''}else if(c!='\r')f+=c}row.push(f);rows.push(row);return rows}
+async function zipEntry(buf,name){const dv=new DataView(buf),u=new Uint8Array(buf);let e=u.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error('Not a valid .docx file.');const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);
+ for(let i=0;i<n;i++){const meth=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true),nm=new TextDecoder().decode(u.subarray(p+46,p+46+nl));
+  if(nm===name){const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true),d=u.subarray(ds,ds+cs);if(meth===0)return d;return new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer())}p+=46+nl+xl+cl}return null}
+async function readDoc(f){const n=f.name.toLowerCase();
+ if(/\.docx$/.test(n)){const x=await zipEntry(await f.arrayBuffer(),'word/document.xml');if(!x)throw new Error('No text found in this Word file.');const xml=new TextDecoder().decode(x);
+  const txt=xml.split('</w:p>').map(p=>[...p.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>|<w:tab\/>/g)].map(m=>m[1]??' ').join('')).join('\n').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");return parseText(txt)}
+ if(/\.xlsx?$/.test(n)){const wb=await readWb(f);return parseRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}))}
+ const t=await f.text();
+ if(/\.json$/.test(n)){let j=JSON.parse(t);if(!Array.isArray(j))j=j.questions||j.assessments||[];return j.map(x=>({q:x.q||x.question||'',opts:x.opts||x.options||x.choices||[],a:Number(x.a??x.answer??x.correct??0)})).filter(x=>x.q&&x.opts.length>1)}
+ if(/\.csv$/.test(n))return parseRows(parseCsv(t));
+ if(/\.pdf$/.test(n))throw new Error('PDF cannot be read directly. Open it, copy the text into the box below (or save it as .docx) and try again.');
+ return parseText(t)}
+function importModal(o){const m=E('div',{className:'m28'}),box=E('div');m.append(box);let qs=[];
+ box.innerHTML=`<h3>${esc(o.title)}</h3><p class="hint">Upload a Word (.docx), Excel (.xlsx), CSV, JSON or text file, or paste the questions below. Format:</p><pre>1. Which tool removes blemishes?
+A) Spot Healing Brush
+B) Rotate View
+C) Hand Tool
+D) Zoom
+Answer: A</pre><p class="hint">You can also mark the right option with * at the end. Spreadsheet/CSV: Question, A, B, C, D, Answer.</p>
+ <input type="file" id="i28f" accept=".docx,.xlsx,.xls,.csv,.json,.txt,.md"><textarea id="i28t" placeholder="...or paste questions here" style="margin-top:8px;min-height:120px"></textarea>
+ <div id="i28x"></div><div class="row" style="margin-top:10px" id="i28o"></div><div class="row" style="margin-top:12px"><button class="b" id="i28r">Read questions</button><button class="b p" id="i28a" disabled>Add to list</button><button class="b" id="i28c">Close</button></div><p class="hint" id="i28m"></p>`;
+ const g=s=>box.querySelector(s);if(o.extra)o.extra(g('#i28o'));
+ const show=()=>{g('#i28x').innerHTML=qs.length?'<p><b>'+qs.length+' question(s) found</b> — check them before adding.</p>'+qs.slice(0,40).map((q,i)=>'<div class="pq28"><b>'+(i+1)+'.</b> '+esc(q.q)+'<br>'+q.opts.map((x,j)=>'<span class="'+(j===q.a?'ok':'')+'">'+LET[j]+') '+esc(x)+(j===q.a?' ✓':'')+'</span>').join(' &nbsp; ')+'</div>').join('')+(qs.length>40?'<p class="hint">+ '+(qs.length-40)+' more</p>':''):'<p class="hint">Nothing readable found. Check the format above.</p>';g('#i28a').disabled=!qs.length};
+ g('#i28f').onchange=async e=>{const f=e.target.files[0];if(!f)return;g('#i28m').textContent='Reading '+f.name+'...';try{qs=await readDoc(f);g('#i28m').textContent='';show()}catch(x){g('#i28m').textContent=x.message}};
+ g('#i28r').onclick=()=>{qs=parseText(g('#i28t').value);show()};
+ g('#i28c').onclick=()=>m.remove();g('#i28a').onclick=()=>{try{const n=o.apply(qs);mark();toast(n+' question(s) added');m.remove();go(cur)}catch(x){g('#i28m').textContent=x.message}};
+ document.body.append(m)}
+const importBar=(title,apply,extra)=>{const c=E('div',{className:'card',style:'border-left:5px solid #8b5cf6'});c.innerHTML='<b>Import from a document</b><span class="hint"> · Word, Excel, CSV, JSON or pasted text</span> ';const b=E('button',{className:'b p',textContent:'Import questions...'});b.onclick=()=>importModal({title,apply,extra});c.append(b);return c};
+
+/* ---------- 4. Views: All students, Phase assessments ---------- */
+const setOn=(k,t)=>{cur=k;$('#ttl').textContent=t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))};
+D.phases=D.phases||[];
+let SEL=new Set(),RQ={q:'',f:'',s:'name'},rT=null;
+const need=()=>{if(!TK){showGate('Sign in to use student tools.');return false}return true};
+async function runMany(emails,label,fn){if(!need()||!emails.length)return;const st=$('#r28m');let ok=0,bad=[];for(let i=0;i<emails.length;i++){if(st)st.textContent=label+' '+(i+1)+'/'+emails.length+'...';try{const j=await fn(emails[i]);if(j&&j.ok)ok++;else bad.push(emails[i]+': '+((j&&(j.message||j.error))||'failed'))}catch(e){bad.push(emails[i]+': '+e.message)}}
+ if(st)st.textContent=label+': '+ok+' done'+(bad.length?', '+bad.length+' failed ('+bad.slice(0,3).join(' | ')+')':'.');try{await pollLive()}catch(e){}drawRoster()}
+const rowsNow=()=>{const q=RQ.q.toLowerCase();let L=allKeys().map(e=>Object.assign({_e:e},row(e))).filter(s=>(String(s.name)+s.email+(s.fullName||'')).toLowerCase().includes(q)).filter(s=>{const m=mins(s),f=RQ.f;return f=='on'?(m!=null&&m<3):f=='q'?(m!=null&&m>=10080):f=='r'?risky(s):f=='n'?m==null:1});
+ const k={name:(a,b)=>String(a.name).localeCompare(String(b.name)),prog:(a,b)=>(+b.overall||0)-(+a.overall||0),grade:(a,b)=>(+b.grade||0)-(+a.grade||0),act:(a,b)=>(mins(a)??1e12)-(mins(b)??1e12)}[RQ.s];return L.sort(k)};
+function drawRoster(){const tb=$('#r28tb');if(!tb)return;const L=rowsNow();$('#r28n').textContent=allKeys().length+' students · '+L.length+' shown · '+SEL.size+' selected';
+ tb.innerHTML='<thead><tr><th><input type="checkbox" id="r28all"></th><th>Student</th><th>Status</th><th>Progress</th><th>Grade</th><th>Lessons</th><th>Tools</th></tr></thead><tbody>'+L.map(s=>{const e=s.email||s._e,p=s.overall!=null?+s.overall:(parseFloat(s.progress)||0);return`<tr class="${SEL.has(e)?'sel':''}" data-e="${esc(e)}"><td><input type="checkbox" class="r28c" ${SEL.has(e)?'checked':''}></td><td><b>${esc(s.name)}</b><div class="hint">${esc(e)}</div></td><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:${dotc(s)}"></span>${esc(stat(s))}</td><td><div class="r28-pbar"><i style="width:${Math.min(100,p)}%"></i></div><small>${p?Math.round(p)+'%':'-'}</small></td><td>${esc(s.letter||s.p1g||'')} ${s.grade!=null?s.grade+'%':''}</td><td>${esc(lessonsOf(s))}</td><td><div class="r28-act"><button class="b mini" data-a="n">Notify</button><button class="b mini" data-a="p">Reset password</button><button class="b mini" data-a="o">Sign out</button><button class="b mini d" data-a="r">Reset progress</button><button class="b mini" data-a="d">Details</button></div></td></tr>`}).join('')+'</tbody>';
+ $('#r28all').checked=L.length>0&&L.every(s=>SEL.has(s.email||s._e));$('#r28all').onchange=ev=>{L.forEach(s=>ev.target.checked?SEL.add(s.email||s._e):SEL.delete(s.email||s._e));drawRoster()};
+ tb.querySelectorAll('tr[data-e]').forEach(tr=>{const e=tr.dataset.e;tr.querySelector('.r28c').onchange=ev=>{ev.target.checked?SEL.add(e):SEL.delete(e);tr.classList.toggle('sel',ev.target.checked);$('#r28n').textContent=allKeys().length+' students · '+L.length+' shown · '+SEL.size+' selected'};
+  tr.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>one(e,b.dataset.a))})}
+function notifyBox(emails){const m=E('div',{className:'m28'}),b=E('div');m.append(b);b.innerHTML='<h3>Notify '+emails.length+' student(s)</h3><label>Title</label><input type="text" id="n28t"><label>Message (appears in the student bell; {name} is replaced)</label><textarea id="n28m"></textarea><div class="row" style="margin-top:10px"><button class="b p" id="n28s">Send</button><button class="b" id="n28c">Cancel</button></div>';
+ b.querySelector('#n28c').onclick=()=>m.remove();b.querySelector('#n28s').onclick=()=>{const t=b.querySelector('#n28t').value,x=b.querySelector('#n28m').value;if(!x.trim())return;m.remove();runMany(emails,'Sending',e=>bk('adminNotify',{email:e,title:t,message:x.replace(/\{name\}/g,(row(e).name||'').split(' ')[0])}))};document.body.append(m)}
+function one(e,a){const nm=row(e).name||e;
+ if(a=='n')return notifyBox([e]);
+ if(a=='d'){go('students');setTimeout(()=>{const q=$('#sq');if(q){q.value=e;q.dispatchEvent(new Event('input'));setTimeout(()=>{const r=document.querySelector('#tb tr.r');r&&r.click()},100)}},150);return}
+ if(a=='p'){if(confirm('Reset the password for '+nm+'?'))runMany([e],'Resetting password',x=>bk('adminResetPassword',{email:x}))}
+ if(a=='o')runMany([e],'Signing out',x=>bk('adminSignOut',{email:x}));
+ if(a=='r'){if(prompt('This clears ALL course progress for '+nm+' (a backup is made first). Type RESET to confirm.')==='RESET')runMany([e],'Resetting progress',x=>bk('adminReset',{email:x,scope:'all'}))}}
+function rosterView(){setOn('roster','All students');const v=$('#view');v.innerHTML='';clearInterval(rT);
+ const c=E('div',{className:'card'});c.innerHTML=`<h3>All students · control list</h3><p class="hint">Every student with every tool, one by one or on a ticked group. Changes to student accounts apply the moment the backend confirms; content changes reach the student site when published (turn on Auto-publish at the top for instant publishing).</p>
+ <div class="row"><input type="text" id="r28q" placeholder="Search name or email" value="${esc(RQ.q)}"><select id="r28f"><option value="">All students</option><option value="on">Online now</option><option value="r">At risk</option><option value="q">Quiet 7+ days</option><option value="n">Never signed in</option></select><select id="r28s"><option value="name">Sort: name</option><option value="prog">Sort: progress</option><option value="grade">Sort: grade</option><option value="act">Sort: last active</option></select><button class="b" id="r28rf" style="flex:none">Refresh</button></div><p class="hint" id="r28n"></p>
+ <div class="r28-bulk"><b>Selected students:</b><button class="b mini" id="b-n">Notify</button><button class="b mini" id="b-p">Reset passwords</button><button class="b mini" id="b-o">Sign out everywhere</button><button class="b mini d" id="b-r">Reset all progress</button><button class="b mini" id="b-c">Export CSV</button><button class="b mini" id="b-m">Copy emails</button><button class="b mini" id="b-x">Clear</button><span class="hint" id="r28m"></span></div>
+ <div class="r28-wrap"><table class="r28-tb" id="r28tb"></table></div>`;v.append(c);
+ $('#r28f').value=RQ.f;$('#r28s').value=RQ.s;$('#r28q').oninput=e=>{RQ.q=e.target.value;drawRoster()};$('#r28f').onchange=e=>{RQ.f=e.target.value;drawRoster()};$('#r28s').onchange=e=>{RQ.s=e.target.value;drawRoster()};
+ const ems=()=>[...SEL];const need1=()=>ems().length?true:(toast('Tick at least one student first'),false);
+ $('#r28rf').onclick=async()=>{if(!need())return;try{await pollLive();drawRoster();toast('Updated')}catch(e){toast(e.message)}};
+ $('#b-n').onclick=()=>need1()&&notifyBox(ems());
+ $('#b-p').onclick=()=>need1()&&confirm('Reset the password of '+SEL.size+' student(s)?')&&runMany(ems(),'Resetting passwords',e=>bk('adminResetPassword',{email:e}));
+ $('#b-o').onclick=()=>need1()&&runMany(ems(),'Signing out',e=>bk('adminSignOut',{email:e}));
+ $('#b-r').onclick=()=>need1()&&prompt('This clears ALL course progress for '+SEL.size+' student(s) (backups are made first). Type RESET ALL to confirm.')==='RESET ALL'&&runMany(ems(),'Resetting progress',e=>bk('adminReset',{email:e,scope:'all'}));
+ $('#b-c').onclick=()=>{if(!need1())return;const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"',cols=['name','email','overall','grade','lessons','logins','lastActive'];const csv=[cols.join(',')].concat(ems().map(e=>{const s=row(e);return cols.map(k=>q(s[k])).join(',')})).join('\n');E('a',{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'selected-students.csv'}).click()};
+ $('#b-m').onclick=()=>{if(need1()){navigator.clipboard.writeText(ems().join(', '));toast('Emails copied')}};$('#b-x').onclick=()=>{SEL.clear();drawRoster()};
+ drawRoster();if(!TK)showGate('Sign in to load live student data.');else pollLive().then(drawRoster).catch(()=>{});
+ rT=setInterval(()=>{if(cur!=='roster'){clearInterval(rT);return}if(TK&&!document.hidden)pollLive().then(drawRoster).catch(()=>{})},20000)}
+
+function phasesView(){setOn('phases','Phase assessments');const v=$('#view');v.innerHTML='';const P=D.phases||(D.phases=[]);
+ const h=E('div',{className:'card'});h.innerHTML='<h3>Phase assessments</h3><p class="hint">Phase 1 is the existing official bank. Add Phase 2, Phase 3 and more below: each has its own questions, unlock week, number of questions drawn per student, and release switch. Students see released phases on their Phase Assessment tab.</p>';
+ const p1=E('div',{className:'ph28'});p1.innerHTML='<b>Phase 1 Assessment</b> · '+(D.assessments||[]).length+' questions in the bank';const e1=E('button',{className:'b mini',textContent:'Open Phase 1 question bank',style:'margin-left:10px'});e1.onclick=()=>go('assessments');p1.append(e1);h.append(p1);
+ const add=E('button',{className:'b p',textContent:'+ Add another phase assessment'});add.onclick=()=>{const n=Math.max(1,...P.map(x=>+String(x.id).replace(/\D/g,'')||1))+1;P.push({id:'phase'+n,title:'Phase '+n+' Assessment',desc:'',unlockWeek:n*5,draw:15,marks:1,released:false,questions:[]});mark();phasesView()};h.append(add);v.append(h);
+ P.forEach((ph,pi)=>{const c=E('div',{className:'ph28'});ph.questions=ph.questions||[];
+  c.innerHTML=`<div class="row"><div><label>Title</label><input type="text" value="${esc(ph.title)}" data-k="title"></div><div><label>Unlocks in week</label><input type="number" value="${ph.unlockWeek||1}" data-k="unlockWeek"></div><div><label>Questions per student (0 = all)</label><input type="number" value="${ph.draw||0}" data-k="draw"></div><div><label>Marks per question</label><input type="number" value="${ph.marks||1}" data-k="marks"></div></div><label>Description shown to students</label><textarea data-k="desc">${esc(ph.desc||'')}</textarea><label class="chk"><input type="checkbox" ${ph.released?'checked':''} data-k="released"> Released to students (${ph.questions.length} questions)</label>`;
+  c.querySelectorAll('[data-k]').forEach(i=>i.oninput=i.onchange=()=>{const k=i.dataset.k;ph[k]=i.type==='checkbox'?i.checked:i.type==='number'?+i.value:i.value;mark()});
+  const qs=E('div');ph.questions.forEach((q,qi)=>{q.opts=q.opts||['','','',''];const d=E('details');d.innerHTML=`<summary><span>${qi+1}. ${esc((q.q||'(empty question)').slice(0,90))}</span></summary>`;const in_=E('div',{className:'in'});in_.innerHTML=`<label>Question</label><textarea>${esc(q.q)}</textarea>`;in_.firstElementChild.nextElementSibling.oninput=e=>{q.q=e.target.value;mark()};
+   q.opts.forEach((o,oi)=>{const r=E('div',{className:'row',style:'margin-top:6px'});const rad=E('input',{type:'radio',name:'pc'+pi+'_'+qi,checked:Number(q.a)===oi});rad.style.cssText='flex:none;min-width:0;width:auto';rad.onchange=()=>{q.a=oi;mark()};const t=E('input',{type:'text',value:o,placeholder:'Option '+LET[oi]});t.oninput=()=>{q.opts[oi]=t.value;mark()};r.append(rad,t);in_.append(r)});
+   const del=E('button',{className:'b mini d',textContent:'Delete question',style:'margin-top:8px'});del.onclick=()=>{ph.questions.splice(qi,1);mark();phasesView()};in_.append(del);d.append(in_);qs.append(d)});c.append(qs);
+  const row2=E('div',{className:'row',style:'margin-top:10px'});
+  const aq=E('button',{className:'b',textContent:'+ Add question'});aq.onclick=()=>{ph.questions.push({q:'',opts:['','','',''],a:0});mark();phasesView()};
+  const im=E('button',{className:'b p',textContent:'Import from document'});im.onclick=()=>importModal({title:'Import into '+ph.title,apply:l=>{l.forEach(x=>{const o=x.opts.slice(0,4);while(o.length<4)o.push('');ph.questions.push({q:x.q,opts:o,a:Math.min(3,Math.max(0,x.a))})});return l.length}});
+  const dl=E('button',{className:'b d',textContent:'Delete this phase'});dl.onclick=()=>{if(confirm('Delete '+ph.title+' and all its questions?')){P.splice(pi,1);mark();phasesView()}};
+  row2.append(aq,im,dl);c.append(row2);v.append(c)});
+ if(!P.length)v.append(E('div',{className:'cs27-callout',textContent:'No extra phases yet. Press "+ Add another phase assessment".'}))}
+
+/* ---------- 5. Hook import into Quiz Studio / Assessment Studio, add nav entries ---------- */
+const prevGo=go;
+go=function(k){
+ if(k==='roster')return rosterView();if(k==='phases')return phasesView();
+ const r=prevGo(k);
+ try{if(k==='quizzes'){const v=$('#view');v.insertBefore(importBar('Import quiz questions (Read Me pop-out quiz, screencast quiz)',l=>{const t=$('#i28s').value;let key=$('#i28k').value.trim(),type=$('#i28y').value;if(t==='__new'){if(!key)throw new Error('Type the Read Me note id or screencast id for the new set.')}else{const[a,b]=t.split('|');type=a;key=b}
+   let set=D.quizzes.find(x=>x.type===type&&x.key===key);if(!set){set={type,key,questions:[]};D.quizzes.push(set)}l.forEach(x=>set.questions.push({q:x.q,options:x.opts.slice(0,6),answer:Math.max(0,x.a)}));return l.length},o=>{o.innerHTML='<select id="i28s">'+D.quizzes.map(x=>'<option value="'+esc(x.type+'|'+x.key)+'">'+(x.type==='reading'?'Read Me pop-out':'Screencast quiz')+': '+esc(x.key)+' ('+(x.questions||[]).length+')</option>').join('')+'<option value="__new">New quiz set...</option></select><select id="i28y"><option value="reading">Read Me quiz</option><option value="video">Screencast quiz</option></select><input type="text" id="i28k" placeholder="note id / screencast id (new set only)">'}),v.children[1]||null)}
+ if(k==='assessments'){const v=$('#view');v.insertBefore(importBar('Import Phase 1 assessment questions',l=>{const w=+$('#i28w').value||1;l.forEach(x=>{const o=x.opts.slice(0,4);while(o.length<4)o.push('');D.assessments.push({week:w,marks:1,q:x.q,opts:o,a:Math.min(3,Math.max(0,x.a))})});return l.length},o=>{o.innerHTML='<label style="margin:0">Source week</label><input type="number" id="i28w" value="1" min="1" max="16">'}),v.children[1]||null)}}catch(e){console.error(e)}
+ return r};
+const g=[...document.querySelectorAll('#nav .cs27-group')];
+const gc=g.find(x=>x.textContent.indexOf('Course content')>-1),gs=g.find(x=>x.textContent.indexOf('Student operations')>-1);
+const mk=(k,l,ic)=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.icon=ic;b.onclick=()=>go(k);return b};
+if(gs)gs.children[1]?gs.children[1].before(mk('roster','All students (control list)','♙')):gs.append(mk('roster','All students (control list)','♙'));
+if(gc){const a=[...gc.querySelectorAll('button')].find(b=>b.dataset.k==='assessments');const b=mk('phases','Phase assessments (add more)','✓');a?a.after(b):gc.append(b)}
+}catch(e){console.error('Course Studio 28 failed',e)}})();
 </script>
 
 </body></html>
