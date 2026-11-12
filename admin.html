@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Course Studio — Admin</title> 
+<meta name="robots" content="noindex,nofollow"><title>Course Studio — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f5f8;--panel:#fff;--ink:#1a1d24;--mut:#5b6270;--line:#e3e7ee;--side:#15171d;--acc:#2f6fed;--ok:#12b886;--bad:#ef476f;--c-curriculum:#2f6fed;--c-projects:#ff7a2d;--c-notes:#8b5cf6;--c-screen:#ff6a2c;--c-practice:#ef476f}
@@ -135,6 +135,7 @@ details.dragover{outline:2px dashed var(--acc)}details[draggable=true]{opacity:.
 const $=(s,r=document)=>r.querySelector(s),E=(t,a={},h='')=>{const e=document.createElement(t);Object.assign(e,a);if(h)e.innerHTML=h;return e};
 let src='',sha='',D={},dirty=false,cur='site',_dt=null,LS=JSON.parse(localStorage.getItem('cs_gh')||'{}');
 const GAS_BACKEND_URL='<?= backendUrl ?>';
+window.toast=window.toast||function(t){let d=document.getElementById('g-toast');if(!d){d=document.createElement('div');d.id='g-toast';d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;z-index:9999;max-width:90vw;transition:opacity .25s;opacity:0;pointer-events:none';document.body.append(d)}d.textContent=t;d.style.opacity=1;clearTimeout(d._t);d._t=setTimeout(()=>d.style.opacity=0,3000)};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function mark(v=true){dirty=v;applyTheme();const s=$('#st');s.textContent=src?(v?'Unpublished changes':'Up to date'):'Not connected';s.className='chip'+(v?' dirty':'');schedDraft()}
 function schedDraft(){clearTimeout(_dt);_dt=setTimeout(saveDraft,700)}
@@ -148,7 +149,7 @@ weeks:[['n','Week number','n'],['title','Title (e.g. Week 6 — Retouching)'],['
 items:[['id','Google Drive file ID'],['title','Title'],['desc','Description','a'],['order','Order','n'],['group','Group id'],['phase','Phase','n'],['released','Released to students','b'],['graded','Graded','b'],['vocab','Vocabulary — term | definition','pairs',PAIR]],
 groups:[['id','Group id'],['title','Title'],['sub','Subtitle'],['color','Colour','c'],['badge','Badge text']],
 notes:[['id','Note id (e.g. readme-week6)'],['week','Week','n'],['badge','Badge (e.g. WEEK 6)'],['title','Title'],['intro','Intro','a'],['quiz','Has quiz + Mark as Read','b'],['hidden','Hide this note','b'],['tip','Tip box','a'],['cards','Cards','sub',[['title','Card title'],['text','Text','a']],c=>c.title||'New card',()=>({title:'',text:''})],['vocab','Vocabulary — term | definition','pairs',PAIR]],
-quizzes:[['type','Type','s',['reading','video']],['key','Key (Read Me note id, or screencast id)'],['questions','Questions (need 5+, students get 5 random)','sub',[['q','Question','a'],['options','Options — one per line','lines'],['answer','Correct option number (0 = first line)','n']],q=>q.q||'New question',()=>({q:'',options:['','','',''],answer:0})]],
+quizzes:[['type','Type','s',['reading','video']],['key','Key (Read Me note id, or screencast id)'],['draw','Questions each student gets (blank = 5). Tip: keep the bank at least double this so every student gets a different paper','n'],['shuffleOff','Keep the original order (turn OFF shuffling of questions and answers)','b'],['questions','Questions (need 5+, students get 5 random)','sub',[['q','Question','a'],['options','Options — one per line','lines'],['answer','Correct option number (0 = first line)','n']],q=>q.q||'New question',()=>({q:'',options:['','','',''],answer:0})]],
 projects:[['id','Project id'],['week','Week','n'],['title','Title'],['desc','Brief','a'],['skills','Skills (comma separated)','csv'],['checks','Checklist — one per line','lines'],['classroomUrl','Classroom / submission link'],['section','Section (e.g. Phase One)'],['marks','Marks','n'],['hidden','Hide project','b']],
 assessments:[['week','Source week','n'],['q','Question','a'],['opts','Four answer options — one per line','lines'],['a','Correct option number (0 = first)','n']],
 files:[['id','Google Drive file ID'],['label','Label']],
@@ -161,7 +162,7 @@ weeks:{t:'Curriculum weeks',l:'weeks',a:'Import built-in week…',mk:()=>({n:'',
 items:{t:'Screencasts',l:'items',mk:()=>({id:'',title:'',desc:'',released:true,graded:false,phase:1,vocab:[]}),ti:x=>x.title||x.id||'New screencast',sw:'released'},
 groups:{t:'Screencast groups',l:'groups',mk:()=>({id:'',title:'',sub:'',color:'#2f6fed'}),ti:x=>x.title||'New group'},
 notes:{t:'Read Me notes',l:'notes',mk:()=>({id:'',week:'',cards:[],vocab:[],quiz:true}),ti:x=>(x.badge||'')+' '+(x.title||x.id||'New note'),sw:'hidden'},
-quizzes:{t:'Assessment quizzes',l:'quizzes',mk:()=>({type:'reading',key:'',questions:[]}),ti:x=>x.type+' · '+(x.key||'new')+' ('+(x.questions||[]).length+' q)'},
+quizzes:{t:'Assessment quizzes',l:'quizzes',mk:()=>({type:'reading',key:'',questions:[]}),ti:x=>x.type+' · '+(x.key||'new')+' ('+(x.questions||[]).length+' in bank → each student gets '+Math.min((+x.draw>0?+x.draw:5),(x.questions||[]).length)+')'},
 projects:{t:'Projects',l:'projects',mk:()=>({id:'',skills:[],checks:[]}),ti:x=>x.title||x.id||'New project',sw:'hidden'},
 assessments:{t:'Phase 1 assessment question bank',l:'assessments',mk:()=>({week:1,marks:1,source:'',q:'',opts:['','','',''],a:0}),ti:x=>'Week '+(x.week||'?')+' · '+(x.q||'New assessment question')},
 materials:{t:'Additional materials',l:'materials',sp:'files',mk:()=>({id:'',label:''}),ti:x=>x.label||x.id||'New file'},
@@ -214,7 +215,7 @@ function go(k){cur=k;$('#ttl').textContent=SECT[k].t;document.querySelectorAll('
  if(k=='progressReset')return progressResetView(v);if(k=='records')return recView(v);if(k=='source')return srcView(v);if(k=='import')return impView(v);if(k=='students')return stuView(v);if(k=='publish')return pubView(v);
  if(S.f){S.f().forEach(([o,sp])=>{const c=E('div',{className:'card'});form(c,o,sp);v.append(c)});return}
  const top=E('div',{className:'card'});v.append(top);
- top.append(E('p',{className:'hint'},{weeks:'Weeks here are layered over the built-in course. Same week number = replaced. Use “Import built-in week” to start from what is on the site now.',items:'Same Drive ID as a built-in recording = renamed/updated. Untick “Released” to hide it from students.',notes:'Same note id as a built-in note replaces it; use Hide to remove it from students.',quizzes:'These are the pop-out quizzes attached to individual Read Me notes and screencasts. Each quiz needs at least five questions; students receive five random questions.',assessments:'Edit the official Phase Assessment question bank. Keep four options and set the correct option index from 0 to 3. Publishing updates the real PHASE1_QUESTIONS array in the main-site HTML.'}[k]||''));
+ top.append(E('p',{className:'hint'},{weeks:'Weeks here are layered over the built-in course. Same week number = replaced. Use “Import built-in week” to start from what is on the site now.',items:'Same Drive ID as a built-in recording = renamed/updated. Untick “Released” to hide it from students.',notes:'Same note id as a built-in note replaces it; use Hide to remove it from students.',quizzes:'These are the pop-out quizzes attached to individual Read Me notes and screencasts. Put more questions in the bank than students will see. Set “Questions each student gets” (default 5); each student receives that many, shuffled.',assessments:'Edit the official Phase Assessment question bank. Keep four options and set the correct option index from 0 to 3. Publishing updates the real PHASE1_QUESTIONS array in the main-site HTML.'}[k]||''));
  if(S.imp){const b=E('button',{className:'b',textContent:'Import one built-in week'});b.onclick=()=>impWeek(()=>go(k));const b2=E('button',{className:'b p',textContent:'Import all built-in weeks',style:'margin-left:8px'});b2.onclick=()=>impWeek(()=>go(k),1);top.append(b,b2)}
  list(top,D[S.l],SPEC[S.sp||S.l],S.ti,S.mk)}
 function impWeek(done,all){
@@ -432,7 +433,7 @@ function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test
   t=t.replace(/(var\s+BANK\s*=\s*)\[[\s\S]*?\](?=;\s*(?:if\(window\.HMC|function\s+hash))/,(m,a)=>a+literal);
  }
  return t.replace(/(<meta name="hm-build" content=")[^"]*(")/,(a,x,y)=>x+'studio-'+new Date().toISOString().replace(/\D/g,'').slice(0,12)+y)}
-function check(){const w=[];D.quizzes.forEach(q=>{if((q.questions||[]).length>0&&(q.questions||[]).length<5)w.push('Quiz “'+q.key+'” has fewer than 5 questions (the student site will keep using its automatic quiz until 5 are added).');(q.questions||[]).forEach((x,i)=>{if((x.options||[]).length<2||x.answer>=(x.options||[]).length)w.push('Quiz “'+q.key+'” question '+(i+1)+': check options / correct number.')})});
+function check(){const w=[];D.quizzes.forEach(q=>{if((q.questions||[]).length>0&&!(+q.draw>0)&&(q.questions||[]).length<5)w.push('Quiz “'+q.key+'” has fewer than 5 questions (the student site will keep using its automatic quiz until 5 are added, or set “Questions each student gets”).');if(+q.draw>0&&(q.questions||[]).length&&(q.questions||[]).length<+q.draw)w.push('Quiz “'+q.key+'”: students are set to get '+q.draw+' questions but the bank only has '+(q.questions||[]).length+'. They will all get the same '+(q.questions||[]).length+'.');(q.questions||[]).forEach((x,i)=>{if((x.options||[]).length<2||x.answer>=(x.options||[]).length)w.push('Quiz “'+q.key+'” question '+(i+1)+': check options / correct number.')})});
  const byWeek={};D.assessments.forEach((q,i)=>{byWeek[q.week]=(byWeek[q.week]||0)+1;if(!q.q||!Array.isArray(q.opts)||q.opts.length!==4||q.opts.some(x=>!String(x||'').trim())||!Number.isInteger(Number(q.a))||Number(q.a)<0||Number(q.a)>3)w.push('Phase Assessment question '+(i+1)+': add a question, four options and a correct option index from 0 to 3.')});[1,2,3,4].forEach(wk=>{if((byWeek[wk]||0)<5)w.push('Phase Assessment needs at least five questions for Week '+wk+' (currently '+(byWeek[wk]||0)+').')});
  const dup=(a,k,n)=>{const s=new Set();a.forEach(x=>{if(x[k]&&s.has(x[k]))w.push('Duplicate '+n+' “'+x[k]+'”.');s.add(x[k])})};dup(D.notes,'id','note id');dup(D.projects,'id','project id');dup(D.items,'id','screencast id');
  D.items.forEach(x=>{if(!x.id)w.push('A screencast has no Drive file ID.')});D.weeks.forEach(x=>{if(!x.n)w.push('A week has no number.')});if(!/<script id="cc-9-live">/.test(src))w.push('This file has no cc-9-live block — edits cannot be saved.');return w}
@@ -1284,20 +1285,52 @@ async function readDoc(f){const n=f.name.toLowerCase();
  if(/\.csv$/.test(n))return parseRows(parseCsv(t));
  if(/\.pdf$/.test(n))throw new Error('PDF cannot be read directly. Open it, copy the text into the box below (or save it as .docx) and try again.');
  return parseText(t)}
+let _ocrP=null;
+const loadOcr=()=>window.Tesseract?Promise.resolve():(_ocrP=_ocrP||new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=ok;s.onerror=()=>{_ocrP=null;no(new Error('Could not load the image reader. Check your internet connection and try again.'))};document.head.append(s)}));
+async function ocrImage(f,say){await loadOcr();const r=await Tesseract.recognize(f,'eng',{logger:m=>{if(m.status==='recognizing text'&&say)say('Reading image… '+Math.round(m.progress*100)+'%')}});return r.data.text}
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const isImg=f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|bmp|gif)$/i.test(f.name);
 function importModal(o){const m=E('div',{className:'m28'}),box=E('div');m.append(box);let qs=[];
- box.innerHTML=`<h3>${esc(o.title)}</h3><p class="hint">Upload a Word (.docx), Excel (.xlsx), CSV, JSON or text file, or paste the questions below. Format:</p><pre>1. Which tool removes blemishes?
+ box.innerHTML=`<h3>${esc(o.title)}</h3><p class="hint">Upload a Word (.docx), Excel (.xlsx), CSV, JSON or text file, <b>or a photo / screenshot of the questions</b> (you can also paste an image with Ctrl+V), or paste the questions below. Format:</p><pre>1. Which tool removes blemishes?
 A) Spot Healing Brush
 B) Rotate View
 C) Hand Tool
 D) Zoom
-Answer: A</pre><p class="hint">You can also mark the right option with * at the end. Spreadsheet/CSV: Question, A, B, C, D, Answer.</p>
- <input type="file" id="i28f" accept=".docx,.xlsx,.xls,.csv,.json,.txt,.md"><textarea id="i28t" placeholder="...or paste questions here" style="margin-top:8px;min-height:120px"></textarea>
- <div id="i28x"></div><div class="row" style="margin-top:10px" id="i28o"></div><div class="row" style="margin-top:12px"><button class="b" id="i28r">Read questions</button><button class="b p" id="i28a" disabled>Add to list</button><button class="b" id="i28c">Close</button></div><p class="hint" id="i28m"></p>`;
- const g=s=>box.querySelector(s);if(o.extra)o.extra(g('#i28o'));
- const show=()=>{g('#i28x').innerHTML=qs.length?'<p><b>'+qs.length+' question(s) found</b> — check them before adding.</p>'+qs.slice(0,40).map((q,i)=>'<div class="pq28"><b>'+(i+1)+'.</b> '+esc(q.q)+'<br>'+q.opts.map((x,j)=>'<span class="'+(j===q.a?'ok':'')+'">'+LET[j]+') '+esc(x)+(j===q.a?' ✓':'')+'</span>').join(' &nbsp; ')+'</div>').join('')+(qs.length>40?'<p class="hint">+ '+(qs.length-40)+' more</p>':''):'<p class="hint">Nothing readable found. Check the format above.</p>';g('#i28a').disabled=!qs.length};
- g('#i28f').onchange=async e=>{const f=e.target.files[0];if(!f)return;g('#i28m').textContent='Reading '+f.name+'...';try{qs=await readDoc(f);g('#i28m').textContent='';show()}catch(x){g('#i28m').textContent=x.message}};
- g('#i28r').onclick=()=>{qs=parseText(g('#i28t').value);show()};
- g('#i28c').onclick=()=>m.remove();g('#i28a').onclick=()=>{try{const n=o.apply(qs);mark();toast(n+' question(s) added');m.remove();go(cur)}catch(x){g('#i28m').textContent=x.message}};
+Answer: A</pre><p class="hint">You can also mark the right option with * at the end. Spreadsheet/CSV: Question, A, B, C, D, Answer. For images, the text is read automatically; check it in the box and fix any mistakes, then press Read questions.</p>
+ <input type="file" id="i28f" multiple accept=".docx,.xlsx,.xls,.csv,.json,.txt,.md,image/*"><textarea id="i28t" placeholder="...or paste questions here" style="margin-top:8px;min-height:120px"></textarea>
+ <div id="i28x" style="max-height:38vh;overflow:auto;margin-top:8px"></div><div class="row" style="margin-top:10px" id="i28o"></div>
+ <div class="card" style="margin-top:10px"><b>Before adding</b>
+  <label class="chk"><input type="checkbox" id="i28sq"> Shuffle the order of the questions</label>
+  <label class="chk"><input type="checkbox" id="i28so"> Shuffle the answer options (the correct answer stays correct)</label>
+  <label>Add only this many questions (0 = all ticked). With shuffle on, they are picked at random.</label><input type="number" id="i28lim" min="0" value="0">
+  <p class="hint">Tip: add more questions than students will see. Then set "Questions each student gets" on the quiz, and every student gets a different random paper.</p></div>
+ <div class="row" style="margin-top:12px"><button class="b" id="i28r">Read questions</button><button class="b p" id="i28a" disabled>Add to list</button><button class="b" id="i28c">Close</button><span class="hint" id="i28n"></span></div><p class="hint" id="i28m"></p>`;
+ const g=s=>box.querySelector(s),say=t=>{g('#i28m').textContent=t};if(o.extra)o.extra(g('#i28o'));
+ const count=()=>{const n=qs.filter(q=>q.inc!==false).length;g('#i28a').disabled=!n;g('#i28n').textContent=qs.length?n+' of '+qs.length+' selected':''};
+ const show=()=>{const x=g('#i28x');x.innerHTML='';
+  if(!qs.length){x.innerHTML='<p class="hint">Nothing readable found. Check the format above.</p>';count();return}
+  qs.forEach(q=>{if(q.inc===undefined)q.inc=true;if(!(q.a>=0&&q.a<q.opts.length))q.a=0});
+  const h=E('p');h.innerHTML='<b>'+qs.length+' question(s) found</b> — untick any you do not want and fix the correct answer if it is wrong.';x.append(h);
+  qs.forEach((q,i)=>{const d=E('div',{className:'pq28'});d.style.cssText='display:flex;gap:8px;align-items:flex-start';
+   const c=E('input',{type:'checkbox',checked:q.inc});c.style.cssText='width:auto;min-width:0;flex:none;margin-top:4px';c.onchange=()=>{q.inc=c.checked;count()};
+   const t=E('div');t.style.flex='1';t.innerHTML='<b>'+(i+1)+'.</b> '+esc(q.q)+'<br>'+q.opts.map((op,j)=>'<span>'+LET[j]+') '+esc(op)+'</span>').join(' &nbsp; ');
+   const l=E('span',{className:'hint',textContent:'Correct:'});l.style.flex='none';
+   const sel=E('select',{},q.opts.map((_,j)=>'<option value="'+j+'">'+LET[j]+'</option>').join(''));sel.value=q.a;sel.style.cssText='width:auto;min-width:0;flex:none';sel.onchange=()=>{q.a=+sel.value};
+   d.append(c,t,l,sel);x.append(d)});count()};
+ const handle=async fs=>{if(!fs.length)return;try{let got=[],txt='';
+   for(const f of fs){say('Reading '+f.name+'...');if(isImg(f))txt+=(await ocrImage(f,say))+'\n';else got=got.concat(await readDoc(f))}
+   if(txt){const ta=g('#i28t');ta.value=(ta.value?ta.value+'\n':'')+txt;got=got.concat(parseText(txt));say('The text read from the image is in the box below. Fix any mistakes, then press "Read questions" again.')}else say('');
+   qs=got;show()}catch(x){say(x.message)}};
+ g('#i28f').onchange=e=>handle([...e.target.files]);
+ box.addEventListener('paste',ev=>{const fl=[...((ev.clipboardData&&ev.clipboardData.files)||[])].filter(isImg);if(fl.length){ev.preventDefault();handle(fl)}});
+ g('#i28r').onclick=()=>{qs=parseText(g('#i28t').value);say('');show()};
+ g('#i28c').onclick=()=>m.remove();
+ g('#i28a').onclick=()=>{try{let L=qs.filter(q=>q.inc!==false).map(q=>({q:q.q,opts:q.opts.slice(),a:q.a}));
+   if(g('#i28sq').checked)L=shuf(L);
+   if(g('#i28so').checked)L=L.map(q=>{const ix=shuf(q.opts.map((_,i)=>i));return{q:q.q,opts:ix.map(i=>q.opts[i]),a:ix.indexOf(q.a)}});
+   const lim=+g('#i28lim').value;if(lim>0)L=L.slice(0,lim);
+   if(!L.length)throw new Error('Nothing selected to add.');
+   const n=o.apply(L);mark();toast(n+' question(s) added');m.remove();go(cur)}catch(x){say(x.message)}};
  document.body.append(m)}
 const importBar=(title,apply,extra)=>{const c=E('div',{className:'card',style:'border-left:5px solid #8b5cf6'});c.innerHTML='<b>Import from a document</b><span class="hint"> · Word, Excel, CSV, JSON or pasted text</span> ';const b=E('button',{className:'b p',textContent:'Import questions...'});b.onclick=()=>importModal({title,apply,extra});c.append(b);return c};
 
