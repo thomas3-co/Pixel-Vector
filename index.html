@@ -11581,8 +11581,8 @@ html.hc-lock .ux-top{display:none}
     var hero=$('#home .hero');
     if(hero){
       if(s.eyebrow&&$('#home .hero-eyebrow')) $('#home .hero-eyebrow').textContent=s.eyebrow;
-      if(s.title&&hero.querySelector('h1')) hero.querySelector('h1').textContent=s.title;
-      if(s.intro&&hero.querySelector('h1+p')) hero.querySelector('h1+p').textContent=s.intro;
+      if(s.title&&!/project of the month/i.test(s.title)&&hero.querySelector('h1')) hero.querySelector('h1').textContent=s.title;
+      if(s.intro&&!/^Cc\//.test(s.intro)&&hero.querySelector('h1+p')) hero.querySelector('h1+p').textContent=s.intro;
       var on=document.createElement('div'); on.id='hmOnline'; on.innerHTML='<i></i><span></span>'; hero.insertBefore(on,hero.firstChild);
     }
     /* banner (a student can close it; it comes back when you change the text) */
@@ -12484,15 +12484,17 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 </script>
 <style id="hm-up-css">
 .si-eye{display:none!important}
-#screencasts .scx{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
-#screencasts .scx-side{position:static!important;max-height:none!important;background:rgba(16,24,40,.035);border:1px solid rgba(16,24,40,.06);border-radius:18px;padding:12px 12px 4px}
 #screencasts .scx-side-head,#screencasts #theaterFilters,#screencasts .scx-group,#screencasts .scx-locked,#screencasts .scx-m,#screencasts .scx-dur{display:none!important}
-#screencasts .scx-list{position:relative;display:flex!important;flex-direction:row!important;gap:12px!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x proximity;padding:4px 2px 12px!important}
-#screencasts .scx-item{flex:0 0 200px!important;width:200px!important;max-width:200px!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;padding:8px!important;background:rgba(255,255,255,.55)!important;border:1.5px solid transparent!important;box-shadow:none!important;opacity:.55;scroll-snap-align:start;transition:opacity .2s}
-#screencasts .scx-item:hover,#screencasts .scx-item:focus-visible,#screencasts .scx-item.active{opacity:1}
-#screencasts .scx-item.active{border-color:#2f6fed!important;background:#fff!important}
-#screencasts .scx-thumb{width:100%!important}
+#screencasts .scx-side{background:transparent!important;border:0!important}
+#screencasts .scx-list{position:relative;gap:2px!important;padding:2px!important}
+#screencasts .scx-item{width:100%!important;max-width:none!important;flex-direction:row!important;align-items:flex-start!important;gap:10px!important;padding:6px!important;background:transparent!important;border:0!important;border-radius:12px!important;box-shadow:none!important;opacity:.85;transition:background .15s,opacity .15s}
+#screencasts .scx-item:hover,#screencasts .scx-item:focus-visible{background:#f2f4f7!important;opacity:1}
+#screencasts .scx-item.active{background:#e8efff!important;opacity:1}
+#screencasts .scx-thumb{width:150px!important;flex:none!important;border-radius:10px!important}
 #screencasts .scx-thumb .scx-tick{top:6px!important;right:6px!important;width:22px!important;height:22px!important}
+#screencasts .scx-body{min-width:0}
+#screencasts .scx-t{font:600 13.5px/1.35 Inter,Arial,sans-serif!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:#101828}
+@media (min-width:640px) and (max-width:1059px){#screencasts .scx-list{display:flex!important;flex-direction:column!important}}
 .scxn-bar{display:flex;gap:6px;align-items:center;padding:2px 2px 8px}
 .scxn-bar button{border:1px solid #e3e7ee;background:#fff;border-radius:999px;padding:6px 14px;font:600 12px Inter,sans-serif;cursor:pointer}
 .scxn-bar .scxn-go{background:#2f6fed;color:#fff;border-color:#2f6fed}
@@ -12533,23 +12535,21 @@ fixNotes();
 var nv=document.getElementById('notes')||document.body, t=null;
 try{ new MutationObserver(function(){ clearTimeout(t); t=setTimeout(fixNotes,250); }).observe(nv,{childList:true,subtree:true}); }catch(e){}
 
-/* B. Screencast list: one clean low-opacity strip under the player */
+/* B. Screencast list: YouTube-style side list */
 var lastAct='';
 function enhance(){
   var side=document.getElementById('theaterSide'); if(!side) return;
   var bar=document.getElementById('scxNavBar');
   if(!bar){ bar=document.createElement('div'); bar.id='scxNavBar'; bar.className='scxn-bar'; side.parentNode.insertBefore(bar,side);
-    bar.innerHTML='<button class="scxn-go" data-a="go" type="button">Continue</button><button data-a="l" type="button" aria-label="Scroll left">&#8249;</button><button data-a="r" type="button" aria-label="Scroll right">&#8250;</button>';
-    bar.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
-      if(b.dataset.a==='go'){ var n=side.querySelector('.scx-item:not(.learning-complete)')||side.querySelector('.scx-item'); if(n) n.click(); }
-      else side.scrollBy({left:(b.dataset.a==='l'?-1:1)*side.clientWidth*.8,behavior:'smooth'}); });
-    side.addEventListener('keydown',function(e){ var k=e.key; if(k!=='ArrowRight'&&k!=='ArrowLeft') return;
+    bar.innerHTML='<button class="scxn-go" data-a="go" type="button">Continue</button>';
+    bar.addEventListener('click',function(e){ if(!e.target.closest('button')) return; var n=side.querySelector('.scx-item:not(.learning-complete)')||side.querySelector('.scx-item'); if(n) n.click(); });
+    side.addEventListener('keydown',function(e){ var k=e.key; if(k!=='ArrowDown'&&k!=='ArrowUp') return;
       var els=[].slice.call(side.querySelectorAll('.scx-item')), i=els.indexOf(document.activeElement); if(i<0) return;
-      e.preventDefault(); var n=els[i+(k==='ArrowRight'?1:-1)]; if(n) n.focus(); });
+      e.preventDefault(); var n=els[i+(k==='ArrowDown'?1:-1)]; if(n) n.focus(); });
   }
   var p=document.getElementById('theaterProgressText'); if(p) p.textContent=p.textContent.replace(/watched/gi,'completed');
   var a=side.querySelector('.scx-item.active'), id=a?a.dataset.screencastId:'';
-  if(a&&id!==lastAct){ lastAct=id; side.scrollLeft=a.offsetLeft-(side.clientWidth-a.offsetWidth)/2; }
+  if(a&&id!==lastAct){ lastAct=id; if(side.scrollHeight>side.clientHeight) side.scrollTop=a.offsetTop-(side.clientHeight-a.offsetHeight)/2; }
 }
 function install(){
   var o=window.theaterRenderSide; if(typeof o!=='function'||o.__up) return false;
