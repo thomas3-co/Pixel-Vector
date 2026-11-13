@@ -2731,7 +2731,7 @@ HM_CONTENT.site = {
    ================================================================== */
 /* EDIT-ME :: AUTO SIGN-OUT - minutes of NO activity before a student is signed out (60 = 1 hour).
    warnMinutes = how many minutes before sign-out the "Stay signed in" notice appears. */
-window.HM_SESSION = { idleMinutes:60, warnMinutes:2 };
+window.HM_SESSION = { idleMinutes:0, warnMinutes:0 }; /* no auto sign-out */
 /* EDIT-ME :: LOGIN SCREEN WORDS - the line above the card and the small notes under the button */
 window.HM_LOGIN = {
   brandLine:"Graphic Design & Photoshop  \u00b7  Class of 2028",
@@ -12045,7 +12045,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
       var caps=document.createElement('div'); caps.className='si-caps'; caps.textContent='Caps Lock is on'; w.parentNode.insertBefore(caps,w.nextSibling);
       pw.addEventListener('keyup',function(e){ caps.style.display=(e.getModifierState&&e.getModifierState('CapsLock'))?'block':'none'; }); }
     var mins=Number(S.idleMinutes)||60, idleTxt=mins%60===0?(mins/60)+(mins===60?' hour':' hours'):mins+' minutes';
-    var notes=(L.notes||[]).concat(['Signed out after '+idleTxt+' of inactivity']);
+    var notes=(L.notes||[]).concat([]);
     var tr=document.createElement('div'); tr.className='si-trust';
     tr.innerHTML=notes.map(function(n,i){ return '<span>'+svg(i===notes.length-1?'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>':'<polyline points="20 6 9 17 4 12"/>')+String(n).replace(/[&<>]/g,'')+'</span>'; }).join('');
     var fine=card.querySelector('.si-fine'); card.insertBefore(tr,fine||null);
@@ -12062,42 +12062,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
       document.getElementById('hmGreetName').textContent='Welcome back, '+n.textContent; document.getElementById('hmGreetBadge').textContent=(c?c.textContent:'')+' complete'; },1500); }
   /* ---------- AUTO SIGN-OUT after inactivity (default 1 hour, set in CC-8) ---------- */
   /* EDIT-ME :: AUTO SIGN-OUT LOGIC (code - change the minutes in CC-8 instead) */
-  var LIM=(Number(S.idleMinutes)||60)*60000, WARN=Math.min((Number(S.warnMinutes)||2)*60000,LIM/2), KEY='hm_last_active', out=false, th=0, tmr=0;
-  var bn=document.createElement('div'); bn.className='hm-idle'; bn.setAttribute('role','alert'); bn.innerHTML='<span id="hmIdleTxt"></span><button type="button" id="hmIdleBtn">Stay signed in</button>'; document.body.appendChild(bn);
-  function now(){ return Date.now(); }
-  function mark(){ window.__hmLA=now(); try{ localStorage.setItem(KEY,String(window.__hmLA)); }catch(e){} }
-  function last(){ var v=0; try{ v=Number(localStorage.getItem(KEY))||0; }catch(e){} return v||window.__hmLA||0; }
-  function signed(){ try{ return !!(student&&student.email); }catch(e){ return false; } }
-  function hideB(){ bn.classList.remove('show'); clearInterval(tmr); tmr=0; }
-  function act(){ var t=now(); if(t-th<4000) return; th=t; if(signed()){ mark(); hideB(); } }
-  ['pointerdown','keydown','touchstart','wheel','mousemove'].forEach(function(ev){ document.addEventListener(ev,act,{passive:true,capture:true}); });
-  window.addEventListener('scroll',act,{passive:true,capture:true});
-  document.getElementById('hmIdleBtn').onclick=function(){ th=0; act(); mark(); hideB(); };
-  var f=document.getElementById('siForm'); if(f) f.addEventListener('submit',mark,true);
-  function busy(){
-    if(document.querySelector('#cqModal.open,#wqModal.open,#phaseAssessmentModal.open')) return true;
-    try{ if(!document.hidden&&document.querySelector('#screencasts.active')&&typeof theaterCurrentId!=='undefined'&&theaterCurrentId) return true; }catch(e){}
-    return false;
-  }
-  async function logout(){
-    if(out) return; out=true; hideB();
-    try{ if(student) saveStudentRecord(student); }catch(e){}
-    try{ if(window.hmaPushNow){ await Promise.race([Promise.resolve(window.hmaPushNow()),new Promise(function(r){ setTimeout(r,3500); })]); } }catch(e){}
-    try{ localStorage.removeItem(KEY); localStorage.removeItem('hm_current_student'); await hmaCloudSignOut(); await forgetSession(); }catch(e){}
-    try{ sessionStorage.setItem('hm_idle_out','1'); }catch(e){}
-    location.reload();
-  }
-  function tick(){
-    if(out||!signed()){ if(!signed()) hideB(); return; }
-    if(busy()) mark(); else if(!last()) mark();
-    var idle=now()-last(), left=LIM-idle;
-    if(left<=0){ logout(); return; }
-    if(left<=WARN){ bn.classList.add('show'); upd(left); if(!tmr) tmr=setInterval(function(){ var l=LIM-(now()-last()); if(l<=0){ logout(); return; } if(l>WARN){ hideB(); return; } upd(l); },1000); }
-    else hideB();
-  }
-  function upd(l){ var m=Math.floor(l/60000), sec=Math.floor(l%60000/1000); document.getElementById('hmIdleTxt').textContent='You will be signed out in '+m+':'+(sec<10?'0':'')+sec+' because of inactivity'; }
-  setInterval(tick,15000); setTimeout(tick,2500);
-  document.addEventListener('visibilitychange',function(){ if(!document.hidden) tick(); }); window.addEventListener('focus',tick); window.addEventListener('online',tick);
+  /* Auto sign-out removed: a signed-in student stays signed in until they choose to sign out. */
 })();
 </script>
 <script id="hm-site-text-js">
