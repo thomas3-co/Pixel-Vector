@@ -171,7 +171,7 @@ deadlines:{t:'Deadlines',l:'deadlines',mk:()=>({title:'',date:'',kind:'project',
 resources:{t:'Quick links & resources',l:'resources',mk:()=>({title:'',url:'',desc:'',kind:'Link'}),ti:x=>x.title||'New resource'},
 faq:{t:'Student FAQ',l:'faq',mk:()=>({q:'',a:''}),ti:x=>x.q||'New question'},
 progressReset:{t:'Student Progress Reset'},profile:{t:'Badges & profile',f:()=>[[D.profile,[['side','Profile side','s',['left','right']],['accents','Accent colours (comma separated)','csv'],['badges','The 5 badges','sub',[['name','Name'],['color','Colour','c'],['progress','Lessons finished %','n'],['result','Score %','n'],['visits','Days visited','n']],b=>b.name||'Badge',()=>({name:'',color:'#2f6fed',progress:0,result:0,visits:1})]]]]},
-access:{t:'Login & sign-out',f:()=>[[D.session,[['idleMinutes','Auto sign-out after (minutes idle)','n'],['warnMinutes','Warn this many minutes before','n']]],[D.login,[['brandLine','Login screen top line'],['notes','Notes under the login button — one per line','lines']]]]},
+access:{t:'Login screen',f:()=>[[D.login,[['brandLine','Login screen top line'],['notes','Notes under the login button — one per line','lines']]]]},
 theme:{t:'Site colours',f:()=>[[D.theme,[['curriculum','Curriculum and lessons','c'],['projects','Projects','c'],['practice','Practice','c'],['notes','Read Me notes','c'],['screen','Screencasts','c']]]]},import:{t:'Import from spreadsheet'},students:{t:'Students'},records:{t:'Help, announcements and log'},source:{t:'Source editor'},publish:{t:'Connect & publish'}};
 /* ===== codecs ===== */
 const enc={csv:v=>(v||[]).join(', '),lines:v=>(v||[]).join('\n'),pairs:(v,k)=>(v||[]).map(o=>k.map(x=>o[x]??'').join(' | ')).join('\n'),map:v=>Object.entries(v||{}).map(([a,b])=>a+' = '+b).join('\n')};
@@ -282,12 +282,17 @@ function impView(v){
  $('#xf',x).onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#xm',x).textContent='Reading…';try{const wb=await readWb(f);$('#xm',x).textContent=impContent(wb)}catch(err){$('#xm',x).textContent='Error: Could not read that file: '+err.message}};
 }
 /* ===== students: live from your backend + spreadsheet import ===== */
-let LV={},TK=sessionStorage.getItem('cs_tk')||'',BK={},liveT=null,EDS=null;try{BK=JSON.parse(localStorage.getItem('cs_bk')||'{}')}catch(e){}
-const bkUrl=()=>BK.u||(GAS_BACKEND_URL.indexOf('<?=')===-1?GAS_BACKEND_URL:'')||([...src.matchAll(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/g)].pop()||[])[1]||'';
+let LV={},TK=sessionStorage.getItem('cs_tk')||localStorage.getItem('cs_tk')||'',BK={},liveT=null,EDS=null;try{BK=JSON.parse(localStorage.getItem('cs_bk')||'{}')}catch(e){}
+const DEFAULT_BACKEND='https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec';
+const bkUrl=()=>BK.u||(GAS_BACKEND_URL.indexOf('<?=')===-1?GAS_BACKEND_URL:'')||([...String(src||'').matchAll(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/g)].pop()||[])[1]||DEFAULT_BACKEND;
 async function bk(a,p){const u=bkUrl();if(!u)throw new Error('Enter the web app address first.');
- const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:a,token:TK},p||{}))});const j=await r.json();
- if(j.error==='ADMIN_AUTH'){TK='';sessionStorage.removeItem('cs_tk');throw new Error('Signed out. Please connect again.')}return j}
-async function bkLogin(pw){const j=await bk('adminLogin',{password:pw});if(!j.ok)throw new Error({BADPW:'Wrong admin password.',LOCKED:'Too many wrong tries. Wait 15 minutes.',ADMIN_NOT_SET:'No admin password is set yet. In your Apps Script project run openAdminPasswordDialog once.'}[j.error]||j.message||j.error||'Sign-in failed');TK=j.token;sessionStorage.setItem('cs_tk',TK)}
+ let r,j;const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),45000);
+ try{r=await fetch(u,{method:'POST',signal:ac.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:a,token:TK},p||{}))})}
+ catch(e){clearTimeout(tm);throw new Error(e.name==='AbortError'?'The backend took too long to answer. Try again in a moment.':'Cannot reach the backend. Check your internet and the web app address ('+u.slice(0,48)+'…). In Apps Script, the deployment must allow access to "Anyone".')}
+ clearTimeout(tm);
+ try{j=await r.json()}catch(e){throw new Error('The address answered, but not like the course backend. Open Apps Script → Deploy → Manage deployments, copy the latest Web app URL, and make sure access is "Anyone".')}
+ if(j.error==='ADMIN_AUTH'){TK='';(sessionStorage.removeItem('cs_tk'),localStorage.removeItem('cs_tk'));throw new Error('Signed out. Please connect again.')}return j}
+async function bkLogin(pw){const j=await bk('adminLogin',{password:pw});if(!j.ok)throw new Error({BADPW:'Wrong admin password.',LOCKED:'Too many wrong tries. Wait 15 minutes.',ADMIN_NOT_SET:'No admin password is set yet. In your Apps Script project run openAdminPasswordDialog once.'}[j.error]||j.message||j.error||'Sign-in failed');TK=j.token;sessionStorage.setItem('cs_tk',TK);try{localStorage.setItem('cs_tk',TK)}catch(e){}}
 async function pollLive(){const j=await bk('adminSnapshot',{fresh:true});if(!j.ok)throw new Error(j.message||j.error);LV={};j.snap.students.forEach(s=>LV[s.email.toLowerCase()]=s)}
 const badgeOf=(e,s)=>{const r=ST[e]&&ST[e].rec,B=(D.profile&&D.profile.badges)||[],T=totals();let pct,res,visits,done,approx=false;
  if(r&&Object.keys(r).length){const rc=HMR.reconcile(r,getCtx(),{dry:true}),g=HMR.gradeOf(Object.assign({},r,{completed:rc.ids}),T);pct=g.pct;res=g.overall;done=g.done;visits=HMR.visitDays(r).length}
@@ -341,7 +346,7 @@ function stuView(v){const c=E('div',{className:'card'});
  const refresh=async()=>{try{await pollLive();draw();msg('Updated '+new Date().toLocaleTimeString()+'. Refreshes every 20 seconds while this page is open.')}catch(e){msg(e.message)}};
  const setLive=on=>{clearInterval(liveT);liveT=null;if(on)liveT=setInterval(()=>{if(!document.hidden&&$('#tb')&&cur=='students')refresh()},20000);const b=$('#lv',c);if(b)b.textContent=on?'Live: on (every 20 s)':'Live: off'};
  const conn=()=>{const d=$('#cn',c);if(TK){d.innerHTML='<span class="chip" style="flex:none">Connected</span><button class="b" id="lv" style="flex:none"></button><button class="b" id="rf" style="flex:none">Refresh now</button><button class="b d" id="bo" style="flex:none">Disconnect</button>';
-   $('#lv',c).onclick=()=>setLive(!liveT);$('#rf',c).onclick=refresh;$('#bo',c).onclick=()=>{TK='';sessionStorage.removeItem('cs_tk');LV={};setLive(false);conn();draw()};setLive(true)}
+   $('#lv',c).onclick=()=>setLive(!liveT);$('#rf',c).onclick=refresh;$('#bo',c).onclick=()=>{TK='';(sessionStorage.removeItem('cs_tk'),localStorage.removeItem('cs_tk'));LV={};setLive(false);conn();draw()};setLive(true)}
   else{d.innerHTML=`<input type="text" id="bu" placeholder="Web app address (…/exec)" value="${esc(bkUrl())}"><input type="password" id="bpw" placeholder="Admin password"><button class="b p" id="bl" style="flex:none">Connect</button>`;
    $('#bl',c).onclick=async()=>{BK.u=$('#bu',c).value.trim();localStorage.setItem('cs_bk',JSON.stringify(BK));msg('Connecting...');try{await bkLogin($('#bpw',c).value);conn();await refresh()}catch(e){msg(e.message)}}}};
  $('#bs',c).onclick=async()=>{const h=$('#bh',c);if(!TK)return h.textContent='Connect first.';h.textContent='Sending...';try{const j=await bk('adminSend',{data:{title:$('#bt',c).value,message:$('#bm',c).value,audience:$('#ba',c).value,priority:$('#bp2',c).value}});h.textContent=j.ok?'Sent to '+j.result.reach:(j.message||j.error)}catch(e){h.textContent=e.message}};
@@ -353,7 +358,7 @@ function stuView(v){const c=E('div',{className:'card'});
   <div class="row"><button class="b" id="el" style="flex:none">Edit progress day by day, quiz by quiz</button></div><div id="ed"></div>
   <div class="row"><div><label>Display name</label><input type="text" id="dn" value="${esc(s.name)}"></div><div><label>Teacher grade</label><input type="text" id="dg" value="${esc(s.teacherGrade||'')}"></div></div><label>Private note (stays in this browser)</label><textarea id="dnote">${esc(s.note||'')}</textarea>
   ${Object.keys(r).length?`<label>Progress record from spreadsheet (JSON)</label><textarea class="code" id="drec" style="min-height:140px">${esc(JSON.stringify(r,null,1))}</textarea>`:''}<div class="row" style="margin-top:10px"><button class="b p" id="dsv" style="flex:none">Save local notes</button><span class="hint" id="dm"></span></div></div>`;
-  const am=t=>$('#am',d).textContent=t,need=()=>{if(!TK){am('Connect to the backend first (top of this page).');return false}return true};
+  const am=t=>$('#am',d).textContent=t,need=()=>{if(!TK){am('Connect to the backend first.');if(window.csShowGate)window.csShowGate('Sign in to continue.');return false}return true};
   const act=async(fn,ok)=>{if(!need())return;am('Working...');try{const j=await fn();am(j.ok?''+ok:(j.message||j.error));if(j.ok)refresh()}catch(x){am(x.message)}};
   $('#an',d).onclick=()=>$('#nb',d).hidden=!$('#nb',d).hidden;
   $('#ns',d).onclick=()=>act(()=>bk('adminNotify',{email:e,title:$('#nt',d).value,message:$('#nm',d).value}),'Notification sent.');
@@ -412,7 +417,7 @@ function load(t){src=t;const w={HM_CONTENT:{}};['cc-0-profile','cc-1-curriculum'
  return{site:Object.assign({stats:[],tabs:{}},pick('site',{})),weeks:Object.entries(wk).map(([n,x])=>({n:Number(n),...x})).sort((a,b)=>a.n-b.n),items:items,groups:sc.groups||[],
  notes:notes,quizzes:quizzes,assessments:assessments,phases:pick('phases',[]),projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),deadlines:pick('deadlines',[]),resources:pick('resources',[]),faq:pick('faq',[]),
  profile:{side:pf.side||P.side||'left',accents:pf.accents||P.accents||[],badges:JSON.parse(JSON.stringify(pf.badges||P.badges||[]))},
- session:Object.assign({idleMinutes:60,warnMinutes:2},w.HM_SESSION,b.session),login:Object.assign({notes:[]},w.HM_LOGIN,b.login),theme:readTheme()}}
+ session:Object.assign({idleMinutes:0,warnMinutes:0},{}),login:Object.assign({notes:[]},w.HM_LOGIN,b.login),theme:readTheme()}}
 function readTheme(){const o={},m=/:root\s*\{[\s\S]*?\}/.exec(src);(m?m[0]:'').replace(/--c-(curriculum|projects|notes|screen|practice)\s*:\s*(#[0-9a-fA-F]{3,8})/g,(a,n,c)=>o[n]=c);return o}
 function applyTheme(){Object.entries(D.theme||{}).forEach(([n,c])=>document.documentElement.style.setProperty('--c-'+n,c))}
 function clean(o){if(Array.isArray(o))return o.map(clean);if(o&&typeof o=='object'){const r={};for(const k in o){if(o[k]===''||o[k]==null||(typeof o[k]=='number'&&isNaN(o[k])))continue;r[k]=clean(o[k])}return r}return o}
@@ -909,7 +914,7 @@ const hdrIdx=rows=>{for(let i=0;i<Math.min(rows.length,8);i++)if(rows[i].filter(
 const emailsIn=r=>{const o=[];r.forEach(c=>{const m=String(c??'').toLowerCase().match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/g);if(m)m.forEach(x=>o.push(x))});return o};
 /* ---------- backend connection box ---------- */
 function connBox(after){const d=E('div',{className:'row'});
- if(TK){d.innerHTML='<span class="chip" style="flex:none">Connected to backend</span>';d.append(btn('Disconnect',()=>{TK='';sessionStorage.removeItem('cs_tk');after()},'d mini'))}
+ if(TK){d.innerHTML='<span class="chip" style="flex:none">Connected to backend</span>';d.append(btn('Disconnect',()=>{TK='';(sessionStorage.removeItem('cs_tk'),localStorage.removeItem('cs_tk'));after()},'d mini'))}
  else{d.innerHTML='<input type="text" placeholder="Web app address (…/exec)" value="'+esc(bkUrl())+'"><input type="password" placeholder="Admin password"><button class="b p" style="flex:none">Connect</button>';
   const[u,p,b]=d.children;b.onclick=async()=>{BK.u=u.value.trim();localStorage.setItem('cs_bk',JSON.stringify(BK));try{await bkLogin(p.value);toast('Connected');after()}catch(e){toast(e.message)}}}
  return d}
@@ -1245,6 +1250,7 @@ gate.innerHTML=`<div class="g28"><small>HMA · Admin workspace</small><h1>Course
 document.body.append(gate);
 const gq=s=>gate.querySelector(s);
 const lockedMsg={BADPW:'Wrong admin password.',LOCKED:'Too many wrong tries. Wait 15 minutes.'};
+window.csShowGate=(w)=>showGate(w);
 function showGate(why){gq('#g28u').value=bkUrl();gq('#g28p').value='';gq('#g28e').textContent=why||'';gate.hidden=false;setTimeout(()=>gq('#g28p').focus(),50)}
 async function doLogin(){const b=gq('#g28b');b.disabled=true;b.textContent='Signing in...';gq('#g28e').textContent='';
  try{BK.u=gq('#g28u').value.trim();localStorage.setItem('cs_bk',JSON.stringify(BK));await bkLogin(gq('#g28p').value);gate.hidden=true;sessionStorage.removeItem('cs28_skip');try{await pollLive()}catch(e){}toast('Signed in');if(cur==='roster')rosterView()}
@@ -1254,9 +1260,8 @@ gq('#g28k').onclick=()=>{sessionStorage.setItem('cs28_skip','1');gate.hidden=tru
 if(!TK&&!sessionStorage.getItem('cs28_skip'))showGate();
 const hd=$('header');
 const lock=E('button',{className:'b',textContent:'Lock / sign out',title:'Sign out of the backend and lock this screen'});
-lock.onclick=()=>{TK='';sessionStorage.removeItem('cs_tk');sessionStorage.removeItem('cs28_skip');LV={};showGate('Signed out.')};hd.append(lock);
-let idleAt=Date.now();['mousemove','keydown','click','touchstart'].forEach(ev=>addEventListener(ev,()=>idleAt=Date.now(),{passive:true}));
-setInterval(()=>{const m=+(localStorage.getItem('cs28_idle')||30);if(TK&&Date.now()-idleAt>m*60000){TK='';sessionStorage.removeItem('cs_tk');LV={};showGate('Locked after '+m+' minutes without activity. Your unpublished edits are kept.')}},20000);
+lock.onclick=()=>{TK='';(sessionStorage.removeItem('cs_tk'),localStorage.removeItem('cs_tk'));sessionStorage.removeItem('cs28_skip');LV={};showGate('Signed out.')};hd.append(lock);
+/* idle auto-lock removed: the admin stays signed in until you press Lock / sign out */
 
 /* ---------- 2. Auto-publish: every change goes live to students ---------- */
 const ap=E('label',{className:'ap28',title:'Publishes about 6 seconds after your last change. Students reload on their own within ~20 seconds of the site updating.'});
