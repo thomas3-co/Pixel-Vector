@@ -1649,7 +1649,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 <p>Individual project briefs, instructions, rubric, city choices, and submission tracking.</p>
 </div>
 </div>
-<div class="project-board-wrap"><div class="project-board-title"><strong>Phase 1 Project Submission</strong><span>Individual · 15 marks</span></div><div class="assignment-board" id="assignmentBoard"></div></div>
+<div class="project-board-wrap"><div class="project-board-title"><strong>Projects</strong><span>Published by your instructor</span></div><div class="assignment-board" id="assignmentBoard"></div></div>
 <div class="subnav" id="projSubnav">
 <button class="active" data-proj="world">Week 7 · Around the World with a Twist</button>
 <button data-proj="gojo">Week 10 · Gojo Pop-Out Project</button>
@@ -6057,7 +6057,7 @@ window.HM_BAKED = {
     var want=custom?Math.floor(+q.draw):5, keep=q.shuffleOff===true;
     var pool=q.questions.filter(function(x){return x&&x.q&&x.options&&x.options.length>1;}); if(!pool.length) return null;
     if(!keep) pool=pool.slice().sort(function(){return Math.random()-.5;});
-    return pool.slice(0,Math.min(want,pool.length)).map(function(x){ var opts=x.options.map(function(o,i){ return {text:esc(o),correct:i===x.answer}; }); if(!keep) opts.sort(function(){return Math.random()-.5;}); return {prompt:esc(x.q),options:opts}; });
+    return pool.slice(0,Math.min(want,pool.length)).map(function(x){ var opts=x.options.map(function(o,i){ return {text:esc(o),correct:i===x.answer}; }); if(!keep) opts.sort(function(){return Math.random()-.5;}); return {prompt:esc(x.q)+(x.img?'<img class="hm-qimg" alt="" src="'+String(x.img).replace(/"/g,'')+'">':''),options:opts}; });
   };
   HMC.applyProjects=function(arr){
     (D().projects||[]).forEach(function(p){
@@ -9102,10 +9102,7 @@ const PHASE_SUBMISSION_URL = 'https://drive.google.com/drive/folders/1DzGBJliUES
 const SECTION_B_CLASSROOM_URL = 'https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd';
 const SECTION_C_CLASSROOM_URL = 'https://classroom.google.com/c/ODg5MDA0NTM0Mjc5?cjc=547gadfs';
 const SECTION_D_CLASSROOM_URL = 'https://classroom.google.com/c/ODg5MDAzNjk4NTky?cjc=f7ese2pk';
-const HM_ASSIGNMENTS = [
- {id:'w6-individual-city-composition',week:7,title:'Phase 1 — Week 7 Around the World (Individual City Composition)',desc:'Create an individual portrait composition using one of 50 city choices. Remove the background, integrate the subject into the city scene, refine the edge, redesign clothing patterns, and use realistic depth.',skills:['Background Removal','Smudge Tool','Minimum','Gaussian Blur','Portrait Retouching'],checks:['Subject isolated','City background integrated','Clothing pattern redesigned','Final PSD + JPG/PNG ready'],submissionUrl:SECTION_B_CLASSROOM_URL,section:'Section B',marks:15,individual:true},
- {id:'w9-gojo-popout',week:10,title:'Phase 3 — Week 10 Gojo Pop-Out Project',desc:'Build the assigned pop-out composition with clean masking, depth, and a presentation-ready final export.',skills:['Selection','Masking','Depth','Export'],checks:['Subject isolated','Depth created','Final export ready'],submissionUrl:SECTION_D_CLASSROOM_URL,section:'Section D',marks:15}
-];
+const HM_ASSIGNMENTS = [];   /* projects now come only from the admin page (Course Studio > Projects) */
 if(window.HMC) HMC.applyProjects(HM_ASSIGNMENTS);
 const HM_PROJECTS = HM_ASSIGNMENTS;
 function hmOpenWeek(w){ return typeof isCourseWeekOpen==='function' ? isCourseWeekOpen(w) : w<=1; }
@@ -9180,6 +9177,7 @@ function hmMarkSubmitted(id){
 }
 function renderAssignments(){
  const el=document.getElementById('assignmentBoard'); if(!el)return;
+ if(!HM_PROJECTS.length){ el.innerHTML='<p style="padding:18px;color:#667085">No projects have been published yet. Your instructor will publish them here.</p>'; return; }
  el.innerHTML='<div class="assignment-grid">'+HM_PROJECTS.map(a=>{
   const open=hmOpenWeek(a.week), state=hmAssignmentState(a.id);
   const disabled=!open || !student || window.__guestPreview;
@@ -11730,8 +11728,8 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
       try{
         var g=await T(c.api('contentGet',{since:-1},20000)), mine=(window.HMC&&HMC.version)||0;
         if(g&&g.ok){ var same=(g.version===mine); h+=row(same?true:null,'Course content','Your copy: v'+mine+' · latest from instructor: v'+g.version+(same?' (up to date)':' — updating, the page will reload by itself')); }
-        else { h+=row(null,'Course content','The server has no separate copy of the course, so this page uses the course published with the site (build '+((document.querySelector('meta[name="hm-build"]')||{}).content||'unknown')+'). This is normal when the course is published from Course Studio.'); }
-      }catch(e){ h+=row(null,'Course content','The server did not answer, so this page uses the course published with the site (build '+((document.querySelector('meta[name="hm-build"]')||{}).content||'unknown')+').'); }
+        else { h+=row(true,'Course content','Loaded from the site (version '+((document.querySelector('meta[name="hm-build"]')||{}).content||'unknown')+').'); }
+      }catch(e){ h+=row(true,'Course content','Loaded from the site (version '+((document.querySelector('meta[name="hm-build"]')||{}).content||'unknown')+').'); }
       var sy=document.getElementById('hmaSync'); if(sy&&sy.textContent) h+=row(!/Could not|Offline|sign in/i.test(sy.textContent),'Saving',sy.textContent.replace(/^\s*/,''));
     }
     last=bad; btn.classList.toggle('bad',bad>0); btn.textContent=bad?'Problem':'Connection';
@@ -12428,7 +12426,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
     sv.querySelector('button').onclick=ping; ping();
     if(u&&u.email){
       if(!n.value) n.value=u.name||''; if(!e.value) e.value=u.email;
-      bk.innerHTML='<span class="av">'+(first.charAt(0)||'?').toUpperCase()+'</span><div><b>Welcome back, '+first.replace(/[<>&"]/g,'')+'</b><small>'+u.email.replace(/[<>&"]/g,'')+'</small></div><button type="button">Not you?</button>';
+      bk.innerHTML='<span class="av">'+(first.charAt(0)||'?').toUpperCase()+'</span><div><b>'+u.email.replace(/[<>&"]/g,'')+'</b><small>Remembered on this device</small></div><button type="button">Not you?</button>';
       bk.classList.add('on'); form.classList.add('hm-compact');
       bk.querySelector('button').onclick=function(){ try{localStorage.removeItem(LK);}catch(x){} n.value=e.value=p.value=''; bk.classList.remove('on'); form.classList.remove('hm-compact'); n.focus(); };
       try{ if(window.PasswordCredential&&navigator.credentials) navigator.credentials.get({password:true,mediation:'silent'}).then(function(c){ if(c&&c.id&&c.id.toLowerCase()===String(u.email).toLowerCase()&&!p.value) p.value=c.password; }).catch(function(){}); }catch(x){}
@@ -12559,10 +12557,10 @@ function start(p){
   var rnd=_r(_h(String(student.email||'guest').toLowerCase()+'|'+p.id+(rc?'|r'+rc:'')));
   var pool=_s(p.questions.filter(function(q){return q&&String(q.q||'').trim();}),rnd);
   var n=+p.draw>0?Math.min(+p.draw,pool.length):pool.length, qs=pool.slice(0,n).map(function(q){
-    var opts=_s((q.opts||[]).map(function(t,i){return {t:t,i:i};}).filter(function(o){return String(o.t).trim();}),rnd); return {q:q.q,opts:opts,a:Number(q.a)||0}; });
+    var opts=_s((q.opts||[]).map(function(t,i){return {t:t,i:i};}).filter(function(o){return String(o.t).trim();}),rnd); return {q:q.q,img:q.img||'',opts:opts,a:Number(q.a)||0}; });
   var m=document.createElement('div'); m.className='hm-phm';
   m.innerHTML='<div><h2 style="margin-top:0">'+esc(p.title)+'</h2><p>One attempt. '+qs.length+' questions.</p>'+qs.map(function(q,i){
-    return '<div class="hm-phq"><b>'+(i+1)+'. '+esc(q.q)+'</b>'+q.opts.map(function(o){return '<label><input type="radio" name="hq'+i+'" value="'+o.i+'"> '+esc(o.t)+'</label>';}).join('')+'</div>'; }).join('')+
+    return '<div class="hm-phq"><b>'+(i+1)+'. '+esc(q.q)+'</b>'+(q.img?'<img class="hm-qimg" alt="" src="'+String(q.img).replace(/"/g,'')+'">':'')+q.opts.map(function(o){return '<label><input type="radio" name="hq'+i+'" value="'+o.i+'"> '+esc(o.t)+'</label>';}).join('')+'</div>'; }).join('')+
     '<button class="hm-go" style="background:#2f6fed;color:#fff;border:0;border-radius:10px;padding:11px 20px;font:700 14px Inter,sans-serif;cursor:pointer" id="hmPhSub">Submit assessment</button> <button id="hmPhX" style="border:1px solid #ccd;background:#fff;border-radius:10px;padding:10px 16px;cursor:pointer">Cancel</button></div>';
   document.body.appendChild(m);
   m.querySelector('#hmPhX').onclick=function(){ m.remove(); };
@@ -12603,5 +12601,6 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
   if(bar&&window.MutationObserver) new MutationObserver(place).observe(bar,{childList:true});
 })();
 </script>
+<style id="hm-projects-removed">#projSubnav,.proj-view{display:none!important}.hm-qimg{display:block;max-width:100%;max-height:340px;margin:10px auto;border-radius:10px;border:1px solid #e4e7ec;object-fit:contain}</style>
 </body>
 </html>
