@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<meta name="hm-build" content="studio-202611151612">
+<meta name="hm-build" content="studio-202611141722">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
@@ -3195,56 +3195,32 @@ window.HM_BAKED = {
    "title": "Week 8 — practice",
    "days": [
     {
-     "type": "lesson",
+     "type": "practice",
      "label": "PROJECT DAY",
-     "title": "Day 1: Text Effects & Layer Styles",
-     "vocab": [
+     "title": "Day 1:",
+     "vocab": [],
+     "links": [
       {
-       "term": "Layer Style",
-       "def": "Non-destructive visual effects applied to a layer that dynamically update if the text is edited."
-      },
-      {
-       "term": "Bevel & Emboss",
-       "def": "A layer style that adds three-dimensional depth, highlights, and shadows to edges."
-      },
-      {
-       "term": "Fill Opacity",
-       "def": "Controls the transparency of the base text pixels without fading applied layer styles."
-      },
-      {
-       "term": "Global Light",
-       "def": "A master light angle setting that keeps shadows and highlights consistent across all layers."
+       "kind": "project",
+       "ref": "world",
+       "label": "Open the project page"
       }
-     ],
-     "links": [],
-     "front": "Non-destructive typography styling, depth creation, and lighting simulation",
-     "idea": "Transform flat typography into dynamic 3D materials (metal, neon, glass) using **Layer Styles** without permanently altering the editable text layer.\n- Apply **Drop Shadow** and **Outer Glow** to separate type from busy backgrounds using Global Light.\n- Use **Bevel & Emboss** to sculpt raised, sunken, or chiseled edges with highlight and shadow modes.\n- Layer **Gradient**, **Pattern**, and **Stroke** effects for custom surface textures and outlines.\n- Lower **Fill** instead of **Opacity** to hide the base text color while keeping layer effects 100% visible.\n- Save multi-layered effects as reusable **Style Presets** for consistent branding."
+     ]
     },
     {
-     "type": "lesson",
+     "type": "practice",
      "label": "PROJECT DAY",
-     "title": "Day 2: Text with Vanishing Point (Perspective Typography)",
-     "front": "Spatial integration, 3D perspective grids, and realistic surface mapping",
-     "idea": "Place typography naturally into three-dimensional environments by mapping type onto angled surfaces using the **Vanishing Point** filter.\n- Identify **horizon lines** and converging angles in photographs before placing text.\n- Draw accurate single- or multi-plane **perspective grids** to wrap text around 90-degree corners (such as buildings or packaging).\n- Paste and scale typography inside the **Vanishing Point** workspace to automatically match scene foreshortening.\n- Use **Blend If** sliders and **Multiply/Overlay** modes so underlying surface textures (brick, concrete, wood) show through the lettering.",
-     "vocab": [
+     "title": "Day 2: Final Polish & Submit",
+     "front": "Finish, export and submit your Phase One project.",
+     "idea": "**Objective:** Hand in your finished Phase One project.\n- Do a last check at 100% zoom and zoom out to judge the whole image.\n- Save your editable PSD and export a high-resolution JPG or PNG.\n- Submit it from the Projects tab (Week 7 · Around the World with a Twist).",
+     "vocab": [],
+     "links": [
       {
-       "term": "Vanishing Point",
-       "def": "The point on the horizon line where parallel perspective lines appear to converge."
-      },
-      {
-       "term": "Perspective Grid",
-       "def": "A mesh plane drawn in the Vanishing Point filter that defines the 3D angle and scale of a surface."
-      },
-      {
-       "term": "Foreshortening",
-       "def": "The visual distortion that makes objects or text appear compressed as they angle away from the viewer."
-      },
-      {
-       "term": "Blend If",
-       "def": "A layer blending control that reveals underlying surface textures through the highlights or shadows of top layers."
+       "kind": "project",
+       "ref": "world",
+       "label": "Open the project page"
       }
-     ],
-     "links": []
+     ]
     }
    ]
   },
@@ -12826,5 +12802,89 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
 })();
 </script>
 <style id="hm-projects-removed">#projSubnav,.proj-view{display:none!important}.hm-qimg{display:block;max-width:100%;max-height:340px;margin:10px auto;border-radius:10px;border:1px solid #e4e7ec;object-fit:contain}</style>
+<script id="hm-activity">
+/* Activity tracking: counts views of pages, videos, materials, practice files, Read Me notes, lessons,
+   practice days and projects. Stored inside the student's own record, so it syncs to the backend with the
+   rest of the progress and shows in the admin "Views & activity" page. Never touches existing fields. */
+(function(){
+  "use strict";
+  var MAXLOG=120, MAXITEMS=500, THROTTLE=20000, last={};
+  function ok(){ try{ return typeof student!=='undefined' && student && student.email && student.email.indexOf('guest')!==0; }catch(e){ return false; } }
+  function clip(s){ return String(s||'').replace(/\s+/g,' ').trim().slice(0,90); }
+  function track(type,key,label){
+    try{
+      if(!ok()||!type||!key) return;
+      key=String(key); var id=type+'|'+key, now=Date.now();
+      if(last[id]&&now-last[id]<THROTTLE) return; last[id]=now;
+      var iso=new Date(now).toISOString(), v=student.views=student.views||{}; v.items=v.items||{}; v.log=v.log||[];
+      var it=v.items[id];
+      if(!it){ if(Object.keys(v.items).length>=MAXITEMS) return; it=v.items[id]={t:type,k:key,l:clip(label),n:0,f:iso}; }
+      if(label&&!it.l) it.l=clip(label);
+      it.n=(it.n||0)+1; it.la=iso;
+      v.log.push([iso,type,key,clip(label)]); if(v.log.length>MAXLOG) v.log=v.log.slice(-MAXLOG);
+      if(typeof saveStudentRecord==='function') saveStudentRecord(student);
+    }catch(e){}
+  }
+  window.hmTrackView=track;
+
+  /* pages (tabs) */
+  var _go=window.goTab;
+  if(typeof _go==='function') window.goTab=function(name){
+    var r=_go.apply(this,arguments);
+    try{ var b=document.querySelector('.tab[data-tab="'+name+'"]'); track('page',name,b?b.textContent:name); }catch(e){}
+    return r;
+  };
+  /* screencast videos: counted when the student presses play */
+  var _bp=window.theaterBeginPlayback;
+  if(typeof _bp==='function') window.theaterBeginPlayback=function(id,label){
+    var r=_bp.apply(this,arguments); track('video',id,label); return r;
+  };
+  /* quizzes started */
+  var _qs=window.assessmentStart;
+  if(typeof _qs==='function') window.assessmentStart=function(type,key){
+    var r=_qs.apply(this,arguments); track('quiz',(type||'')+':'+key,(type==='video'?'Screencast quiz · ':'Read Me quiz · ')+key); return r;
+  };
+  /* projects opened from a lesson card */
+  var _op=window.hmOpenProject;
+  if(typeof _op==='function') window.hmOpenProject=function(key){ track('project-page',key,'Project · '+key); return _op.apply(this,arguments); };
+
+  /* delegated clicks: Read Me notes, lesson/practice/project cards, practice files and materials */
+  document.addEventListener('click',function(e){
+    try{
+      var t=e.target; if(!t||!t.closest) return;
+      var h=t.closest('.note-section h3, .note-h3-clickable');
+      if(h){ var sec=h.closest('.note-section'); setTimeout(function(){
+        if(sec&&!sec.classList.contains('collapsed')) track('note',sec.id||clip(h.textContent),(h.textContent||'').replace(/▾/g,'')); },60); return; }
+      var fc=t.closest('.flip-card[data-day]');
+      if(fc){ var ty=fc.classList.contains('project-day')?'project':fc.classList.contains('practice-day')?'practice':'lesson';
+        var h4=fc.querySelector('h4'); track(ty,fc.getAttribute('data-day'),(h4?h4.textContent:'Day '+fc.getAttribute('data-day'))); return; }
+      var mc=t.closest('[data-mid][data-mkind]');
+      if(mc&&t.closest('.thumb-poster, .thumb, [data-role="watchbtn"]')){
+        var k=mc.dataset.mkey||'', ty2=k==='seenMaterials'?'material':(mc.dataset.mkind==='video'?'video':'pfile');
+        var lb=mc.querySelector('.lbl'); track(ty2,mc.dataset.mid,lb?lb.textContent:mc.dataset.mid);
+      }
+    }catch(x){}
+  },true);
+
+  /* keep the counts when progress from two devices is merged */
+  function mergeViews(a,b){
+    a=a||{}; b=b||{}; var o={items:{},log:[]}, A=a.items||{}, B=b.items||{};
+    Object.keys(A).concat(Object.keys(B)).forEach(function(k){
+      var x=A[k],y=B[k]; if(!x||!y){ o.items[k]=x||y; return; }
+      o.items[k]={t:x.t,k:x.k,l:x.l||y.l,n:Math.max(x.n||0,y.n||0),f:(x.f<y.f?x.f:y.f),la:(x.la>y.la?x.la:y.la)};
+    });
+    var seen={}; (a.log||[]).concat(b.log||[]).forEach(function(l){ var s=l.join('|'); if(!seen[s]){ seen[s]=1; o.log.push(l); } });
+    o.log.sort(function(p,q){ return p[0]<q[0]?-1:p[0]>q[0]?1:0; }); o.log=o.log.slice(-MAXLOG);
+    return o;
+  }
+  var _m=window.mergeStudentRecords;
+  if(typeof _m==='function') window.mergeStudentRecords=function(base,extra){
+    var bv=base&&base.views, ev=extra&&extra.views, r=_m.apply(this,arguments);
+    try{ if(r&&(bv||ev)) r.views=mergeViews(bv,ev); }catch(e){}
+    return r;
+  };
+})();
+</script>
+
 </body>
 </html>
