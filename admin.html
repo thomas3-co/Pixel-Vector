@@ -240,7 +240,7 @@ function list(root,arr,spec,ti,mk,nested,sw){
   d.ondragstart=e=>{dragI=i;e.dataTransfer.setData('text','x')};d.ondragend=()=>{d.draggable=false;d.classList.remove('dragover')};
   d.ondragover=e=>{if(dragI!=null){e.preventDefault();d.classList.add('dragover')}};d.ondragleave=()=>d.classList.remove('dragover');
   d.ondrop=e=>{e.preventDefault();if(dragI==null||dragI==i)return;const[m]=arr.splice(dragI,1);arr.splice(i,0,m);dragI=null;mark();draw()};
-  const tc={lesson:'curriculum',project:'projects',practice:'practice'}[it.type];if(tc){const y=E('span',{className:'ty',textContent:it.type});y.style.background='var(--c-'+tc+')';s.append(y)}
+  const TCM={lesson:'curriculum',project:'projects',practice:'practice'},tc=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null);const paint=()=>{const c=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null);if(c){d.style.border='2px solid var(--c-'+c+')';d.style.borderLeft='10px solid var(--c-'+c+')'}else{d.style.border='';d.style.borderLeft=''}const yy=s.querySelector('.ty.cty');if(yy&&c){yy.textContent=it.type||c;yy.style.background='var(--c-'+c+')'}};if(tc){const y=E('span',{className:'ty cty',textContent:it.type||tc});y.style.background='var(--c-'+tc+')';s.append(y);paint()}
   if((spec===SPEC.items||spec===SPEC.files)&&it.id){const im=E('img',{className:'th',loading:'lazy',referrerPolicy:'no-referrer'}),ch=HMR.thumbChain(it.id,200);let k=0;im.onerror=()=>{if(++k<ch.length)im.src=ch[k];else im.remove()};im.src=ch[0];s.append(im)}
   if(spec===SPEC.notes||spec===SPEC.quizzes){const y=E('span',{className:'ty',textContent:spec===SPEC.notes?'read me':'quiz'});y.style.background='var(--c-notes)';s.append(y)}
   s.append(sp);
@@ -248,7 +248,7 @@ function list(root,arr,spec,ti,mk,nested,sw){
   btn('Up',()=>{if(i){[arr[i-1],arr[i]]=[arr[i],arr[i-1]];mark();draw()}},'','Move up');btn('Down',()=>{if(i<arr.length-1){[arr[i+1],arr[i]]=[arr[i],arr[i+1]];mark();draw()}},'','Move down');
   btn('Copy',()=>{arr.splice(i+1,0,JSON.parse(JSON.stringify(it)));mark();draw()},'','Copy');btn('Delete',()=>{if(confirm('Delete this item?')){arr.splice(i,1);mark();draw()}},'d','Delete');
   const inn=E('div',{className:'in'});form(inn,it,spec);d.append(s,inn);d.ontoggle=()=>{};box.append(d);
-  const t=()=>{sp.textContent=ti(it,i)};inn.addEventListener('input',t);inn.addEventListener('change',t)});
+  const t=()=>{sp.textContent=ti(it,i);if(typeof paint==='function')paint()};inn.addEventListener('input',t);inn.addEventListener('change',t)});
   if(!arr.length)box.append(E('p',{className:'hint'},'Nothing here yet.'))};
  draw();const a=E('button',{className:'b',textContent:'Add item'});a.onclick=()=>{arr.push(mk());mark();draw();box.lastChild.open=true};root.append(a);return draw}
 /* ===== views ===== */
@@ -692,7 +692,7 @@ go('publish');
  const chk=(label,value,on)=>{const l=E('label',{className:'chk'}),x=E('input',{type:'checkbox'});x.checked=!!value;x.onchange=()=>{on(x.checked);mark()};l.append(x,document.createTextNode(label));return l};
  function shell(k,ey,title,desc,stats){cur=k;$('#ttl').textContent=SECT[k].t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));const v=root();v.innerHTML=hero(ey,title,desc,stats);return v}
  function quizView(){const total=D.quizzes||[],qs=total.reduce((n,q)=>n+(q.questions||[]).length,0);const v=shell('quizzes','Question bank · complete visibility','Quiz Studio','Open every question, inspect all four answer choices, see the correct answer, edit the wording, replace options, and manage which Read Me or screencast owns each quiz.',[stat(total.length,'Quiz sets'),stat(qs,'Questions visible'),stat(total.filter(q=>q.type==='reading').length,'Read Me quizzes'),stat(total.filter(q=>q.type==='video').length,'Screencast quizzes')]);
- const bar=E('div',{className:'studio-editor-toolbar'});const search=E('input',{type:'text',placeholder:'Search quiz, question, or key…'});const filter=E('select');[['all','All quiz types'],['reading','Read Me quizzes'],['video','Screencast quizzes']].forEach(a=>filter.append(E('option',{value:a[0],textContent:a[1]})));bar.append(search,filter,btn('+ New quiz set',()=>{D.quizzes.push({type:'reading',key:'',questions:[]});mark();quizView()},'p'));v.append(bar);
+ const bar=E('div',{className:'studio-editor-toolbar'});const search=E('input',{type:'text',placeholder:'Search quiz, question, or key…'});const filter=E('select');[['all','All quiz types'],['reading','Read Me quizzes'],['video','Screencast quizzes']].forEach(a=>filter.append(E('option',{value:a[0],textContent:a[1]})));bar.append(search,filter,btn('+ New quiz set',()=>{D.quizzes.push({type:(window.__qp&&window.__qp!=='all'?window.__qp:'reading'),key:'',questions:[]});mark();quizView()},'p'));v.append(bar);
  const list=E('div');v.append(list);
  function draw(){list.innerHTML='';let found=0;(D.quizzes||[]).forEach((q,qi)=>{if(filter.value!=='all'&&q.type!==filter.value)return;const text=(q.key+' '+q.type+' '+(q.questions||[]).map(x=>x.q).join(' ')).toLowerCase();if(search.value&&!text.includes(search.value.toLowerCase()))return;found++;
  const card=E('section',{className:'studio-q-card'});const head=E('div',{className:'studio-q-head'});head.append(E('span',{className:'studio-q-num',textContent:String(qi+1)}));const title=E('strong',{textContent:(q.type==='reading'?'Read Me':'Screencast')+' quiz · '+(q.key||'Unassigned key')});head.append(title,E('span',{className:'studio-count',textContent:(q.questions||[]).length+' questions'}));head.append(btn('Duplicate set',()=>{D.quizzes.splice(qi+1,0,JSON.parse(JSON.stringify(q)));mark();quizView()}),btn('Delete set',()=>{if(confirm('Delete this entire quiz set and all its questions?')){D.quizzes.splice(qi,1);mark();quizView()}},'d'));card.append(head);
@@ -705,7 +705,7 @@ go('publish');
  qc.append(area('Question wording',item.q,x=>item.q=x));const opts=E('div',{className:'studio-q-grid'});item.options.slice(0,4).forEach((op,oi)=>{const w=E('div',{className:'studio-option'});const radio=E('input',{type:'radio',name:'correct_'+qi+'_'+ii,className:'studio-radio'});radio.checked=Number(item.answer)===oi;radio.title='Set as correct answer';radio.onchange=()=>{item.answer=oi;mark();quizView()};const text=E('input',{type:'text',value:safe(op),placeholder:'Option '+String.fromCharCode(65+oi)});text.className=Number(item.answer)===oi?'studio-correct':'';text.oninput=()=>{item.options[oi]=text.value;mark()};w.append(radio,text);const tag=E('span',{className:'studio-muted',textContent:String.fromCharCode(65+oi)});w.append(tag);opts.append(w)});qc.append(E('label',{textContent:'Answer choices — select the green radio button for the correct answer'}),opts);const correct=E('div',{className:'studio-muted',textContent:'Correct answer: '+String.fromCharCode(65+(Number(item.answer)||0))+' · '+safe(item.options[Number(item.answer)||0])});qc.append(correct);card.append(qc)});
  card.append(btn('+ Add question',()=>{q.questions.push({q:'',options:['','','',''],answer:0});mark();quizView()},'p'));list.append(card)});
  if(!found)list.append(E('div',{className:'studio-empty',textContent:'No quiz sets match this search. Create a new quiz set to begin.'}));}
- search.oninput=draw;filter.onchange=draw;draw();
+ filter.value=window.__qp||'all';if(window.__qp&&window.__qp!=='all')filter.hidden=true;search.oninput=draw;filter.onchange=draw;draw();
  /* Weekly check-ins are generated from the curriculum vocabulary. This section exposes each week's actual source terms and definitions without changing the student quiz mechanics. */
  const weekly=E('div',{className:'card'});weekly.append(E('h3',{textContent:'Weekly quiz question sources'}),E('p',{className:'hint',textContent:'Weekly quiz questions are generated from vocabulary in the curriculum days. Edit the terms and definitions here; the student quiz continues to randomise its questions.'}));
  (D.weeks||[]).forEach(w=>{const wc=E('details');const sm=E('summary');sm.append(E('span',{textContent:'Week '+w.n+' · '+(w.title||'')+' · '+(w.days||[]).reduce((n,d)=>n+(d.vocab||[]).length,0)+' vocabulary questions'}));wc.append(sm);(w.days||[]).forEach((day,di)=>{day.vocab=day.vocab||[];const dc=E('div',{className:'studio-q-card'});dc.append(E('strong',{textContent:'Day '+(di+1)+' · '+(day.title||'Untitled day')}));day.vocab.forEach((vv,vi)=>{const row=E('div',{className:'studio-q-grid'});row.append(inp('Question term',vv.term,x=>vv.term=x),area('Correct definition / answer',vv.def,x=>vv.def=x));row.append(E('p',{className:'studio-muted',textContent:'Question preview: What does “'+safe(vv.term)+'” mean?'}));row.append(btn('Remove',()=>{day.vocab.splice(vi,1);mark();quizView()},'d'));dc.append(row)});dc.append(btn('+ Add vocabulary question',()=>{day.vocab.push({term:'',def:''});mark();quizView()}));wc.append(dc)});weekly.append(wc)});v.append(weekly);
@@ -1608,6 +1608,152 @@ const mk=(k,l,ic)=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.
 if(gs)gs.children[1]?gs.children[1].before(mk('roster','All students (control list)','♙')):gs.append(mk('roster','All students (control list)','♙'));
 if(gc){const a=[...gc.querySelectorAll('button')].find(b=>b.dataset.k==='assessments');const b=mk('phases','Phase assessments (add more)','✓');a?a.after(b):gc.append(b)}
 }catch(e){console.error('Course Studio 28 failed',e)}})();
+</script>
+
+<style id="cs-views-css">
+.vw-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.vw-tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.vw-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.vw-tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;border-left:6px solid var(--tc,var(--acc))}
+.vw-tile b{display:block;font:700 24px Poppins,sans-serif}.vw-tile span{font-size:12px;color:var(--mut)}
+.vw-row{border:1px solid var(--line);border-left:6px solid var(--tc,var(--acc));border-radius:12px;margin:7px 0;background:var(--panel)}
+.vw-row>summary{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer;list-style:none}
+.vw-row>summary b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vw-pill{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--line);white-space:nowrap}
+.vw-tb{width:100%;border-collapse:collapse;font-size:12.5px}.vw-tb th,.vw-tb td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.vw-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin:6px 0 12px}
+.vw-key i{display:inline-block;width:14px;height:14px;border-radius:4px;border:3px solid;margin-right:5px;vertical-align:-3px}
+</style>
+<script id="cs-views">
+(function(){
+try{
+const TYPES={
+ video:{l:'Screencast videos',one:'Video',c:'var(--c-screen,#ff6a2c)'},
+ material:{l:'Materials',one:'Material',c:'#5b6270'},
+ pfile:{l:'Practice files',one:'Practice file',c:'var(--c-practice,#ef476f)'},
+ note:{l:'Read Me notes',one:'Read Me',c:'var(--c-notes,#8b5cf6)'},
+ lesson:{l:'Lessons',one:'Lesson',c:'var(--c-curriculum,#2f6fed)'},
+ practice:{l:'Practice days',one:'Practice day',c:'var(--c-practice,#ef476f)'},
+ project:{l:'Project days',one:'Project day',c:'var(--c-projects,#ff7a2d)'},
+ 'project-page':{l:'Project pages',one:'Project page',c:'var(--c-projects,#ff7a2d)'},
+ quiz:{l:'Quizzes started',one:'Quiz',c:'#12b886'},
+ page:{l:'Site pages',one:'Page',c:'#2f6fed'}};
+const TABS=[['all','Overview'],['video','Videos'],['material','Materials'],['pfile','Practice files'],['note','Read Me'],['lesson','Lessons'],['practice','Practice days'],['project','Projects'],['page','Pages'],['log','Who viewed what']];
+let tab='all',q='',who='',lt='all';
+const nm=(s,r)=>s.name||(r&&r.name)||s.fullName||s.email;
+const fmt=d=>{if(!d)return '';const x=new Date(d);return isNaN(x)?String(d):x.toLocaleString([],{dateStyle:'medium',timeStyle:'short'})};
+function label(type,key,l){
+ if(type==='video'){const x=(D.items||[]).find(i=>i.id===key);if(x&&x.title)return x.title}
+ if(type==='note'){const x=(D.notes||[]).find(i=>i.id===key);if(x&&x.title)return (x.badge?x.badge+' · ':'')+x.title}
+ return l||key}
+function collect(){
+ const items={},log=[],people=[];
+ Object.values(ST||{}).forEach(s=>{const r=s.rec;if(!r)return;const email=String(s.email||r.email||'').toLowerCase(),name=nm(s,r);people.push(email);
+  const v=r.views||{},have=new Set();
+  const add=(type,key,l,n,la,legacy)=>{const id=type+'|'+key;let it=items[id];if(!it)it=items[id]={type,key,l:label(type,key,l),views:0,who:{}};
+   it.views+=n;const w=it.who[email]||(it.who[email]={name,email,n:0,last:'',legacy:true});w.n+=n;if(la&&la>w.last)w.last=la;if(!legacy)w.legacy=false};
+  Object.values(v.items||{}).forEach(x=>{have.add(x.t+'|'+x.k);add(x.t,x.k,x.l,x.n||1,x.la,false)});
+  [['seenScreencasts','video'],['seenMaterials','material'],['seenPractice','pfile'],['readingSeen','note']].forEach(([f,t])=>(r[f]||[]).forEach(k=>{if(!have.has(t+'|'+k))add(t,k,'',1,'',true)}));
+  (v.log||[]).forEach(a=>log.push({at:a[0],type:a[1],key:a[2],l:label(a[1],a[2],a[3]),name,email}));
+ });
+ log.sort((a,b)=>a.at<b.at?1:-1);
+ return{items:Object.values(items),log,people};
+}
+function tile(n,l,c){const d=E('div',{className:'vw-tile'});d.style.setProperty('--tc',c||'var(--acc)');d.innerHTML='<b>'+n+'</b><span>'+esc(l)+'</span>';return d}
+function csv(rows,name){const t=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download=name;a.click()}
+async function pull(msg){
+ if(!TK){msg.textContent='Connect to the backend first (Connect & publish).';return false}
+ try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:5});if(!j.ok)throw new Error(j.message||j.error||'Could not load students');(j.students||[]).forEach(x=>addSt(x.email,x));n+=(j.students||[]).length;msg.textContent='Loaded '+n+(j.total?' of '+j.total:'')+'…';if(j.done)break;off+=5}
+  await saveST();msg.textContent='Loaded '+n+' students.';return true}catch(e){msg.textContent='Failed: '+e.message;return false}}
+function viewsPage(){
+ cur='views';$('#ttl').textContent='Views & activity';
+ document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==='views'));
+ const v=$('#view');v.innerHTML='';const C=collect();
+ const top=E('div',{className:'card'});
+ top.innerHTML='<h3>Views & activity</h3><p class="hint">How many times each video, material, practice file, Read Me note, lesson and page was opened, and exactly which student opened what. Counts start from the day the updated student site is published; older progress shows as 1 view ("earlier").</p>';
+ const bar=E('div',{style:'display:flex;gap:8px;flex-wrap:wrap;align-items:center'});
+ const rf=E('button',{className:'b p',textContent:'Refresh from backend'}),ms=E('span',{className:'hint'});
+ rf.onclick=async()=>{rf.disabled=true;const ok=await pull(ms);rf.disabled=false;if(ok)viewsPage()};
+ const ex=E('button',{className:'b',textContent:'Export CSV'});
+ bar.append(rf,ex,ms);top.append(bar,E('p',{className:'hint',textContent:C.people.length+' student records loaded.'}));v.append(top);
+ const tb=E('div',{className:'vw-tabs'});TABS.forEach(([k,l])=>{const b=E('button',{className:'b'+(tab===k?' on':''),textContent:l});b.onclick=()=>{tab=k;viewsPage()};tb.append(b)});v.append(tb);
+ const body=E('div');v.append(body);
+ const sum=t=>C.items.filter(i=>i.type===t).reduce((n,i)=>n+i.views,0);
+ const uniq=t=>{const s=new Set();C.items.filter(i=>i.type===t).forEach(i=>Object.keys(i.who).forEach(e=>s.add(e)));return s.size};
+ if(tab==='all'){
+  const g=E('div',{className:'vw-tiles'});['video','material','pfile','note','lesson','practice','project','page'].forEach(t=>g.append(tile(sum(t),TYPES[t].l+' · views ('+uniq(t)+' students)',TYPES[t].c)));body.append(g);
+  const top5=E('div',{className:'card'});top5.innerHTML='<h3>Most viewed</h3>';
+  C.items.filter(i=>i.type!=='page'&&i.type!=='quiz').sort((a,b)=>b.views-a.views).slice(0,10).forEach(i=>top5.append(row(i)));
+  if(!C.items.length)top5.append(E('p',{className:'hint',textContent:'No view data yet. Press “Refresh from backend” after students use the updated site.'}));body.append(top5);
+  const act={};C.people.forEach(e=>act[e]=0);C.items.forEach(i=>Object.values(i.who).forEach(w=>act[w.email]=(act[w.email]||0)+w.n));
+  const low=Object.entries(act).filter(([e,n])=>!n).length;
+  if(low)body.append(E('div',{className:'cs27-callout',textContent:low+' student record(s) have no recorded views yet.'}));
+ }else if(tab==='log'){
+  const f=E('div',{className:'row',style:'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px'});
+  const sS=E('input',{type:'text',placeholder:'Search student or content…',value:q}),sT=E('select');
+  sT.innerHTML='<option value="all">All types</option>'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k].one+'</option>').join('');sT.value=lt;
+  const sU=E('select');sU.innerHTML='<option value="">All students</option>'+[...new Map(C.log.map(a=>[a.email,a.name])).entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]))).map(([e,n])=>'<option value="'+esc(e)+'">'+esc(n)+'</option>').join('');sU.value=who;
+  f.append(sS,sT,sU);body.append(f);const box=E('div',{className:'card',style:'overflow:auto'});body.append(box);
+  const draw=()=>{q=sS.value;lt=sT.value;who=sU.value;const ql=q.toLowerCase();
+   const rows=C.log.filter(a=>(lt==='all'||a.type===lt)&&(!who||a.email===who)&&(!ql||(a.name+' '+a.l+' '+a.email).toLowerCase().includes(ql)));
+   box.innerHTML='<table class="vw-tb"><tr><th>When</th><th>Student</th><th>Type</th><th>Content</th></tr>'+rows.slice(0,400).map(a=>{const T=TYPES[a.type]||{one:a.type,c:'#999'};return '<tr><td>'+esc(fmt(a.at))+'</td><td>'+esc(a.name)+'</td><td><span class="vw-pill" style="border-left:5px solid '+T.c+'">'+esc(T.one)+'</span></td><td>'+esc(a.l)+'</td></tr>'}).join('')+'</table>'+(rows.length>400?'<p class="hint">Showing the newest 400 of '+rows.length+'. Use the filters or Export CSV.</p>':'')+(!rows.length?'<p class="hint">Nothing recorded yet. Each student keeps their latest 120 actions.</p>':'');
+   ex.onclick=()=>csv([['When','Student','Email','Type','Content']].concat(rows.map(a=>[a.at,a.name,a.email,a.type,a.l])),'who-viewed-what.csv')};
+  [sS].forEach(x=>x.oninput=draw);sT.onchange=sU.onchange=draw;draw();
+ }else{
+  const sI=E('input',{type:'text',placeholder:'Search '+TYPES[tab].l.toLowerCase()+'…',value:q,style:'margin-bottom:10px'});body.append(sI);
+  const box=E('div');body.append(box);const arr=C.items.filter(i=>i.type===tab).sort((a,b)=>b.views-a.views);
+  const draw=()=>{q=sI.value;box.innerHTML='';const ql=q.toLowerCase();const r=arr.filter(i=>!ql||i.l.toLowerCase().includes(ql));
+   box.append(E('p',{className:'hint',textContent:r.length+' item(s) · '+r.reduce((n,i)=>n+i.views,0)+' total views'}));r.forEach(i=>box.append(row(i)));
+   if(!r.length)box.append(E('p',{className:'hint',textContent:'No views recorded for this category yet.'}));
+   ex.onclick=()=>csv([['Type','Content','Total views','Student','Email','Student views','Last viewed']].concat(arr.flatMap(i=>Object.values(i.who).map(w=>[TYPES[i.type].one,i.l,i.views,w.name,w.email,w.n,w.last]))),'views-'+tab+'.csv')};
+  sI.oninput=draw;draw();
+ }
+ if(tab==='all'||tab==='log')ex.onclick=ex.onclick||(()=>csv([['Type','Content','Total views','Student','Email','Student views','Last viewed']].concat(C.items.flatMap(i=>Object.values(i.who).map(w=>[TYPES[i.type].one,i.l,i.views,w.name,w.email,w.n,w.last]))),'views-all.csv'));
+ function row(i){const d=E('details',{className:'vw-row'}),T=TYPES[i.type]||{c:'#999',one:i.type};d.style.setProperty('--tc',T.c);
+  const ws=Object.values(i.who).sort((a,b)=>b.n-a.n);
+  d.innerHTML='<summary><b>'+esc(i.l)+'</b><span class="vw-pill">'+i.views+' views</span><span class="vw-pill">'+ws.length+' student'+(ws.length==1?'':'s')+'</span></summary><div style="padding:0 12px 10px;overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Views</th><th>Last viewed</th></tr>'+ws.map(w=>'<tr><td>'+esc(w.name)+'<br><small style="color:var(--mut)">'+esc(w.email)+'</small></td><td>'+w.n+(w.legacy?' <small style="color:var(--mut)">(earlier)</small>':'')+'</td><td>'+esc(fmt(w.last))+'</td></tr>').join('')+'</table></div>';return d}
+}
+
+/* ---------- three separate quiz pages ---------- */
+const QP={
+ quizCurr:{t:'Curriculum quizzes',ed:()=>prev('assessments'),pre:'all',intro:'Weekly curriculum quizzes and the Phase assessment. Questions are edited below; results of every student are listed here.',
+  res:r=>{const o=[];const wq=r.weekQuizzes||{};Object.keys(wq).forEach(k=>o.push(['Week '+k+' weekly quiz',wq[k]]));const pa=r.phaseAssessments||{};Object.keys(pa).forEach(k=>{const x=pa[k];if(x&&typeof x==='object')o.push(['Phase assessment · '+k,x])});return o}},
+ quizRead:{t:'Read Me quizzes',ed:()=>prev('quizzes'),pre:'reading',intro:'Quizzes that follow each Read Me note. Edit them below; results of every student are listed here.',
+  res:r=>Object.entries((r.contentQuizzes||{}).reading||{}).map(([k,x])=>['Read Me · '+((D.notes||[]).find(n=>n.id===k)||{}).title||k,x]).map(a=>a)},
+ quizScreen:{t:'Screencast quizzes',ed:()=>prev('quizzes'),pre:'video',intro:'Quizzes that follow each screencast. Edit them below; results of every student are listed here.',
+  res:r=>Object.entries((r.contentQuizzes||{}).screencasts||{}).map(([k,x])=>['Screencast · '+(((D.items||[]).find(n=>n.id===k)||{}).title||k),x])}};
+QP.quizRead.res=r=>Object.entries((r.contentQuizzes||{}).reading||{}).map(([k,x])=>['Read Me · '+(((D.notes||[]).find(n=>n.id===k)||{}).title||k),x]);
+function quizPage(k){
+ const P=QP[k];window.__qp=P.pre;cur=k;
+ if(!src){const v=$('#view');$('#ttl').textContent=P.t;v.innerHTML='';v.append(E('div',{className:'card'},'<b>Connect first.</b> Open <i>Connect & publish</i> and load your index.html.'));return}
+ P.ed();$('#ttl').textContent=P.t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+ const v=$('#view'),c=E('details',{className:'card',open:true});
+ const rows=[];Object.values(ST||{}).forEach(s=>{if(!s.rec)return;P.res(s.rec).forEach(([n,x])=>{if(!x)return;const sc=+x.score||0,tt=+x.total||0;rows.push({who:nm(s,s.rec),email:s.email,n,sc,tt,at:x.completedAt||x.at||'',bad:!!x.invalidated})})});
+ const taken=new Set(rows.map(r=>r.email)).size,tot=Object.values(ST||{}).filter(s=>s.rec).length;
+ const avg=rows.filter(r=>r.tt&&!r.bad);const a=avg.length?Math.round(avg.reduce((n,r)=>n+r.sc/r.tt*100,0)/avg.length):0;
+ c.innerHTML='<summary style="font:700 15px Poppins;cursor:pointer">Results · '+rows.length+' attempts by '+taken+' of '+tot+' students · average '+a+'%</summary><p class="hint">'+esc(P.intro)+' Press “Refresh from backend” on the Views & activity page to load the latest records.</p>'+
+ '<div style="overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Quiz</th><th>Score</th><th>%</th><th>When</th></tr>'+rows.sort((x,y)=>x.at<y.at?1:-1).slice(0,300).map(r=>'<tr><td>'+esc(r.who)+'</td><td>'+esc(r.n)+'</td><td>'+r.sc+'/'+r.tt+(r.bad?' <small>(auto-zero)</small>':'')+'</td><td>'+(r.tt?Math.round(r.sc/r.tt*100):0)+'%</td><td>'+esc(fmt(r.at))+'</td></tr>').join('')+'</table>'+(rows.length?'':'<p class="hint">No results loaded yet.</p>')+'</div>';
+ v.insertBefore(c,v.firstChild);
+}
+/* ---------- routing + navigation ---------- */
+const prev=go;
+go=function(k){
+ if(k==='views')return viewsPage();
+ if(QP[k])return quizPage(k);
+ if(k==='quizzes')window.__qp='all';
+ const r=prev(k);
+ try{if(k==='weeks'||k==='projects'||k==='practice'){const v=$('#view');if(v&&!v.querySelector('.vw-key')){const g=E('div',{className:'vw-key'});g.innerHTML='<span><i style="border-color:var(--c-curriculum)"></i>Lesson</span><span><i style="border-color:var(--c-practice)"></i>Practice</span><span><i style="border-color:var(--c-projects)"></i>Project</span><span>Card borders follow these colours (change them in Brand &amp; colour system).</span>';v.insertBefore(g,v.firstChild)}}}catch(e){}
+ return r};
+SECT.views={t:'Views & activity'};Object.keys(QP).forEach(k=>SECT[k]={t:QP[k].t});
+const nv=document.getElementById('nav');
+const mk=(k,l,ic)=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.icon=ic;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};return b};
+const gr=[...nv.querySelectorAll('.cs27-group')];
+const gOv=gr.find(x=>x.textContent.indexOf('Overview')>-1),gC=gr.find(x=>x.textContent.indexOf('Course content')>-1);
+if(gOv)gOv.append(mk('views','Views & activity','◉'));
+if(gC){const qb=[...gC.querySelectorAll('button')].find(b=>b.dataset.k==='quizzes');
+ const bs=[mk('quizCurr','Curriculum quizzes','✓'),mk('quizRead','Read Me quizzes','▤'),mk('quizScreen','Screencast quizzes','▶')];
+ if(qb){let at=qb;bs.forEach(b=>{at.after(b);at=b})}else bs.forEach(b=>gC.append(b))}
+}catch(e){console.error('Views page failed',e)}})();
 </script>
 
 </body></html>
