@@ -108,6 +108,8 @@
   --c-notes:#8b5cf6;
   --c-screen:#ff6a2c;
   --c-practice:#ef476f;
+  --c-day1:#2f6fed;
+  --c-day2:#12b886;
   --radius:16px;
   --shadow:0 10px 30px rgba(15,17,23,0.10);
 }
@@ -7501,6 +7503,8 @@ document.querySelectorAll('.flip-card[data-day] .vocab').forEach(v=>{
 });
 /* ---------- WEEK-END QUIZ (auto pop-out when both days in a week are done) ---------- */
 function buildWeekQuiz(week){
+  try{ const cq = window.HMC && HMC.customQuiz && HMC.customQuiz('week', String(week));
+    if(cq && cq.length) return cq.map(x=>({ text:x.prompt, term:'', correct:(x.options.find(o=>o.correct)||{}).text, options:x.options.map(o=>o.text) })); }catch(e){}
   const pool = vocabPool.filter(v=>v.week===week);
   if(pool.length < 2) return []; // not enough vocab this week (e.g. placeholder weeks) -> reflection-only
   const shuffled = pool.slice().sort(()=>Math.random()-0.5).slice(0,3);
@@ -7529,7 +7533,7 @@ function maybeShowWeekQuiz(week){
     quiz.forEach((q,i)=>{
       const wrap = document.createElement('div');
       wrap.className = 'wq-question-card';
-      wrap.innerHTML = `<div class="wq-question-head"><span class="wq-question-number">${i+1}</span><div><div class="wq-question-kicker">Vocabulary check</div><div class="wq-question-text">What does "${q.term}" mean?</div></div></div>` +
+      wrap.innerHTML = `<div class="wq-question-head"><span class="wq-question-number">${i+1}</span><div><div class="wq-question-kicker">${q.text?'Curriculum quiz':'Vocabulary check'}</div><div class="wq-question-text">${q.text?q.text:`What does "${q.term}" mean?`}</div></div></div>` +
         `<div class="wq-options">` + q.options.map((opt,oi)=>`<label class="wq-option">
           <input type="radio" name="wqq-${week}-${i}" value="${oi}" data-correct="${opt===q.correct?'1':'0'}">
           <span class="wq-option-letter">${String.fromCharCode(65+oi)}</span><span class="wq-option-text">${opt}</span><span class="wq-option-check" aria-hidden="true">✓</span>
@@ -12802,6 +12806,16 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
 })();
 </script>
 <style id="hm-projects-removed">#projSubnav,.proj-view{display:none!important}.hm-qimg{display:block;max-width:100%;max-height:340px;margin:10px auto;border-radius:10px;border:1px solid #e4e7ec;object-fit:contain}</style>
+<style id="hm-day-colors">
+/* Day 1 / Day 2 colour coding - colours are chosen in the admin (Site colours) */
+.flip-card[data-day$="-1"]{--dayc:var(--c-day1,#2f6fed)}
+.flip-card[data-day$="-2"]{--dayc:var(--c-day2,#12b886)}
+.flip-card[data-day$="-1"] .flip-card-front,.flip-card[data-day$="-1"] .flip-card-back,
+.flip-card[data-day$="-2"] .flip-card-front,.flip-card[data-day$="-2"] .flip-card-back{box-shadow:inset 0 8px 0 var(--dayc)}
+.flip-card[data-day$="-1"] .flip-card-front::after,.flip-card[data-day$="-2"] .flip-card-front::after{position:absolute;top:16px;right:14px;background:var(--dayc);color:#fff;font:800 11px/1 'Inter',Arial,sans-serif;letter-spacing:.09em;padding:6px 11px;border-radius:99px;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 2px 6px rgba(16,24,40,.22);pointer-events:none}
+.flip-card[data-day$="-1"] .flip-card-front::after{content:'DAY 1'}
+.flip-card[data-day$="-2"] .flip-card-front::after{content:'DAY 2'}
+</style>
 <script id="hm-activity">
 /* Activity tracking: counts views of pages, videos, materials, practice files, Read Me notes, lessons,
    practice days and projects. Stored inside the student's own record, so it syncs to the backend with the
@@ -12810,6 +12824,8 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
   "use strict";
   var MAXLOG=120, MAXITEMS=500, THROTTLE=20000, last={};
   function ok(){ try{ return typeof student!=='undefined' && student && student.email && student.email.indexOf('guest')!==0; }catch(e){ return false; } }
+  function pad(n){ return (n<10?'0':'')+n; }
+  function dayKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
   function clip(s){ return String(s||'').replace(/\s+/g,' ').trim().slice(0,90); }
   function track(type,key,label){
     try{
@@ -12820,7 +12836,7 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
       var it=v.items[id];
       if(!it){ if(Object.keys(v.items).length>=MAXITEMS) return; it=v.items[id]={t:type,k:key,l:clip(label),n:0,f:iso}; }
       if(label&&!it.l) it.l=clip(label);
-      it.n=(it.n||0)+1; it.la=iso;
+      it.n=(it.n||0)+1; it.la=iso; var dk=dayKey(new Date(now)); it.d=it.d||{}; it.d[dk]=(it.d[dk]||0)+1;
       v.log.push([iso,type,key,clip(label)]); if(v.log.length>MAXLOG) v.log=v.log.slice(-MAXLOG);
       if(typeof saveStudentRecord==='function') saveStudentRecord(student);
     }catch(e){}
@@ -12871,7 +12887,8 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
     a=a||{}; b=b||{}; var o={items:{},log:[]}, A=a.items||{}, B=b.items||{};
     Object.keys(A).concat(Object.keys(B)).forEach(function(k){
       var x=A[k],y=B[k]; if(!x||!y){ o.items[k]=x||y; return; }
-      o.items[k]={t:x.t,k:x.k,l:x.l||y.l,n:Math.max(x.n||0,y.n||0),f:(x.f<y.f?x.f:y.f),la:(x.la>y.la?x.la:y.la)};
+      var d={},dx=x.d||{},dy=y.d||{}; Object.keys(dx).concat(Object.keys(dy)).forEach(function(z){ d[z]=Math.max(dx[z]||0,dy[z]||0); });
+      o.items[k]={t:x.t,k:x.k,l:x.l||y.l,n:Math.max(x.n||0,y.n||0),f:(x.f<y.f?x.f:y.f),la:(x.la>y.la?x.la:y.la),d:d};
     });
     var seen={}; (a.log||[]).concat(b.log||[]).forEach(function(l){ var s=l.join('|'); if(!seen[s]){ seen[s]=1; o.log.push(l); } });
     o.log.sort(function(p,q){ return p[0]<q[0]?-1:p[0]>q[0]?1:0; }); o.log=o.log.slice(-MAXLOG);
