@@ -172,7 +172,7 @@ resources:{t:'Quick links & resources',l:'resources',mk:()=>({title:'',url:'',de
 faq:{t:'Student FAQ',l:'faq',mk:()=>({q:'',a:''}),ti:x=>x.q||'New question'},
 progressReset:{t:'Student Progress Reset'},profile:{t:'Badges & profile',f:()=>[[D.profile,[['side','Profile side','s',['left','right']],['accents','Accent colours (comma separated)','csv'],['badges','The 5 badges','sub',[['name','Name'],['color','Colour','c'],['progress','Lessons finished %','n'],['result','Score %','n'],['visits','Days visited','n']],b=>b.name||'Badge',()=>({name:'',color:'#2f6fed',progress:0,result:0,visits:1})]]]]},
 access:{t:'Login screen',f:()=>[[D.login,[['brandLine','Login screen top line'],['notes','Notes under the login button — one per line','lines']]]]},
-theme:{t:'Site colours',f:()=>[[D.theme,[['curriculum','Curriculum and lessons','c'],['projects','Projects','c'],['practice','Practice','c'],['notes','Read Me notes','c'],['screen','Screencasts','c']]]]},import:{t:'Import from spreadsheet'},students:{t:'Students'},records:{t:'Help, announcements and log'},source:{t:'Source editor'},publish:{t:'Connect & publish'}};
+theme:{t:'Site colours',f:()=>[[D.theme,[['curriculum','Curriculum and lessons','c'],['projects','Projects','c'],['practice','Practice','c'],['notes','Read Me notes','c'],['screen','Screencasts','c'],['day1','Day 1 cards (badge + top stripe on the student site)','c'],['day2','Day 2 cards (badge + top stripe on the student site)','c']]]]},import:{t:'Import from spreadsheet'},students:{t:'Students'},records:{t:'Help, announcements and log'},source:{t:'Source editor'},publish:{t:'Connect & publish'}};
 /* ===== codecs ===== */
 const enc={csv:v=>(v||[]).join(', '),lines:v=>(v||[]).join('\n'),pairs:(v,k)=>(v||[]).map(o=>k.map(x=>o[x]??'').join(' | ')).join('\n'),map:v=>Object.entries(v||{}).map(([a,b])=>a+' = '+b).join('\n')};
 const dec={csv:t=>t.split(',').map(s=>s.trim()).filter(Boolean),lines:t=>t.split('\n').map(s=>s.trim()).filter(Boolean),
@@ -242,6 +242,7 @@ function list(root,arr,spec,ti,mk,nested,sw){
   d.ondrop=e=>{e.preventDefault();if(dragI==null||dragI==i)return;const[m]=arr.splice(dragI,1);arr.splice(i,0,m);dragI=null;mark();draw()};
   const TCM={lesson:'curriculum',project:'projects',practice:'practice'},tc=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null);const paint=()=>{const c=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null);if(c){d.style.border='2px solid var(--c-'+c+')';d.style.borderLeft='10px solid var(--c-'+c+')'}else{d.style.border='';d.style.borderLeft=''}const yy=s.querySelector('.ty.cty');if(yy&&c){yy.textContent=it.type||c;yy.style.background='var(--c-'+c+')'}};if(tc){const y=E('span',{className:'ty cty',textContent:it.type||tc});y.style.background='var(--c-'+tc+')';s.append(y);paint()}
   if((spec===SPEC.items||spec===SPEC.files)&&it.id){const im=E('img',{className:'th',loading:'lazy',referrerPolicy:'no-referrer'}),ch=HMR.thumbChain(it.id,200);let k=0;im.onerror=()=>{if(++k<ch.length)im.src=ch[k];else im.remove()};im.src=ch[0];s.append(im)}
+  if(spec===DAY&&i<2){const dy=E('span',{className:'ty',textContent:'Day '+(i+1)});dy.style.background='var(--c-day'+(i+1)+',#2f6fed)';s.append(dy)}
   if(spec===SPEC.notes||spec===SPEC.quizzes){const y=E('span',{className:'ty',textContent:spec===SPEC.notes?'read me':'quiz'});y.style.background='var(--c-notes)';s.append(y)}
   s.append(sp);
   const btn=(txt,fn,cls='',tip)=>{const b=E('button',{className:'b mini '+cls,textContent:txt,title:tip||txt});b.onclick=e=>{e.preventDefault();e.stopPropagation();fn()};s.append(b)};
@@ -464,7 +465,7 @@ function load(t){src=t;const w={HM_CONTENT:{}};['cc-0-profile','cc-1-curriculum'
  notes:notes,quizzes:quizzes,assessments:assessments,phases:pick('phases',[]),projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),deadlines:pick('deadlines',[]),resources:pick('resources',[]),faq:pick('faq',[]),
  profile:{side:pf.side||P.side||'left',accents:pf.accents||P.accents||[],badges:JSON.parse(JSON.stringify(pf.badges||P.badges||[]))},
  session:Object.assign({idleMinutes:0,warnMinutes:0},{}),login:Object.assign({notes:[]},w.HM_LOGIN,b.login),theme:readTheme()}}
-function readTheme(){const o={},m=/:root\s*\{[\s\S]*?\}/.exec(src);(m?m[0]:'').replace(/--c-(curriculum|projects|notes|screen|practice)\s*:\s*(#[0-9a-fA-F]{3,8})/g,(a,n,c)=>o[n]=c);return o}
+function readTheme(){const o={},m=/:root\s*\{[\s\S]*?\}/.exec(src);(m?m[0]:'').replace(/--c-(curriculum|projects|notes|screen|practice|day1|day2)\s*:\s*(#[0-9a-fA-F]{3,8})/g,(a,n,c)=>o[n]=c);return o}
 function applyTheme(){Object.entries(D.theme||{}).forEach(([n,c])=>document.documentElement.style.setProperty('--c-'+n,c))}
 function clean(o){if(Array.isArray(o))return o.map(clean);if(o&&typeof o=='object'){const r={};for(const k in o){if(o[k]===''||o[k]==null||(typeof o[k]=='number'&&isNaN(o[k])))continue;r[k]=clean(o[k])}return r}return o}
 function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test(d.site.title||''))delete d.site.title;if(/^Cc\//.test(d.site.intro||''))delete d.site.intro}
@@ -476,7 +477,7 @@ function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test
  if(d.assessments&&d.assessments.length)B.assessments=d.assessments;if(d.phases&&d.phases.length)B.phases=d.phases;
  B.profile=d.profile;B.session=d.session;B.login=d.login;
  let t=src.replace(RE9,()=>'<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(B,null,1).replace(/<\//g,'<\\/')+';\n<\/script>');
- t=t.replace(/:root\s*\{[\s\S]*?\}/,b=>b.replace(/(--c-(curriculum|projects|notes|screen|practice)\s*:\s*)(#[0-9a-fA-F]{3,8})/g,(m,a,n,c)=>a+((D.theme||{})[n]||c)));
+ t=t.replace(/:root\s*\{[\s\S]*?\}/,b=>{b=b.replace(/(--c-(curriculum|projects|notes|screen|practice|day1|day2)\s*:\s*)(#[0-9a-fA-F]{3,8})/g,(m,a,n,c)=>a+((D.theme||{})[n]||c));['day1','day2'].forEach(n=>{if(!new RegExp('--c-'+n+'\\s*:').test(b)&&(D.theme||{})[n])b=b.replace(/\}\s*$/,'  --c-'+n+':'+D.theme[n]+';\\n}')});return b});
  if(d.assessments&&d.assessments.length){
   const bank=d.assessments.map(q=>{const opts=(q.opts||[]).slice(0,4),ix=Math.max(0,Math.min(3,Number(q.a)||0)),correct=opts.splice(ix,1)[0];return [Number(q.week)||1,String(q.q||''),correct,...opts]});
   const literal=JSON.stringify(bank).replace(/<\//g,'<\\/');
@@ -695,7 +696,7 @@ go('publish');
  const bar=E('div',{className:'studio-editor-toolbar'});const search=E('input',{type:'text',placeholder:'Search quiz, question, or key…'});const filter=E('select');[['all','All quiz types'],['reading','Read Me quizzes'],['video','Screencast quizzes']].forEach(a=>filter.append(E('option',{value:a[0],textContent:a[1]})));bar.append(search,filter,btn('+ New quiz set',()=>{D.quizzes.push({type:(window.__qp&&window.__qp!=='all'?window.__qp:'reading'),key:'',questions:[]});mark();quizView()},'p'));v.append(bar);
  const list=E('div');v.append(list);
  function draw(){list.innerHTML='';let found=0;(D.quizzes||[]).forEach((q,qi)=>{if(filter.value!=='all'&&q.type!==filter.value)return;const text=(q.key+' '+q.type+' '+(q.questions||[]).map(x=>x.q).join(' ')).toLowerCase();if(search.value&&!text.includes(search.value.toLowerCase()))return;found++;
- const card=E('section',{className:'studio-q-card'});const head=E('div',{className:'studio-q-head'});head.append(E('span',{className:'studio-q-num',textContent:String(qi+1)}));const title=E('strong',{textContent:(q.type==='reading'?'Read Me':'Screencast')+' quiz · '+(q.key||'Unassigned key')});head.append(title,E('span',{className:'studio-count',textContent:(q.questions||[]).length+' questions'}));head.append(btn('Duplicate set',()=>{D.quizzes.splice(qi+1,0,JSON.parse(JSON.stringify(q)));mark();quizView()}),btn('Delete set',()=>{if(confirm('Delete this entire quiz set and all its questions?')){D.quizzes.splice(qi,1);mark();quizView()}},'d'));card.append(head);
+ const card=E('section',{className:'studio-q-card'});const head=E('div',{className:'studio-q-head'});head.append(E('span',{className:'studio-q-num',textContent:String(qi+1)}));const title=E('strong',{textContent:(q.type==='reading'?'Read Me':q.type==='week'?'Curriculum week':'Screencast')+' quiz · '+(q.key||'Unassigned key')});head.append(title,E('span',{className:'studio-count',textContent:(q.questions||[]).length+' questions'}));head.append(btn('Duplicate set',()=>{D.quizzes.splice(qi+1,0,JSON.parse(JSON.stringify(q)));mark();quizView()}),btn('Delete set',()=>{if(confirm('Delete this entire quiz set and all its questions?')){D.quizzes.splice(qi,1);mark();quizView()}},'d'));card.append(head);
  const meta=E('div',{className:'studio-q-grid'});meta.append(sel('Quiz type',q.type,[['reading','Read Me'],['video','Screencast']],x=>q.type=x),inp('Linked note / screencast ID',q.key,x=>q.key=x));card.append(meta);
  const note=E('p',{className:'studio-muted',textContent:'Every question below is expanded for editing. Correct answers are shown only in this admin editor; the student quiz continues to use the saved answer index.'});card.append(note);
  /* The live student site also builds its five-question checks from the linked item's vocabulary. Expose that source here so even built-in/generated checks are editable. */
@@ -1614,8 +1615,11 @@ if(gc){const a=[...gc.querySelectorAll('button')].find(b=>b.dataset.k==='assessm
 .vw-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
 .vw-tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .vw-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.vw-tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;border-left:6px solid var(--tc,var(--acc))}
+.vw-tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;border-left:6px solid var(--tc,var(--acc));text-align:left;color:var(--ink);cursor:pointer;font:inherit}
+.vw-tile.on{outline:2px solid var(--tc,var(--acc))}
 .vw-tile b{display:block;font:700 24px Poppins,sans-serif}.vw-tile span{font-size:12px;color:var(--mut)}
+.vw-big{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}.vw-big b{display:block;font:700 34px Poppins,sans-serif}.vw-big span{font-size:12px;color:var(--mut)}
+.vw-up{color:#12b886}.vw-down{color:#ef476f}
 .vw-row{border:1px solid var(--line);border-left:6px solid var(--tc,var(--acc));border-radius:12px;margin:7px 0;background:var(--panel)}
 .vw-row>summary{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer;list-style:none}
 .vw-row>summary b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1623,6 +1627,11 @@ if(gc){const a=[...gc.querySelectorAll('button')].find(b=>b.dataset.k==='assessm
 .vw-tb{width:100%;border-collapse:collapse;font-size:12.5px}.vw-tb th,.vw-tb td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
 .vw-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin:6px 0 12px}
 .vw-key i{display:inline-block;width:14px;height:14px;border-radius:4px;border:3px solid;margin-right:5px;vertical-align:-3px}
+.vw-chart rect.bar{fill:var(--acc);cursor:pointer}.vw-chart rect.bar:hover{opacity:.75}.vw-chart rect.sel{fill:#ff7a2d}
+.vw-chart text{fill:var(--mut);font:10px Inter,sans-serif}
+.vw-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.vw-ctl select,.vw-ctl input{width:auto}
+.wk-q{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:var(--bg)}
+.wk-q .o{display:flex;gap:8px;align-items:center;margin:4px 0}.wk-q .o input[type=text]{flex:1}
 </style>
 <script id="cs-views">
 (function(){
@@ -1638,104 +1647,169 @@ const TYPES={
  'project-page':{l:'Project pages',one:'Project page',c:'var(--c-projects,#ff7a2d)'},
  quiz:{l:'Quizzes started',one:'Quiz',c:'#12b886'},
  page:{l:'Site pages',one:'Page',c:'#2f6fed'}};
-const TABS=[['all','Overview'],['video','Videos'],['material','Materials'],['pfile','Practice files'],['note','Read Me'],['lesson','Lessons'],['practice','Practice days'],['project','Projects'],['page','Pages'],['log','Who viewed what']];
-let tab='all',q='',who='',lt='all';
+const SHOW=['video','material','pfile','note','lesson','practice','project','page'];
 const nm=(s,r)=>s.name||(r&&r.name)||s.fullName||s.email;
+const pad=n=>(n<10?'0':'')+n,dk=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return dk(d)};
+const diffD=(a,b)=>Math.round((pd(b)-pd(a))/864e5);
 const fmt=d=>{if(!d)return '';const x=new Date(d);return isNaN(x)?String(d):x.toLocaleString([],{dateStyle:'medium',timeStyle:'short'})};
+const fday=s=>pd(s).toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const iso2day=i=>{const x=new Date(i);return isNaN(x)?'':dk(x)};
 function label(type,key,l){
  if(type==='video'){const x=(D.items||[]).find(i=>i.id===key);if(x&&x.title)return x.title}
  if(type==='note'){const x=(D.notes||[]).find(i=>i.id===key);if(x&&x.title)return (x.badge?x.badge+' · ':'')+x.title}
  return l||key}
+/* every view = {day,type,key,l,email,name,n}; undated = old views with no date */
 function collect(){
- const items={},log=[],people=[];
- Object.values(ST||{}).forEach(s=>{const r=s.rec;if(!r)return;const email=String(s.email||r.email||'').toLowerCase(),name=nm(s,r);people.push(email);
-  const v=r.views||{},have=new Set();
-  const add=(type,key,l,n,la,legacy)=>{const id=type+'|'+key;let it=items[id];if(!it)it=items[id]={type,key,l:label(type,key,l),views:0,who:{}};
-   it.views+=n;const w=it.who[email]||(it.who[email]={name,email,n:0,last:'',legacy:true});w.n+=n;if(la&&la>w.last)w.last=la;if(!legacy)w.legacy=false};
-  Object.values(v.items||{}).forEach(x=>{have.add(x.t+'|'+x.k);add(x.t,x.k,x.l,x.n||1,x.la,false)});
-  [['seenScreencasts','video'],['seenMaterials','material'],['seenPractice','pfile'],['readingSeen','note']].forEach(([f,t])=>(r[f]||[]).forEach(k=>{if(!have.has(t+'|'+k))add(t,k,'',1,'',true)}));
-  (v.log||[]).forEach(a=>log.push({at:a[0],type:a[1],key:a[2],l:label(a[1],a[2],a[3]),name,email}));
+ const ev=[],undated=[],log=[],people=[];
+ Object.values(ST||{}).forEach(s=>{const r=s.rec;if(!r)return;const email=String(s.email||r.email||'').toLowerCase(),name=nm(s,r);people.push({email,name});
+  const v=r.views||{},have=new Set(),byItemLog={};
+  (v.log||[]).forEach(a=>{log.push({at:a[0],type:a[1],key:a[2],l:label(a[1],a[2],a[3]),name,email});(byItemLog[a[1]+'|'+a[2]]=byItemLog[a[1]+'|'+a[2]]||[]).push(a)});
+  Object.values(v.items||{}).forEach(x=>{const id=x.t+'|'+x.k;have.add(id);const base={type:x.t,key:x.k,l:label(x.t,x.k,x.l),email,name};
+   if(x.d&&Object.keys(x.d).length){Object.entries(x.d).forEach(([d,n])=>ev.push(Object.assign({day:d,n},base)));
+    const sum=Object.values(x.d).reduce((a,b)=>a+b,0);if((x.n||0)>sum)undated.push(Object.assign({n:x.n-sum,last:x.la},base))}
+   else if(byItemLog[id]){const c={};byItemLog[id].forEach(a=>{const d=iso2day(a[0]);c[d]=(c[d]||0)+1});Object.entries(c).forEach(([d,n])=>ev.push(Object.assign({day:d,n},base)));
+    if((x.n||0)>byItemLog[id].length)undated.push(Object.assign({n:x.n-byItemLog[id].length,last:x.la},base))}
+   else undated.push(Object.assign({n:x.n||1,last:x.la},base))});
+  [['seenScreencasts','video'],['seenMaterials','material'],['seenPractice','pfile'],['readingSeen','note']].forEach(([f,t])=>(r[f]||[]).forEach(k=>{if(!have.has(t+'|'+k))undated.push({type:t,key:k,l:label(t,k,''),email,name,n:1,last:''})}));
  });
  log.sort((a,b)=>a.at<b.at?1:-1);
- return{items:Object.values(items),log,people};
+ return{ev,undated,log,people};
 }
-function tile(n,l,c){const d=E('div',{className:'vw-tile'});d.style.setProperty('--tc',c||'var(--acc)');d.innerHTML='<b>'+n+'</b><span>'+esc(l)+'</span>';return d}
+const tile=(n,l,c)=>{const d=E('div',{className:'vw-tile'});d.style.setProperty('--tc',c||'var(--acc)');d.innerHTML='<b>'+n+'</b><span>'+esc(l)+'</span>';return d};
 function csv(rows,name){const t=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download=name;a.click()}
 async function pull(msg){
  if(!TK){msg.textContent='Connect to the backend first (Connect & publish).';return false}
  try{let off=0,n=0;for(;;){const j=await bk('adminExportAll',{offset:off,limit:5});if(!j.ok)throw new Error(j.message||j.error||'Could not load students');(j.students||[]).forEach(x=>addSt(x.email,x));n+=(j.students||[]).length;msg.textContent='Loaded '+n+(j.total?' of '+j.total:'')+'…';if(j.done)break;off+=5}
   await saveST();msg.textContent='Loaded '+n+' students.';return true}catch(e){msg.textContent='Failed: '+e.message;return false}}
+
+let S={tab:'ov',range:'28',from:'',to:'',type:'all',day:'',q:'',who:'',lt:'all'};
+function period(C){
+ const today=dk(new Date());let to=today,from;
+ if(S.range==='custom'&&S.from&&S.to){from=S.from;to=S.to}
+ else if(S.range==='all'){const ds=C.ev.map(e=>e.day).filter(Boolean).sort();from=ds[0]||addD(today,-27)}
+ else{from=addD(today,-(+S.range-1))}
+ if(from>to)from=to;const len=diffD(from,to)+1;
+ return{from,to,len,pf:addD(from,-len),pt:addD(from,-1)}}
+const inR=(e,a,b)=>e.day&&e.day>=a&&e.day<=b&&(S.type==='all'||e.type===S.type);
+
 function viewsPage(){
  cur='views';$('#ttl').textContent='Views & activity';
  document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==='views'));
- const v=$('#view');v.innerHTML='';const C=collect();
- const top=E('div',{className:'card'});
- top.innerHTML='<h3>Views & activity</h3><p class="hint">How many times each video, material, practice file, Read Me note, lesson and page was opened, and exactly which student opened what. Counts start from the day the updated student site is published; older progress shows as 1 view ("earlier").</p>';
- const bar=E('div',{style:'display:flex;gap:8px;flex-wrap:wrap;align-items:center'});
- const rf=E('button',{className:'b p',textContent:'Refresh from backend'}),ms=E('span',{className:'hint'});
+ const v=$('#view');v.innerHTML='';const C=collect(),P=period(C);
+ const head=E('div',{className:'card'});head.innerHTML='<h3>Views & activity</h3><p class="hint">Like YouTube Studio: views per exact day, what was watched or opened, and by which student. Daily counts begin the day the updated student site is published; older activity without a date appears under “Earlier”.</p>';
+ const ctl=E('div',{className:'vw-ctl'});
+ const sr=E('select');sr.innerHTML='<option value="7">Last 7 days</option><option value="28">Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="all">All time</option><option value="custom">Custom dates…</option>';sr.value=S.range;
+ const f1=E('input',{type:'date',value:P.from}),f2=E('input',{type:'date',value:P.to});f1.hidden=f2.hidden=S.range!=='custom';
+ sr.onchange=()=>{S.range=sr.value;S.day='';if(S.range==='custom'){S.from=P.from;S.to=P.to}viewsPage()};f1.onchange=()=>{S.from=f1.value;viewsPage()};f2.onchange=()=>{S.to=f2.value;viewsPage()};
+ const st=E('select');st.innerHTML='<option value="all">All content types</option>'+SHOW.map(k=>'<option value="'+k+'">'+TYPES[k].l+'</option>').join('');st.value=SHOW.includes(S.type)?S.type:'all';st.onchange=()=>{S.type=st.value;S.day='';viewsPage()};
+ const rf=E('button',{className:'b p',textContent:'Refresh from backend'}),ms=E('span',{className:'hint'}),ex=E('button',{className:'b',textContent:'Export CSV'});
  rf.onclick=async()=>{rf.disabled=true;const ok=await pull(ms);rf.disabled=false;if(ok)viewsPage()};
- const ex=E('button',{className:'b',textContent:'Export CSV'});
- bar.append(rf,ex,ms);top.append(bar,E('p',{className:'hint',textContent:C.people.length+' student records loaded.'}));v.append(top);
- const tb=E('div',{className:'vw-tabs'});TABS.forEach(([k,l])=>{const b=E('button',{className:'b'+(tab===k?' on':''),textContent:l});b.onclick=()=>{tab=k;viewsPage()};tb.append(b)});v.append(tb);
+ ctl.append(sr,f1,f2,st,rf,ex,ms);head.append(ctl,E('p',{className:'hint',textContent:C.people.length+' student records loaded · '+fday(P.from)+' → '+fday(P.to)}));v.append(head);
+ const TABS=[['ov','Overview'],['ct','Content'],['au','Audience'],['dy','Day by day'],['lg','Who viewed what']];
+ const tb=E('div',{className:'vw-tabs'});TABS.forEach(([k,l])=>{const b=E('button',{className:'b'+(S.tab===k?' on':''),textContent:l});b.onclick=()=>{S.tab=k;viewsPage()};tb.append(b)});v.append(tb);
  const body=E('div');v.append(body);
- const sum=t=>C.items.filter(i=>i.type===t).reduce((n,i)=>n+i.views,0);
- const uniq=t=>{const s=new Set();C.items.filter(i=>i.type===t).forEach(i=>Object.keys(i.who).forEach(e=>s.add(e)));return s.size};
- if(tab==='all'){
-  const g=E('div',{className:'vw-tiles'});['video','material','pfile','note','lesson','practice','project','page'].forEach(t=>g.append(tile(sum(t),TYPES[t].l+' · views ('+uniq(t)+' students)',TYPES[t].c)));body.append(g);
-  const top5=E('div',{className:'card'});top5.innerHTML='<h3>Most viewed</h3>';
-  C.items.filter(i=>i.type!=='page'&&i.type!=='quiz').sort((a,b)=>b.views-a.views).slice(0,10).forEach(i=>top5.append(row(i)));
-  if(!C.items.length)top5.append(E('p',{className:'hint',textContent:'No view data yet. Press “Refresh from backend” after students use the updated site.'}));body.append(top5);
-  const act={};C.people.forEach(e=>act[e]=0);C.items.forEach(i=>Object.values(i.who).forEach(w=>act[w.email]=(act[w.email]||0)+w.n));
-  const low=Object.entries(act).filter(([e,n])=>!n).length;
-  if(low)body.append(E('div',{className:'cs27-callout',textContent:low+' student record(s) have no recorded views yet.'}));
- }else if(tab==='log'){
-  const f=E('div',{className:'row',style:'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px'});
-  const sS=E('input',{type:'text',placeholder:'Search student or content…',value:q}),sT=E('select');
-  sT.innerHTML='<option value="all">All types</option>'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k].one+'</option>').join('');sT.value=lt;
-  const sU=E('select');sU.innerHTML='<option value="">All students</option>'+[...new Map(C.log.map(a=>[a.email,a.name])).entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]))).map(([e,n])=>'<option value="'+esc(e)+'">'+esc(n)+'</option>').join('');sU.value=who;
-  f.append(sS,sT,sU);body.append(f);const box=E('div',{className:'card',style:'overflow:auto'});body.append(box);
-  const draw=()=>{q=sS.value;lt=sT.value;who=sU.value;const ql=q.toLowerCase();
-   const rows=C.log.filter(a=>(lt==='all'||a.type===lt)&&(!who||a.email===who)&&(!ql||(a.name+' '+a.l+' '+a.email).toLowerCase().includes(ql)));
-   box.innerHTML='<table class="vw-tb"><tr><th>When</th><th>Student</th><th>Type</th><th>Content</th></tr>'+rows.slice(0,400).map(a=>{const T=TYPES[a.type]||{one:a.type,c:'#999'};return '<tr><td>'+esc(fmt(a.at))+'</td><td>'+esc(a.name)+'</td><td><span class="vw-pill" style="border-left:5px solid '+T.c+'">'+esc(T.one)+'</span></td><td>'+esc(a.l)+'</td></tr>'}).join('')+'</table>'+(rows.length>400?'<p class="hint">Showing the newest 400 of '+rows.length+'. Use the filters or Export CSV.</p>':'')+(!rows.length?'<p class="hint">Nothing recorded yet. Each student keeps their latest 120 actions.</p>':'');
-   ex.onclick=()=>csv([['When','Student','Email','Type','Content']].concat(rows.map(a=>[a.at,a.name,a.email,a.type,a.l])),'who-viewed-what.csv')};
-  [sS].forEach(x=>x.oninput=draw);sT.onchange=sU.onchange=draw;draw();
+ const cur_=C.ev.filter(e=>inR(e,P.from,P.to)),prv=C.ev.filter(e=>inR(e,P.pf,P.pt));
+ const sum=a=>a.reduce((n,e)=>n+e.n,0),uniq=a=>new Set(a.map(e=>e.email)).size;
+ const delta=(a,b)=>{if(!b)return a?'<span class="vw-up">new</span>':'';const p=Math.round((a-b)/b*100);return '<span class="'+(p>=0?'vw-up':'vw-down')+'">'+(p>=0?'▲ ':'▼ ')+Math.abs(p)+'% vs previous '+P.len+' days</span>'};
+ const agg=(arr)=>{const m={};arr.forEach(e=>{const id=e.type+'|'+e.key;const o=m[id]=m[id]||{type:e.type,key:e.key,l:e.l,views:0,who:{},last:''};o.views+=e.n;const w=o.who[e.email]=o.who[e.email]||{name:e.name,email:e.email,n:0,last:''};w.n+=e.n;if(e.day>w.last)w.last=e.day;if(e.day>o.last)o.last=e.day});return Object.values(m).sort((a,b)=>b.views-a.views)};
+ const rowOf=i=>{const d=E('details',{className:'vw-row'}),T=TYPES[i.type]||{c:'#999'};d.style.setProperty('--tc',T.c);const ws=Object.values(i.who).sort((a,b)=>b.n-a.n);
+  d.innerHTML='<summary><b>'+esc(i.l)+'</b><span class="vw-pill">'+esc((TYPES[i.type]||{one:i.type}).one)+'</span><span class="vw-pill">'+i.views+' views</span><span class="vw-pill">'+ws.length+' student'+(ws.length==1?'':'s')+'</span>'+(i.last?'<span class="vw-pill">last '+esc(fday(i.last))+'</span>':'')+'</summary><div style="padding:0 12px 10px;overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Views</th><th>Last viewed (day)</th></tr>'+ws.map(w=>'<tr><td>'+esc(w.name)+'<br><small style="color:var(--mut)">'+esc(w.email)+'</small></td><td>'+w.n+'</td><td>'+esc(w.last?fday(w.last):'')+'</td></tr>').join('')+'</table></div>';return d};
+ ex.onclick=()=>csv([['Day','Type','Content','Student','Email','Views']].concat(C.ev.filter(e=>inR(e,P.from,P.to)).sort((a,b)=>a.day<b.day?-1:1).map(e=>[e.day,e.type,e.l,e.name,e.email,e.n])),'views-'+P.from+'_to_'+P.to+'.csv');
+
+ if(S.tab==='ov'){
+  const big=E('div',{className:'card'});const a=sum(cur_),b=sum(prv);
+  big.innerHTML='<div class="vw-big"><div><b>'+a+'</b><span>Views · '+delta(a,b)+'</span></div><div><b>'+uniq(cur_)+'</b><span>Students who viewed</span></div><div><b>'+new Set(cur_.map(e=>e.type+'|'+e.key)).size+'</b><span>Different items viewed</span></div><div><b>'+sum(C.ev.filter(e=>e.day===dk(new Date())&&(S.type==='all'||e.type===S.type)))+'</b><span>Views today</span></div></div>';
+  // daily (or weekly) bars
+  const days=[];for(let i=0;i<P.len;i++)days.push(addD(P.from,i));
+  const wk=P.len>120,buckets=[];if(wk){for(let i=0;i<days.length;i+=7)buckets.push(days.slice(i,i+7))}else days.forEach(d=>buckets.push([d]));
+  const cnt={};cur_.forEach(e=>cnt[e.day]=(cnt[e.day]||0)+e.n);
+  const vals=buckets.map(bk=>bk.reduce((n,d)=>n+(cnt[d]||0),0)),mx=Math.max(1,...vals),W=860,H=230,L=34,B=26,bw=(W-L)/buckets.length;
+  let svg='<svg class="vw-chart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Views per '+(wk?'week':'day')+'">';
+  [0,.5,1].forEach(f=>{const y=H-B-f*(H-B-12);svg+='<line x1="'+L+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="2" y="'+(y+3)+'">'+Math.round(mx*f)+'</text>'});
+  buckets.forEach((bk,i)=>{const h=vals[i]/mx*(H-B-12),x=L+i*bw,d0=bk[0];svg+='<rect class="bar'+(S.day===d0?' sel':'')+'" data-d="'+d0+'" x="'+(x+1)+'" y="'+(H-B-h)+'" width="'+Math.max(1,bw-2)+'" height="'+Math.max(h,vals[i]?1:0)+'" rx="2"><title>'+(wk?'Week of ':'')+fday(d0)+': '+vals[i]+' views</title></rect>'});
+  const step=Math.ceil(buckets.length/10);buckets.forEach((bk,i)=>{if(i%step===0){const d=pd(bk[0]);svg+='<text x="'+(L+i*bw)+'" y="'+(H-8)+'">'+d.getDate()+' '+d.toLocaleDateString([],{month:'short'})+'</text>'}});svg+='</svg>';
+  big.insertAdjacentHTML('beforeend',svg+'<p class="hint">'+(wk?'Weekly totals. ':'')+'Click a bar to see exactly who viewed what on that day.</p>');body.append(big);
+  const dayBox=E('div');big.append(dayBox);
+  const showDay=d=>{S.day=d;big.querySelectorAll('rect.bar').forEach(r=>r.classList.toggle('sel',r.dataset.d===d));dayBox.innerHTML='';const rng=wk?days.slice(days.indexOf(d),days.indexOf(d)+7):[d];
+   const evs=cur_.filter(e=>rng.includes(e.day)).sort((x,y)=>x.day<y.day?1:-1);
+   dayBox.innerHTML='<h3 style="margin:10px 0 6px">'+(wk?'Week of ':'')+esc(fday(d))+' · '+sum(evs)+' views · '+uniq(evs)+' students</h3>'+(evs.length?'<div style="overflow:auto"><table class="vw-tb"><tr><th>Day</th><th>Student</th><th>Type</th><th>Content</th><th>Views</th></tr>'+evs.map(e=>'<tr><td>'+esc(fday(e.day))+'</td><td>'+esc(e.name)+'</td><td><span class="vw-pill" style="border-left:5px solid '+(TYPES[e.type]||{c:'#999'}).c+'">'+esc((TYPES[e.type]||{one:e.type}).one)+'</span></td><td>'+esc(e.l)+'</td><td>'+e.n+'</td></tr>').join('')+'</table></div>':'<p class="hint">No views on this day.</p>')};
+  big.querySelectorAll('rect.bar').forEach(r=>r.onclick=()=>showDay(r.dataset.d));if(S.day&&days.includes(S.day))showDay(S.day);
+  // type tiles (click to filter)
+  const g=E('div',{className:'vw-tiles'});SHOW.forEach(t=>{const all=C.ev.filter(e=>e.day>=P.from&&e.day<=P.to&&e.type===t);const x=E('button',{className:'vw-tile'+(S.type===t?' on':'')});x.style.setProperty('--tc',TYPES[t].c);x.innerHTML='<b>'+sum(all)+'</b><span>'+esc(TYPES[t].l)+' · '+uniq(all)+' students</span>';x.onclick=()=>{S.type=S.type===t?'all':t;S.day='';viewsPage()};g.append(x)});body.append(g);
+  const top=E('div',{className:'card'});top.innerHTML='<h3>Top content in this period</h3>';agg(cur_).filter(i=>i.type!=='page').slice(0,8).forEach(i=>top.append(rowOf(i)));if(!cur_.length)top.append(E('p',{className:'hint',textContent:'No dated views in this period yet. Press “Refresh from backend” after students use the updated site.'}));body.append(top);
+  const un=C.undated.filter(e=>S.type==='all'||e.type===S.type);if(un.length)body.append(E('div',{className:'cs27-callout',textContent:'Earlier: '+sum(un)+' view(s) by '+uniq(un)+' student(s) happened before daily tracking started, so they have no exact day.'}));
+ }else if(S.tab==='ct'){
+  const sI=E('input',{type:'text',placeholder:'Search content…',value:S.q,style:'margin-bottom:10px'});body.append(sI);const box=E('div');body.append(box);
+  const all=agg(cur_);const draw=()=>{S.q=sI.value;box.innerHTML='';const ql=S.q.toLowerCase(),r=all.filter(i=>!ql||i.l.toLowerCase().includes(ql));box.append(E('p',{className:'hint',textContent:r.length+' item(s) · '+sum(cur_)+' views in this period'}));r.forEach(i=>box.append(rowOf(i)));if(!r.length)box.append(E('p',{className:'hint',textContent:'Nothing viewed in this period.'}))};sI.oninput=draw;draw();
+ }else if(S.tab==='au'){
+  const m={};C.people.forEach(p=>m[p.email]={name:p.name,email:p.email,n:0,items:new Set(),days:new Set(),last:''});
+  cur_.forEach(e=>{const o=m[e.email]=m[e.email]||{name:e.name,email:e.email,n:0,items:new Set(),days:new Set(),last:''};o.n+=e.n;o.items.add(e.type+'|'+e.key);o.days.add(e.day);if(e.day>o.last)o.last=e.day});
+  const rows=Object.values(m).sort((a,b)=>b.n-a.n),box=E('div',{className:'card',style:'overflow:auto'});
+  box.innerHTML='<table class="vw-tb"><tr><th>Student</th><th>Views</th><th>Different items</th><th>Active days</th><th>Last active (exact day)</th></tr>'+rows.map(r=>'<tr><td>'+esc(r.name)+'<br><small style="color:var(--mut)">'+esc(r.email)+'</small></td><td>'+r.n+'</td><td>'+r.items.size+'</td><td>'+r.days.size+'</td><td>'+esc(r.last?fday(r.last):'—')+'</td></tr>').join('')+'</table>';body.append(box);
+ }else if(S.tab==='dy'){
+  const days=[];for(let i=P.len-1;i>=0;i--)days.push(addD(P.from,i));const m={};cur_.forEach(e=>{const o=m[e.day]=m[e.day]||{n:0,w:new Set(),t:{}};o.n+=e.n;o.w.add(e.email);o.t[e.type]=(o.t[e.type]||0)+e.n});
+  const box=E('div',{className:'card',style:'overflow:auto'});box.innerHTML='<table class="vw-tb"><tr><th>Day</th><th>Views</th><th>Students</th>'+SHOW.map(t=>'<th>'+esc(TYPES[t].one)+'</th>').join('')+'</tr>'+days.map(d=>{const o=m[d]||{n:0,w:new Set(),t:{}};return '<tr><td>'+esc(fday(d))+'</td><td><b>'+o.n+'</b></td><td>'+o.w.size+'</td>'+SHOW.map(t=>'<td>'+(o.t[t]||'')+'</td>').join('')+'</tr>'}).join('')+'</table>';body.append(box);
  }else{
-  const sI=E('input',{type:'text',placeholder:'Search '+TYPES[tab].l.toLowerCase()+'…',value:q,style:'margin-bottom:10px'});body.append(sI);
-  const box=E('div');body.append(box);const arr=C.items.filter(i=>i.type===tab).sort((a,b)=>b.views-a.views);
-  const draw=()=>{q=sI.value;box.innerHTML='';const ql=q.toLowerCase();const r=arr.filter(i=>!ql||i.l.toLowerCase().includes(ql));
-   box.append(E('p',{className:'hint',textContent:r.length+' item(s) · '+r.reduce((n,i)=>n+i.views,0)+' total views'}));r.forEach(i=>box.append(row(i)));
-   if(!r.length)box.append(E('p',{className:'hint',textContent:'No views recorded for this category yet.'}));
-   ex.onclick=()=>csv([['Type','Content','Total views','Student','Email','Student views','Last viewed']].concat(arr.flatMap(i=>Object.values(i.who).map(w=>[TYPES[i.type].one,i.l,i.views,w.name,w.email,w.n,w.last]))),'views-'+tab+'.csv')};
-  sI.oninput=draw;draw();
+  const f=E('div',{className:'vw-ctl'});const sS=E('input',{type:'text',placeholder:'Search student or content…',value:S.q}),sT=E('select'),sU=E('select');
+  sT.innerHTML='<option value="all">All types</option>'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k].one+'</option>').join('');sT.value=S.lt;
+  sU.innerHTML='<option value="">All students</option>'+C.people.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(p=>'<option value="'+esc(p.email)+'">'+esc(p.name)+'</option>').join('');sU.value=S.who;f.append(sS,sT,sU);body.append(f);
+  const box=E('div',{className:'card',style:'overflow:auto'});body.append(box);
+  const draw=()=>{S.q=sS.value;S.lt=sT.value;S.who=sU.value;const ql=S.q.toLowerCase();const rows=C.log.filter(a=>(S.lt==='all'||a.type===S.lt)&&(!S.who||a.email===S.who)&&(!ql||(a.name+' '+a.l+' '+a.email).toLowerCase().includes(ql)));
+   box.innerHTML='<table class="vw-tb"><tr><th>Exact date &amp; time</th><th>Student</th><th>Type</th><th>Content</th></tr>'+rows.slice(0,400).map(a=>{const T=TYPES[a.type]||{one:a.type,c:'#999'};return '<tr><td>'+esc(fmt(a.at))+'</td><td>'+esc(a.name)+'</td><td><span class="vw-pill" style="border-left:5px solid '+T.c+'">'+esc(T.one)+'</span></td><td>'+esc(a.l)+'</td></tr>'}).join('')+'</table>'+(rows.length>400?'<p class="hint">Showing the newest 400 of '+rows.length+'. Use the filters or Export CSV.</p>':'')+(!rows.length?'<p class="hint">Nothing recorded yet. Each student keeps their latest 120 actions with exact time.</p>':'')};
+  sS.oninput=draw;sT.onchange=sU.onchange=draw;draw();
  }
- if(tab==='all'||tab==='log')ex.onclick=ex.onclick||(()=>csv([['Type','Content','Total views','Student','Email','Student views','Last viewed']].concat(C.items.flatMap(i=>Object.values(i.who).map(w=>[TYPES[i.type].one,i.l,i.views,w.name,w.email,w.n,w.last]))),'views-all.csv'));
- function row(i){const d=E('details',{className:'vw-row'}),T=TYPES[i.type]||{c:'#999',one:i.type};d.style.setProperty('--tc',T.c);
-  const ws=Object.values(i.who).sort((a,b)=>b.n-a.n);
-  d.innerHTML='<summary><b>'+esc(i.l)+'</b><span class="vw-pill">'+i.views+' views</span><span class="vw-pill">'+ws.length+' student'+(ws.length==1?'':'s')+'</span></summary><div style="padding:0 12px 10px;overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Views</th><th>Last viewed</th></tr>'+ws.map(w=>'<tr><td>'+esc(w.name)+'<br><small style="color:var(--mut)">'+esc(w.email)+'</small></td><td>'+w.n+(w.legacy?' <small style="color:var(--mut)">(earlier)</small>':'')+'</td><td>'+esc(fmt(w.last))+'</td></tr>').join('')+'</table></div>';return d}
 }
 
-/* ---------- three separate quiz pages ---------- */
+/* ---------- Curriculum quiz editor (weekly check-in questions) ---------- */
+const getSet=w=>(D.quizzes||[]).find(q=>q.type==='week'&&String(q.key)===String(w));
+const ensure=w=>{D.quizzes=D.quizzes||[];let s=getSet(w);if(!s){s={type:'week',key:String(w),draw:3,questions:[]};D.quizzes.push(s)}return s};
+function weekVocab(w){const wk=(D.weeks||[]).find(x=>+x.n===+w);const o=[];(wk&&wk.days||[]).forEach(d=>(d.vocab||[]).forEach(t=>{if(t.term&&t.def)o.push(t)}));return o}
+function weekEditor(v){
+ const wrap=E('div');v.append(wrap);
+ const nums=[...new Set([...Array(16)].map((_,i)=>i+1).concat((D.weeks||[]).map(w=>+w.n).filter(Boolean),(D.quizzes||[]).filter(q=>q.type==='week').map(q=>+q.key)))].sort((a,b)=>a-b);
+ const open=window.__wkOpen=window.__wkOpen||{};
+ const draw=()=>{wrap.innerHTML='';nums.forEach(w=>{const s=getSet(w),n=s?(s.questions||[]).length:0,wk=(D.weeks||[]).find(x=>+x.n===w);
+  const d=E('details',{className:'card',style:'border-left:8px solid var(--c-curriculum)'});d.open=!!open[w];d.ontoggle=()=>open[w]=d.open;
+  const sm=E('summary');sm.innerHTML='<span>Week '+w+(wk&&wk.title?' · '+esc(wk.title):'')+'</span><span class="vw-pill">'+(n?n+' custom questions · each student gets '+Math.min(n,+s.draw||3):'Automatic from vocabulary')+'</span>';d.append(sm);
+  const in_=E('div',{className:'in'});d.append(in_);
+  in_.append(E('p',{className:'hint',textContent:n?'Students get these questions (in random order) at the end of Week '+w+'. Delete all questions to go back to the automatic vocabulary quiz.':'No custom questions yet: students currently get 3 automatic vocabulary questions. Add your own, or generate starters from the week’s vocabulary and edit them.'}));
+  const bar=E('div',{style:'display:flex;gap:8px;flex-wrap:wrap;align-items:center'});in_.append(bar);
+  const add=E('button',{className:'b p',textContent:'+ Add question'});add.onclick=()=>{ensure(w).questions.push({q:'',options:['','','',''],answer:0});open[w]=true;mark();draw()};
+  const gen=E('button',{className:'b',textContent:'Generate starters from vocabulary'});gen.onclick=()=>{const vb=weekVocab(w);if(vb.length<2){alert('No vocabulary found for this week in the editor. Import the week first (Curriculum & daily lessons → Import built-in week).');return}
+   const s=ensure(w);const allDefs=vb.map(x=>x.def);vb.slice(0,8).forEach(t=>{const others=allDefs.filter(x=>x!==t.def).sort(()=>Math.random()-.5).slice(0,3);while(others.length<3)others.push('');const o=[t.def,...others].sort(()=>Math.random()-.5);s.questions.push({q:'What does "'+t.term+'" mean?',options:o,answer:o.indexOf(t.def)})});open[w]=true;mark();draw()};
+  const dl=E('label',{style:'margin:0;font-weight:600'});dl.textContent='Questions each student gets';const di=E('input',{type:'number',min:1,value:(s&&+s.draw)||3,style:'width:70px'});di.oninput=()=>{ensure(w).draw=Math.max(1,+di.value||3);mark()};
+  bar.append(add,gen,dl,di);
+  if(n){const rm=E('button',{className:'b d',textContent:'Remove all (back to automatic)'});rm.onclick=()=>{if(confirm('Delete all custom questions for Week '+w+'?')){D.quizzes=D.quizzes.filter(q=>q!==s);mark();draw()}};bar.append(rm)}
+  (s&&s.questions||[]).forEach((it,i)=>{it.options=it.options||['','','',''];while(it.options.length<4)it.options.push('');
+   const c=E('div',{className:'wk-q'});c.append(E('label',{textContent:'Question '+(i+1)}));const ta=E('textarea',{value:it.q||''});ta.oninput=()=>{it.q=ta.value;mark()};c.append(ta);
+   it.options.slice(0,4).forEach((op,oi)=>{const r=E('div',{className:'o'});const rd=E('input',{type:'radio',name:'wk'+w+'_'+i,checked:Number(it.answer)===oi,title:'Correct answer'});rd.onchange=()=>{it.answer=oi;mark()};const tx=E('input',{type:'text',value:op,placeholder:'Option '+String.fromCharCode(65+oi)});tx.oninput=()=>{it.options[oi]=tx.value;mark()};r.append(rd,tx);c.append(r)});
+   c.append(E('p',{className:'hint',textContent:'Tick the circle beside the correct answer.'}));
+   const del=E('button',{className:'b mini d',textContent:'Delete question'});del.onclick=()=>{s.questions.splice(i,1);mark();draw()};c.append(del);in_.append(c)});
+  wrap.append(d)})};
+ draw()}
+
 const QP={
- quizCurr:{t:'Curriculum quizzes',ed:()=>prev('assessments'),pre:'all',intro:'Weekly curriculum quizzes and the Phase assessment. Questions are edited below; results of every student are listed here.',
-  res:r=>{const o=[];const wq=r.weekQuizzes||{};Object.keys(wq).forEach(k=>o.push(['Week '+k+' weekly quiz',wq[k]]));const pa=r.phaseAssessments||{};Object.keys(pa).forEach(k=>{const x=pa[k];if(x&&typeof x==='object')o.push(['Phase assessment · '+k,x])});return o}},
- quizRead:{t:'Read Me quizzes',ed:()=>prev('quizzes'),pre:'reading',intro:'Quizzes that follow each Read Me note. Edit them below; results of every student are listed here.',
-  res:r=>Object.entries((r.contentQuizzes||{}).reading||{}).map(([k,x])=>['Read Me · '+((D.notes||[]).find(n=>n.id===k)||{}).title||k,x]).map(a=>a)},
- quizScreen:{t:'Screencast quizzes',ed:()=>prev('quizzes'),pre:'video',intro:'Quizzes that follow each screencast. Edit them below; results of every student are listed here.',
+ quizCurr:{t:'Curriculum quizzes',pre:'week',intro:'Weekly curriculum check-in quizzes (shown when a student finishes a week).',
+  res:r=>{const o=[];const wq=r.weekQuizzes||{};Object.keys(wq).forEach(k=>o.push(['Week '+k+' weekly quiz',wq[k]]));const pa=r.phaseAssessments||{};Object.keys(pa).forEach(k=>{const x=pa[k];if(x&&typeof x==='object'&&x.score!=null)o.push(['Phase assessment · '+k,x])});return o}},
+ quizRead:{t:'Read Me quizzes',ed:()=>prev('quizzes'),pre:'reading',intro:'Quizzes that follow each Read Me note.',
+  res:r=>Object.entries((r.contentQuizzes||{}).reading||{}).map(([k,x])=>['Read Me · '+(((D.notes||[]).find(n=>n.id===k)||{}).title||k),x])},
+ quizScreen:{t:'Screencast quizzes',ed:()=>prev('quizzes'),pre:'video',intro:'Quizzes that follow each screencast.',
   res:r=>Object.entries((r.contentQuizzes||{}).screencasts||{}).map(([k,x])=>['Screencast · '+(((D.items||[]).find(n=>n.id===k)||{}).title||k),x])}};
-QP.quizRead.res=r=>Object.entries((r.contentQuizzes||{}).reading||{}).map(([k,x])=>['Read Me · '+(((D.notes||[]).find(n=>n.id===k)||{}).title||k),x]);
 function quizPage(k){
- const P=QP[k];window.__qp=P.pre;cur=k;
- if(!src){const v=$('#view');$('#ttl').textContent=P.t;v.innerHTML='';v.append(E('div',{className:'card'},'<b>Connect first.</b> Open <i>Connect & publish</i> and load your index.html.'));return}
- P.ed();$('#ttl').textContent=P.t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
- const v=$('#view'),c=E('details',{className:'card',open:true});
- const rows=[];Object.values(ST||{}).forEach(s=>{if(!s.rec)return;P.res(s.rec).forEach(([n,x])=>{if(!x)return;const sc=+x.score||0,tt=+x.total||0;rows.push({who:nm(s,s.rec),email:s.email,n,sc,tt,at:x.completedAt||x.at||'',bad:!!x.invalidated})})});
- const taken=new Set(rows.map(r=>r.email)).size,tot=Object.values(ST||{}).filter(s=>s.rec).length;
- const avg=rows.filter(r=>r.tt&&!r.bad);const a=avg.length?Math.round(avg.reduce((n,r)=>n+r.sc/r.tt*100,0)/avg.length):0;
- c.innerHTML='<summary style="font:700 15px Poppins;cursor:pointer">Results · '+rows.length+' attempts by '+taken+' of '+tot+' students · average '+a+'%</summary><p class="hint">'+esc(P.intro)+' Press “Refresh from backend” on the Views & activity page to load the latest records.</p>'+
- '<div style="overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Quiz</th><th>Score</th><th>%</th><th>When</th></tr>'+rows.sort((x,y)=>x.at<y.at?1:-1).slice(0,300).map(r=>'<tr><td>'+esc(r.who)+'</td><td>'+esc(r.n)+'</td><td>'+r.sc+'/'+r.tt+(r.bad?' <small>(auto-zero)</small>':'')+'</td><td>'+(r.tt?Math.round(r.sc/r.tt*100):0)+'%</td><td>'+esc(fmt(r.at))+'</td></tr>').join('')+'</table>'+(rows.length?'':'<p class="hint">No results loaded yet.</p>')+'</div>';
- v.insertBefore(c,v.firstChild);
+ const P=QP[k];window.__qp=P.pre;cur=k;const v=$('#view');
+ const hi=()=>{$('#ttl').textContent=P.t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))};
+ if(!src){hi();v.innerHTML='';v.append(E('div',{className:'card'},'<b>Connect first.</b> Open <i>Connect & publish</i> and load your index.html.'));return}
+ if(k==='quizCurr'){hi();v.innerHTML='';const h=E('div',{className:'card'});h.innerHTML='<h3>Curriculum quiz editor</h3><p class="hint">Write the questions students answer at the end of each week. Weeks with no custom questions keep the automatic vocabulary quiz. Changes reach students after you press Publish.</p>';
+  const pb=E('button',{className:'b',textContent:'Open Phase assessment bank'});pb.onclick=()=>go('assessments');h.append(pb);v.append(h);weekEditor(v)}
+ else{P.ed();hi();}
+ const c=E('details',{className:'card',open:k!=='quizCurr'});
+ const rows=[];Object.values(ST||{}).forEach(s=>{if(!s.rec)return;P.res(s.rec).forEach(([n,x])=>{if(!x)return;const sc=+x.score||0,tt=+x.total||0;rows.push({who:nm(s,s.rec),n,sc,tt,at:x.completedAt||x.at||'',bad:!!x.invalidated,email:s.email,note:x.reflection||''})})});
+ const taken=new Set(rows.map(r=>r.email)).size,tot=Object.values(ST||{}).filter(s=>s.rec).length,avg=rows.filter(r=>r.tt&&!r.bad),a=avg.length?Math.round(avg.reduce((n,r)=>n+r.sc/r.tt*100,0)/avg.length):0;
+ c.innerHTML='<summary style="font:700 15px Poppins;cursor:pointer">Results · '+rows.length+' attempts by '+taken+' of '+tot+' students · average '+a+'%</summary><p class="hint">'+esc(P.intro)+' Use “Refresh from backend” on Views & activity to load the latest records.</p><div style="overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Quiz</th><th>Score</th><th>%</th><th>Exact date</th>'+(k==='quizCurr'?'<th>Reflection</th>':'')+'</tr>'+rows.sort((x,y)=>x.at<y.at?1:-1).slice(0,300).map(r=>'<tr><td>'+esc(r.who)+'</td><td>'+esc(r.n)+'</td><td>'+r.sc+'/'+r.tt+(r.bad?' <small>(auto-zero)</small>':'')+'</td><td>'+(r.tt?Math.round(r.sc/r.tt*100):0)+'%</td><td>'+esc(fmt(r.at))+'</td>'+(k==='quizCurr'?'<td>'+esc(r.note)+'</td>':'')+'</tr>').join('')+'</table>'+(rows.length?'':'<p class="hint">No results loaded yet.</p>')+'</div>';
+ if(k==='quizCurr')v.append(c);else v.insertBefore(c,v.firstChild);
 }
-/* ---------- routing + navigation ---------- */
 const prev=go;
 go=function(k){
  if(k==='views')return viewsPage();
@@ -1750,8 +1824,7 @@ const mk=(k,l,ic)=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.
 const gr=[...nv.querySelectorAll('.cs27-group')];
 const gOv=gr.find(x=>x.textContent.indexOf('Overview')>-1),gC=gr.find(x=>x.textContent.indexOf('Course content')>-1);
 if(gOv)gOv.append(mk('views','Views & activity','◉'));
-if(gC){const qb=[...gC.querySelectorAll('button')].find(b=>b.dataset.k==='quizzes');
- const bs=[mk('quizCurr','Curriculum quizzes','✓'),mk('quizRead','Read Me quizzes','▤'),mk('quizScreen','Screencast quizzes','▶')];
+if(gC){const qb=[...gC.querySelectorAll('button')].find(b=>b.dataset.k==='quizzes');const bs=[mk('quizCurr','Curriculum quizzes','✓'),mk('quizRead','Read Me quizzes','▤'),mk('quizScreen','Screencast quizzes','▶')];
  if(qb){let at=qb;bs.forEach(b=>{at.after(b);at=b})}else bs.forEach(b=>gC.append(b))}
 }catch(e){console.error('Views page failed',e)}})();
 </script>
