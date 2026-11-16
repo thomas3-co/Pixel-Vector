@@ -1822,7 +1822,7 @@ function viewsPage(){
   sS.oninput=draw;sT.onchange=sU.onchange=draw;draw();
  }
 }
-window.__vwDayBar=dayBar;
+window.__vwDayBar=dayBar;window.__vwPull=pull;
 /* ---------- Curriculum quiz editor (weekly check-in questions) ---------- */
 const getSet=w=>(D.quizzes||[]).find(q=>q.type==='week'&&String(q.key)===String(w));
 const ensure=w=>{D.quizzes=D.quizzes||[];let s=getSet(w);if(!s){s={type:'week',key:String(w),draw:3,questions:[]};D.quizzes.push(s)}return s};
@@ -1888,6 +1888,120 @@ if(gOv)gOv.append(mk('views','Views & activity','◉'));
 if(gC){const qb=[...gC.querySelectorAll('button')].find(b=>b.dataset.k==='quizzes');const bs=[mk('quizCurr','Curriculum quizzes','✓'),mk('quizRead','Read Me quizzes','▤'),mk('quizScreen','Screencast quizzes','▶')];
  if(qb){let at=qb;bs.forEach(b=>{at.after(b);at=b})}else bs.forEach(b=>gC.append(b))}
 }catch(e){console.error('Views page failed',e)}})();
+</script>
+
+<style id="cs-logins-css">
+.lg-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px}
+.lg-kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;border-top:4px solid var(--kc,var(--acc))}
+.lg-kpi b{display:block;font:700 28px Poppins,sans-serif;line-height:1.1}.lg-kpi span{font-size:12px;color:var(--mut)}
+.lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+.lg-online{display:flex;flex-wrap:wrap;gap:8px}.lg-oc{display:flex;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+.lg-oc i{width:9px;height:9px;border-radius:50%;background:#12b886;box-shadow:0 0 0 0 #12b88677;animation:lgp 1.8s infinite}
+@keyframes lgp{70%{box-shadow:0 0 0 7px #12b88600}100%{box-shadow:0 0 0 0 #12b88600}}
+.lg-grid{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.lg-grid table{border-collapse:separate;border-spacing:0;font-size:11.5px}
+.lg-grid th,.lg-grid td{padding:5px 6px;text-align:center;border-bottom:1px solid var(--line)}
+.lg-grid th{position:sticky;top:0;background:var(--panel);z-index:2;font-weight:600;color:var(--mut)}
+.lg-grid td:first-child,.lg-grid th:first-child{position:sticky;left:0;background:var(--panel);text-align:left;min-width:170px;z-index:3;border-right:1px solid var(--line)}
+.lg-cell{display:inline-block;width:16px;height:16px;border-radius:5px;background:var(--line)}.lg-cell.on{background:var(--ok,#12b886)}.lg-cell.we{opacity:.5}
+.lg-strip{display:flex;gap:3px;flex-wrap:wrap}.lg-strip i{width:14px;height:14px;border-radius:4px;background:var(--line)}.lg-strip i.on{background:var(--ok,#12b886)}
+.lg-today{display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:14px;padding:12px 16px;margin:0 0 14px;cursor:pointer}
+.lg-today b{font:700 22px Poppins}.lg-today span{font-size:12px;color:var(--mut)}
+</style>
+<script id="cs-logins">
+(function(){
+try{
+const pad=n=>(n<10?'0':'')+n,dk=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return dk(d)};
+const dayOf=i=>{const x=new Date(i);return isNaN(x)?'':dk(x)};
+const fdt=i=>{const x=new Date(i);return isNaN(x)?'—':x.toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})};
+const ftime=i=>{const x=new Date(i);return isNaN(x)?'':x.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
+const fday=s=>pd(s).toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const ago=t=>{const m=(Date.now()-new Date(t))/6e4;if(isNaN(m))return 'never';return m<3?'online now':m<60?Math.floor(m)+' min ago':m<1440?Math.floor(m/60)+' h ago':Math.floor(m/1440)+' d ago'};
+const keys=()=>[...new Set(Object.keys(ST||{}).concat(Object.keys(LV||{})))];
+function build(){
+ const today=dk(new Date());
+ return keys().map(e=>{const s=Object.assign({},ST[e]||{},LV[e]||{}),r=(ST[e]&&ST[e].rec)||{};
+  const name=s.name||r.name||s.fullName||e,ev=[];
+  (r.loginLog||[]).forEach(a=>ev.push({at:a[0],dev:a[1]||''}));
+  if(s.lastLogin){const t=new Date(s.lastLogin);if(!isNaN(t)&&!ev.some(x=>Math.abs(new Date(x.at)-t)<5*6e4))ev.push({at:t.toISOString(),dev:s.lastDevice||''})}
+  ev.sort((a,b)=>a.at<b.at?-1:1);
+  const days=new Set((r.visitDays||[]).concat(ev.map(x=>dayOf(x.at))));((r.views||{}).log||[]).forEach(a=>days.add(dayOf(a[0])));
+  const dl=[...days].filter(Boolean).sort(),last=ev.length?ev[ev.length-1].at:'',act=s.lastActive||'';
+  const seen=[last,act].filter(Boolean).map(x=>new Date(x).getTime()).filter(x=>!isNaN(x)).sort((a,b)=>b-a)[0]||0;
+  let devs=s.devs||s.deviceLog||[];if(typeof devs==='string'){try{devs=JSON.parse(devs)}catch(x){devs=[]}}if(!Array.isArray(devs))devs=[];
+  let cur=0,lng=0,run=0,prev='';dl.forEach(d=>{run=(prev&&addD(prev,1)===d)?run+1:1;lng=Math.max(lng,run);prev=d});
+  if(dl.length){const L=dl[dl.length-1];if(L===today||L===addD(today,-1))cur=run}
+  return{e,name,ev,days:dl,daySet:new Set(dl),last,act,seen,logins:Math.max(+s.logins||0,+s.signIns||0,ev.length),devs,dev:s.lastDevice||(ev.length?ev[ev.length-1].dev:''),cur,lng,mins:seen?(Date.now()-seen)/6e4:null}})}
+const colr=p=>p.mins==null?'#adb5bd':p.mins<3?'#12b886':p.mins<1440?'#2f6fed':p.mins<10080?'#f59f00':'#ef476f';
+const statTxt=p=>p.mins==null?'Never signed in':ago(p.seen);
+function csv(rows,name){const t=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download=name;a.click()}
+let L={tab:'ov',range:'28',seg:'all',q:'',stu:'',day:'',auto:false},timer=null;
+function page(){
+ cur='logins';$('#ttl').textContent='Sign-in activity';document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==='logins'));
+ const v=$('#view');v.innerHTML='';const P=build(),N=P.length,today=dk(new Date());
+ const from=L.range==='all'?(P.flatMap(p=>p.days).sort()[0]||addD(today,-27)):addD(today,-(+L.range-1)),len=Math.round((pd(today)-pd(from))/864e5)+1;
+ const head=E('div',{className:'card'});head.innerHTML='<h3>Sign-in activity</h3><p class="hint">When each student signed in, from which device, how often they come back, and who is online right now. Press “Refresh live” for the latest, or “Load full records” to download every student’s exact sign-in history.</p>';
+ const ctl=E('div',{className:'vw-ctl'});const sr=E('select');sr.innerHTML='<option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="28">Last 28 days</option><option value="90">Last 90 days</option><option value="all">All time</option>';sr.value=L.range;sr.onchange=()=>{L.range=sr.value;L.day='';page()};
+ const ms=E('span',{className:'hint'}),rl=E('button',{className:'b p',textContent:'Refresh live'}),rf=E('button',{className:'b',textContent:'Load full records'}),ex=E('button',{className:'b',textContent:'Export CSV'});
+ const au=E('label',{style:'display:flex;gap:6px;align-items:center;margin:0;font-weight:500;font-size:12.5px'});const ac=E('input',{type:'checkbox',checked:L.auto,style:'width:auto'});au.append(ac,document.createTextNode('Auto-refresh every minute'));
+ rl.onclick=async()=>{if(!TK){ms.textContent='Connect to the backend first (Connect & publish).';return}rl.disabled=true;ms.textContent='Checking…';try{await pollLive();ms.textContent='Updated '+new Date().toLocaleTimeString()}catch(x){ms.textContent='Failed: '+x.message}rl.disabled=false;page()};
+ rf.onclick=async()=>{if(!window.__vwPull)return;rf.disabled=true;const ok=await window.__vwPull(ms);rf.disabled=false;if(ok){try{await pollLive()}catch(x){}page()}};
+ ac.onchange=()=>{L.auto=ac.checked;setup()};
+ ctl.append(sr,rl,rf,ex,au,ms);head.append(ctl);v.append(head);
+ const TABS=[['ov','Overview'],['rc','Recent sign-ins'],['st','Students'],['at','Attendance grid'],['dv','Devices']];
+ const tb=E('div',{className:'vw-tabs'});TABS.forEach(([k,l])=>{const b=E('button',{className:'b'+(L.tab===k?' on':''),textContent:l});b.onclick=()=>{L.tab=k;L.stu='';page()};tb.append(b)});v.append(tb);const body=E('div');v.append(body);
+ const online=P.filter(p=>p.mins!=null&&p.mins<3),todayN=P.filter(p=>p.daySet.has(today)),wk=P.filter(p=>p.days.some(d=>d>=addD(today,-6))),never=P.filter(p=>p.mins==null),away=P.filter(p=>p.mins!=null&&p.mins>=10080);
+ const evAll=P.flatMap(p=>p.ev.map(x=>({at:x.at,dev:x.dev,name:p.name,e:p.e}))).sort((a,b)=>a.at<b.at?1:-1);
+ ex.onclick=()=>L.tab==='rc'?csv([['When','Student','Email','Device']].concat(evAll.map(x=>[x.at,x.name,x.e,x.dev])),'sign-ins.csv'):csv([['Student','Email','Last sign-in','Last seen','Sign-ins','Days active (period)','Current streak','Longest streak','Last device']].concat(P.map(p=>[p.name,p.e,p.last,p.seen?new Date(p.seen).toISOString():'',p.logins,p.days.filter(d=>d>=from).length,p.cur,p.lng,p.dev])),'sign-in-summary.csv');
+ const dayPanel=d=>{const c=E('div',{className:'card'});const who=P.filter(p=>p.daySet.has(d)).map(p=>{const ts=p.ev.filter(x=>dayOf(x.at)===d);return{p,ts}}).sort((a,b)=>(a.ts[0]?a.ts[0].at:'z')<(b.ts[0]?b.ts[0].at:'z')?-1:1);
+  c.innerHTML='<h3>'+esc(fday(d))+' · '+who.length+' of '+N+' students signed in</h3><div style="overflow:auto"><table class="vw-tb"><tr><th>Student</th><th>Exact time(s)</th><th>Device</th></tr>'+who.map(({p,ts})=>'<tr><td>'+esc(p.name)+'</td><td>'+(ts.length?ts.map(x=>esc(ftime(x.at))).join(', '):'<span class="hint">visited (time not recorded)</span>')+'</td><td>'+esc((ts[ts.length-1]||{}).dev||p.dev||'')+'</td></tr>').join('')+'</table></div>'+(N-who.length?'<p class="hint">Did not sign in: '+esc(P.filter(p=>!p.daySet.has(d)).map(p=>p.name).slice(0,40).join(', '))+'</p>':'');return c};
+ if(L.tab==='ov'){
+  const k=E('div',{className:'lg-kpis'});[['#12b886',online.length,'Online now'],['#2f6fed',todayN.length,'Signed in today'],['#8b5cf6',wk.length,'Signed in, last 7 days'],['#f59f00',away.length,'Away 7+ days'],['#adb5bd',never.length,'Never signed in'],['#ff7a2d',N?(P.reduce((n,p)=>n+p.logins,0)/N).toFixed(1):0,'Average sign-ins per student']].forEach(([c,n,l])=>{const d=E('div',{className:'lg-kpi'});d.style.setProperty('--kc',c);d.innerHTML='<b>'+n+'</b><span>'+l+'</span>';k.append(d)});body.append(k);
+  const oc=E('div',{className:'card'});oc.innerHTML='<h3>Online right now</h3>';const row=E('div',{className:'lg-online'});online.forEach(p=>{const c=E('div',{className:'lg-oc'});c.innerHTML='<i></i>'+esc(p.name)+(p.dev?' <small style="color:var(--mut)">'+esc(p.dev)+'</small>':'');c.onclick=()=>{L.tab='st';L.stu=p.e;page()};row.append(c)});if(!online.length)row.append(E('span',{className:'hint',textContent:TK?'Nobody is active in the last 3 minutes.':'Connect to the backend and press “Refresh live” to see who is online.'}));oc.append(row);body.append(oc);
+  const days=[];for(let i=0;i<len;i++)days.push(addD(from,i));const cnt=days.map(d=>P.filter(p=>p.daySet.has(d)).length),mx=Math.max(1,N,...cnt);
+  const ch=E('div',{className:'card'});const W=860,H=210,Lx=30,B=24,bw=(W-Lx)/days.length;let svg='<svg class="vw-chart" viewBox="0 0 '+W+' '+H+'" width="100%">';
+  [0,.5,1].forEach(f=>{const y=H-B-f*(H-B-10);svg+='<line x1="'+Lx+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="2" y="'+(y+3)+'">'+Math.round(mx*f)+'</text>'});
+  days.forEach((d,i)=>{const h=cnt[i]/mx*(H-B-10);svg+='<rect class="bar'+(L.day===d?' sel':'')+'" data-d="'+d+'" x="'+(Lx+i*bw+1)+'" y="'+(H-B-h)+'" width="'+Math.max(1,bw-2)+'" height="'+Math.max(h,cnt[i]?1:0)+'" rx="2"><title>'+fday(d)+': '+cnt[i]+' students</title></rect>'});
+  const st=Math.ceil(days.length/10);days.forEach((d,i)=>{if(i%st===0){const x=pd(d);svg+='<text x="'+(Lx+i*bw)+'" y="'+(H-7)+'">'+x.getDate()+' '+x.toLocaleDateString([],{month:'short'})+'</text>'}});svg+='</svg>';
+  ch.innerHTML='<h3>Students who signed in each day</h3>'+svg+'<p class="hint">Click a bar to see exactly who signed in that day, at what time, and on which device.</p>';body.append(ch);const slot=E('div');body.append(slot);
+  const show=d=>{L.day=d;slot.innerHTML='';slot.append(dayPanel(d));ch.querySelectorAll('rect.bar').forEach(r=>r.classList.toggle('sel',r.dataset.d===d))};ch.querySelectorAll('rect.bar').forEach(r=>r.onclick=()=>show(r.dataset.d));if(L.day)show(L.day);
+  const hv=new Array(24).fill(0);evAll.filter(x=>dayOf(x.at)>=from).forEach(x=>hv[new Date(x.at).getHours()]++);const hm=Math.max(1,...hv);
+  const hc=E('div',{className:'card'});hc.innerHTML='<h3>When students usually sign in</h3><div class="vw-bars">'+hv.map((n,i)=>'<div style="height:'+Math.max(2,n/hm*100)+'%" title="'+i+':00 — '+n+' sign-ins"></div>').join('')+'</div><div class="vw-lbl">'+hv.map((n,i)=>'<span>'+(i%3===0?i:'')+'</span>').join('')+'</div><p class="hint">Uses recorded sign-in times. Detailed history starts once students open the updated site.</p>';body.append(hc);
+ }else if(L.tab==='rc'){
+  const c=E('div',{className:'card',style:'overflow:auto'});c.innerHTML='<h3>Latest sign-ins</h3><table class="vw-tb"><tr><th>When</th><th></th><th>Student</th><th>Device</th></tr>'+evAll.slice(0,150).map(x=>'<tr><td>'+esc(fdt(x.at))+'</td><td style="color:var(--mut)">'+esc(ago(x.at))+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.dev)+'</td></tr>').join('')+'</table>'+(evAll.length?'':'<p class="hint">No sign-ins loaded yet. Press “Load full records”.</p>');body.append(c);
+ }else if(L.tab==='st'){
+  if(L.stu){const p=P.find(x=>x.e===L.stu);if(p){const b=E('button',{className:'b',textContent:'← All students'});b.onclick=()=>{L.stu='';page()};body.append(b);
+   const c=E('div',{className:'card'});const strip=[];for(let i=59;i>=0;i--){const d=addD(today,-i);strip.push('<i class="'+(p.daySet.has(d)?'on':'')+'" title="'+fday(d)+'"></i>')}
+   c.innerHTML='<h3><span class="lg-dot" style="background:'+colr(p)+'"></span>'+esc(p.name)+'</h3><p class="hint">'+esc(p.e)+'</p><div class="lg-kpis"><div class="lg-kpi"><b>'+esc(statTxt(p))+'</b><span>Last seen</span></div><div class="lg-kpi"><b>'+esc(p.last?fdt(p.last):'—')+'</b><span>Last sign-in (exact)</span></div><div class="lg-kpi"><b>'+p.logins+'</b><span>Total sign-ins</span></div><div class="lg-kpi"><b>'+p.days.filter(d=>d>=from).length+' / '+len+'</b><span>Days active in period</span></div><div class="lg-kpi"><b>'+p.cur+'</b><span>Current streak (days)</span></div><div class="lg-kpi"><b>'+p.lng+'</b><span>Longest streak</span></div></div><h3 style="margin:8px 0">Last 60 days</h3><div class="lg-strip">'+strip.join('')+'</div>';body.append(c);
+   const o=E('button',{className:'b p',textContent:'Open full student record'});o.onclick=()=>window.csOpenFollow&&csOpenFollow(p.e);c.append(E('p'),o);
+   const h=E('div',{className:'card',style:'overflow:auto'});h.innerHTML='<h3>Sign-in history</h3><table class="vw-tb"><tr><th>When</th><th></th><th>Device</th></tr>'+p.ev.slice().reverse().slice(0,60).map(x=>'<tr><td>'+esc(fdt(x.at))+'</td><td style="color:var(--mut)">'+esc(ago(x.at))+'</td><td>'+esc(x.dev)+'</td></tr>').join('')+'</table>'+(p.ev.length?'':'<p class="hint">No exact times recorded yet.</p>');body.append(h);
+   if(p.devs.length){const dv=E('div',{className:'card',style:'overflow:auto'});dv.innerHTML='<h3>Devices used</h3><table class="vw-tb"><tr><th>Device</th><th>Sign-ins</th><th>Last used</th></tr>'+p.devs.map(x=>'<tr><td>'+esc(x.label||'Unknown')+'</td><td>'+(x.n||1)+'</td><td>'+esc(x.last?fdt(x.last):'')+'</td></tr>').join('')+'</table>';body.append(dv)}return}}
+  const segs=[['all','Everyone',P.length],['online','Online now',online.length],['today','Today',todayN.length],['week','This week',wk.length],['away','Away 7+ days',away.length],['never','Never signed in',never.length]];
+  const f=E('div',{className:'vw-ctl'});const q=E('input',{type:'text',placeholder:'Search name or email…',value:L.q});f.append(q);body.append(f);
+  const chips=E('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px'});segs.forEach(([k,l,n])=>{const c=E('button',{className:'vw-chip'+(L.seg===k?' on':'')});c.innerHTML=esc(l)+' <b>'+n+'</b>';c.onclick=()=>{L.seg=k;page()};chips.append(c)});body.append(chips);
+  const box=E('div',{className:'card',style:'overflow:auto'});body.append(box);
+  const inSeg=p=>L.seg==='all'||(L.seg==='online'&&online.includes(p))||(L.seg==='today'&&todayN.includes(p))||(L.seg==='week'&&wk.includes(p))||(L.seg==='away'&&away.includes(p))||(L.seg==='never'&&never.includes(p));
+  const draw=()=>{L.q=q.value;const ql=L.q.toLowerCase();const rows=P.filter(p=>inSeg(p)&&(!ql||(p.name+' '+p.e).toLowerCase().includes(ql))).sort((a,b)=>b.seen-a.seen);
+   box.innerHTML='<table class="vw-tb"><tr><th>Student</th><th>Last seen</th><th>Last sign-in (exact)</th><th>Sign-ins</th><th>Days active</th><th>Streak</th><th>Device</th></tr>'+rows.map(p=>'<tr class="clk" data-e="'+esc(p.e)+'"><td><span class="lg-dot" style="background:'+colr(p)+'"></span>'+esc(p.name)+'<br><small style="color:var(--mut)">'+esc(p.e)+'</small></td><td>'+esc(statTxt(p))+'</td><td>'+esc(p.last?fdt(p.last):'—')+'</td><td>'+p.logins+'</td><td>'+p.days.filter(d=>d>=from).length+'</td><td>'+(p.cur?p.cur+' d':'—')+'</td><td>'+esc(p.dev||'')+'</td></tr>').join('')+'</table><p class="hint">Click a student for their full sign-in profile.</p>';box.querySelectorAll('tr.clk').forEach(t=>t.onclick=()=>{L.stu=t.dataset.e;page()})};q.oninput=draw;draw();
+ }else if(L.tab==='at'){
+  const n=Math.min(len,31),days=[];for(let i=n-1;i>=0;i--)days.push(addD(today,-i));const g=E('div',{className:'lg-grid'});
+  let h='<table><tr><th>Student</th>'+days.map(d=>{const x=pd(d);return '<th title="'+fday(d)+'">'+x.getDate()+'<br><small>'+'SMTWTFS'[x.getDay()]+'</small></th>'}).join('')+'<th>Days</th></tr>';
+  P.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{h+='<tr><td><span class="lg-dot" style="background:'+colr(p)+'"></span>'+esc(p.name)+'</td>'+days.map(d=>'<td><span class="lg-cell'+(p.daySet.has(d)?' on':'')+([0,6].includes(pd(d).getDay())?' we':'')+'" title="'+esc(p.name)+' · '+fday(d)+'"></span></td>').join('')+'<td><b>'+days.filter(d=>p.daySet.has(d)).length+'</b></td></tr>'});
+  h+='<tr><td><b>Present</b></td>'+days.map(d=>'<td><b>'+P.filter(p=>p.daySet.has(d)).length+'</b></td>').join('')+'<td></td></tr></table>';g.innerHTML=h;body.append(g,E('p',{className:'hint',textContent:'Green = the student opened the site that day. Weekends are faded. Last '+n+' days.'}));
+ }else{
+  const m={};P.forEach(p=>{const arr=p.devs.length?p.devs:(p.dev?[{label:p.dev,n:1}]:[]);arr.forEach(x=>{const l=x.label||'Unknown';m[l]=m[l]||{n:0,w:new Set()};m[l].n+=(x.n||1);m[l].w.add(p.e)})});
+  const rows=Object.entries(m).sort((a,b)=>b[1].n-a[1].n),c=E('div',{className:'card',style:'overflow:auto'});c.innerHTML='<h3>Devices used to sign in</h3><table class="vw-tb"><tr><th>Device</th><th>Sign-ins</th><th>Students</th></tr>'+rows.map(([l,o])=>'<tr><td>'+esc(l)+'</td><td>'+o.n+'</td><td>'+o.w.size+'</td></tr>').join('')+'</table>'+(rows.length?'':'<p class="hint">No device data loaded yet. Press “Load full records”.</p>');body.append(c);
+ }
+ setup()}
+function setup(){clearInterval(timer);timer=null;if(L.auto)timer=setInterval(async()=>{if(cur!=='logins'||document.hidden||!TK){return}try{await pollLive();page()}catch(x){}},60000)}
+const prev=go;go=function(k){if(k==='logins')return page();if(cur==='logins'&&k!=='logins'){clearInterval(timer);timer=null}return prev(k)};
+SECT.logins={t:'Sign-in activity'};
+const nv=document.getElementById('nav'),gOv=[...nv.querySelectorAll('.cs27-group')].find(x=>x.textContent.indexOf('Overview')>-1);
+if(gOv){const b=E('button',{textContent:'Sign-in activity'});b.dataset.k='logins';b.dataset.icon='⏱';b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go('logins')};const vb=gOv.querySelector('button[data-k="views"]');vb?vb.after(b):gOv.append(b)}
+window.__csLogins={build,online:()=>build().filter(p=>p.mins!=null&&p.mins<3),dk};
+}catch(e){console.error('Sign-in page failed',e)}})();
 </script>
 
 <style id="cs-ux-css">
@@ -1965,7 +2079,7 @@ function all(){return btns().map(b=>{const m=meta(b.dataset.k);return{k:m.k,labe
 function draw(){const q=pq.value.trim().toLowerCase(),A=all();let r;
  if(!q){const rc=rec.map(k=>A.find(a=>a.k===k)).filter(Boolean);r=[...rc.map(x=>Object.assign({sec:'Recent'},x)),...A.filter(a=>!rc.includes(a)).slice(0,40).map(x=>Object.assign({sec:x.group},x))]}
  else{const t=q.split(/\s+/);r=A.map(a=>{const h=(a.label+' '+a.group+' '+a.kw).toLowerCase();let s=0;for(const w of t){const i=h.indexOf(w);if(i<0)return null;s+=a.label.toLowerCase().startsWith(w)?3:a.label.toLowerCase().includes(w)?2:1}return Object.assign({s},a)}).filter(Boolean).sort((a,b)=>b.s-a.s).slice(0,30)}
- items=r;sel=0;pl.innerHTML='';let last='';r.forEach((a,i)=>{if(a.sec&&a.sec!==last){last=a.sec;pl.append(E('div',{className:'cs-plabel',textContent:last}))}const d=E('div',{className:'cs-pi'+(i===sel?' on':'')});d.innerHTML='<span class="ic">'+a.icon+'</span><span>'+esc(a.label)+'</span><small>'+esc(a.group)+'</small>';d.onmousemove=()=>{sel=i;mark_()};d.onclick=()=>pick(i);pl.append(d)});if(!r.length)pl.innerHTML='<div class="cs-plabel">No match</div>'}
+ if(q&&window.__csExtra){try{r=r.concat(window.__csExtra(q))}catch(e){}}items=r;sel=0;pl.innerHTML='';let last='';r.forEach((a,i)=>{if(a.sec&&a.sec!==last){last=a.sec;pl.append(E('div',{className:'cs-plabel',textContent:last}))}const d=E('div',{className:'cs-pi'+(i===sel?' on':'')});d.innerHTML='<span class="ic">'+a.icon+'</span><span>'+esc(a.label)+'</span><small>'+esc(a.group)+'</small>';d.onmousemove=()=>{sel=i;mark_()};d.onclick=()=>pick(i);pl.append(d)});if(!r.length)pl.innerHTML='<div class="cs-plabel">No match</div>'}
 const mark_=()=>pl.querySelectorAll('.cs-pi').forEach((d,i)=>d.classList.toggle('on',i===sel));
 const pick=i=>{const a=items[i];if(!a)return;pal(false);a.run()};
 function pal(on){pal_.classList.toggle('open',on);if(on){pq.value='';draw();setTimeout(()=>pq.focus(),20)}}
@@ -1979,6 +2093,75 @@ document.addEventListener('keydown',e=>{const t=e.target,typing=t&&(/^(INPUT|TEX
 if(!LS.get('cs_hint',false)){LS.set('cs_hint',true);try{toast('Tip: press Ctrl+K (or /) to jump to any page. Hover a menu item and click ☆ to pin it.')}catch(e){}}
 const k0=cur0();if(k0){const m=meta(k0);if(m)document.getElementById('cs-crumb').textContent=m.group+' › '+m.label}
 }catch(e){console.error('UX layer failed',e)}})();
+</script>
+
+<style id="cs-ux2-css">
+html[data-theme=dark]{--bg:#0f1116;--panel:#1a1d26;--ink:#eef0f6;--mut:#9aa2b1;--line:#2b303c;color-scheme:dark}
+html[data-theme=light]{--bg:#f3f5f8;--panel:#fff;--ink:#1a1d24;--mut:#5b6270;--line:#e3e7ee;color-scheme:light}
+@keyframes csIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#view>*{animation:csIn .28s ease both}#view>*:nth-child(2){animation-delay:.04s}#view>*:nth-child(3){animation-delay:.08s}#view>*:nth-child(n+4){animation-delay:.12s}
+@media(prefers-reduced-motion:reduce){#view>*{animation:none}}
+.card{transition:box-shadow .2s,border-color .2s}.card:hover{box-shadow:0 8px 26px rgba(20,30,60,.07)}
+.cs-live{display:inline-flex;gap:7px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font:600 12px Inter;color:var(--ink);cursor:pointer}
+.cs-live i{width:8px;height:8px;border-radius:50%;background:#adb5bd}.cs-live.on i{background:#12b886;animation:lgp 1.8s infinite}
+.cs-ibtn{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:36px;height:36px;cursor:pointer;color:var(--ink);font-size:15px}
+.cs-ibtn:disabled{opacity:.35;cursor:default}
+.cs-top{position:fixed;right:22px;bottom:22px;z-index:60;width:44px;height:44px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.2s}
+.cs-top.show{opacity:1;pointer-events:auto}
+.cs-help{position:fixed;inset:0;z-index:210;background:rgba(10,14,25,.55);display:none;align-items:center;justify-content:center}.cs-help.open{display:flex}
+.cs-hbox{width:min(560px,92vw);max-height:84vh;overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:22px 24px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.cs-hbox h3{margin:0 0 12px}.cs-hbox table{width:100%;border-collapse:collapse;font-size:13px}.cs-hbox td{padding:6px 4px;border-bottom:1px solid var(--line)}
+.cs-hbox kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 7px;font:600 11.5px Inter;margin-right:3px}
+@media(max-width:800px){.cs-live span{display:none}.cs-ibtn.nav2{display:none}}
+</style>
+<div class="cs-help" id="cs-help"><div class="cs-hbox"><h3>Keyboard shortcuts</h3><table id="cs-help-t"></table><p class="hint" style="margin-top:12px">Press <kbd>Esc</kbd> to close.</p></div></div>
+<button class="cs-top" id="cs-top" type="button" title="Back to top">↑</button>
+<script id="cs-ux2">
+(function(){
+try{
+const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const hdr=document.querySelector('main>header'),st=document.getElementById('st'),hd=document.querySelector('.cs-hd');
+/* theme toggle */
+const setTheme=t=>{if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');LS.set('cs_theme',t||'')};
+const th0=LS.get('cs_theme','');if(th0)document.documentElement.setAttribute('data-theme',th0);
+const isDark=()=>{const a=document.documentElement.getAttribute('data-theme');return a?a==='dark':matchMedia('(prefers-color-scheme:dark)').matches};
+const tb=E('button',{className:'cs-ibtn',type:'button',title:'Switch light / dark'});const ti=()=>tb.textContent=isDark()?'☀':'☾';ti();tb.onclick=()=>{setTheme(isDark()?'light':'dark');ti()};
+/* live online pill */
+const lv=E('button',{className:'cs-live',type:'button',title:'Open sign-in activity'});lv.innerHTML='<i></i><b>—</b><span> online</span>';lv.onclick=()=>go('logins');
+if(hdr&&st){hdr.insertBefore(lv,st);hdr.insertBefore(tb,st)}
+async function updLive(poll){try{if(poll&&TK&&!document.hidden)await pollLive();const n=Object.keys(LV||{}).length?window.__csLogins.online().length:null;lv.classList.toggle('on',n>0);lv.querySelector('b').textContent=n==null?'—':n}catch(e){}}
+updLive(false);setInterval(()=>updLive(true),60000);
+/* back / forward */
+let H=[],hi=-1,skip=false;const bb=E('button',{className:'cs-ibtn nav2',type:'button',title:'Back (Alt+←)',textContent:'‹'}),fb=E('button',{className:'cs-ibtn nav2',type:'button',title:'Forward (Alt+→)',textContent:'›'});
+if(hdr){const first=hdr.querySelector('.cs-burger');hdr.insertBefore(fb,hdr.querySelector('.cs-hd'));hdr.insertBefore(bb,fb)}
+const sync=()=>{bb.disabled=hi<=0;fb.disabled=hi>=H.length-1};sync();
+const g1=go;go=function(k){const r=g1(k);if(!skip){H.length=hi+1;if(H[hi]!==k){H.push(k);hi=H.length-1}}skip=false;sync();
+ try{if(k==='dashboard')todayStrip();window.scrollTo({top:0})}catch(e){}return r};
+const back=()=>{if(hi>0){hi--;skip=true;go(H[hi])}},fwd=()=>{if(hi<H.length-1){hi++;skip=true;go(H[hi])}};bb.onclick=back;fb.onclick=fwd;
+const cu=document.querySelector('nav .cs27-group button.on');if(cu){H=[cu.dataset.k];hi=0;sync()}
+/* dashboard: today at a glance */
+function todayStrip(){const v=document.getElementById('view');if(!v||v.querySelector('.lg-today'))return;const P=window.__csLogins.build();if(!P.length)return;const today=window.__csLogins.dk(new Date());
+ const on=P.filter(p=>p.mins!=null&&p.mins<3).length,td=P.filter(p=>p.daySet.has(today)).length,nv=P.filter(p=>p.mins==null).length;
+ const d=E('div',{className:'lg-today'});d.innerHTML='<div><b>'+on+'</b><br><span>online now</span></div><div><b>'+td+'</b><br><span>signed in today</span></div><div><b>'+nv+'</b><br><span>never signed in</span></div><div style="margin-left:auto;color:var(--acc);font-weight:600">Open sign-in activity →</div>';d.onclick=()=>go('logins');
+ const hero=v.querySelector('.cs27-hero');hero?hero.after(d):v.insertBefore(d,v.firstChild)}
+/* palette: find a student */
+window.__csExtra=q=>{const t=q.toLowerCase().split(/\s+/);const P=window.__csLogins.build();return P.filter(p=>t.every(w=>(p.name+' '+p.e).toLowerCase().includes(w))).slice(0,8).map(p=>({sec:'Students',icon:'👤',label:p.name,group:p.mins==null?'never signed in':p.mins<3?'online now':'seen '+Math.max(1,Math.round(p.mins<60?p.mins:p.mins<1440?p.mins/60:p.mins/1440))+(p.mins<60?' min':p.mins<1440?' h':' d')+' ago',run:()=>window.csOpenFollow&&csOpenFollow(p.e)}))};
+/* shortcuts */
+const GO={d:['dashboard','Dashboard'],s:['students','Students'],v:['views','Views & activity'],l:['logins','Sign-in activity'],w:['weeks','Curriculum & days'],c:['quizCurr','Curriculum quizzes'],n:['notify','Notify students'],t:['theme','Site colours'],p:['publish','Connect & publish']};
+const help=document.getElementById('cs-help'),ht=document.getElementById('cs-help-t');
+ht.innerHTML='<tr><td><kbd>Ctrl</kbd><kbd>K</kbd> or <kbd>/</kbd></td><td>Search pages, actions and students</td></tr><tr><td><kbd>Alt</kbd><kbd>←</kbd> / <kbd>→</kbd></td><td>Back / forward between pages</td></tr><tr><td><kbd>?</kbd></td><td>Show this list</td></tr>'+Object.entries(GO).map(([k,[,l]])=>'<tr><td><kbd>g</kbd> then <kbd>'+k+'</kbd></td><td>Go to '+l+'</td></tr>').join('');
+let gt=null;
+document.addEventListener('keydown',e=>{const t=e.target,typing=t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable);
+ if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();back();return}if(e.altKey&&e.key==='ArrowRight'){e.preventDefault();fwd();return}
+ if(e.key==='Escape'){help.classList.remove('open');return}
+ if(typing||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==='?'){help.classList.toggle('open');return}
+ if(gt){clearTimeout(gt);gt=null;const m=GO[e.key.toLowerCase()];if(m){e.preventDefault();go(m[0])}return}
+ if(e.key==='g'){gt=setTimeout(()=>gt=null,1200)}});
+help.onclick=e=>{if(e.target===help)help.classList.remove('open')};
+/* back to top */
+const tp=document.getElementById('cs-top');addEventListener('scroll',()=>tp.classList.toggle('show',scrollY>700),{passive:true});tp.onclick=()=>scrollTo({top:0,behavior:'smooth'});
+}catch(e){console.error('UX2 failed',e)}})();
 </script>
 
 </body></html>
