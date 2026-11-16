@@ -10714,7 +10714,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   /* ---------- sync indicator (inside the Layers panel) ---------- */
   function setSync(state){
     var el=$('hmaSync'); if(!el) return;
-    var t={ok:'Saved to your account',saving:'Saving…',offline:'Offline — will save when online',auth:'Please sign in again',err:'Could not save yet — retrying'}[state]||'';
+    var t={ok:'Saved to your account',saving:'Saving…',offline:'Offline — will save when online',auth:'Sync paused - retrying',err:'Could not save yet — retrying'}[state]||'';
     el.textContent=t; el.className='hma-sync '+(state==='ok'?'ok':(state==='saving'?'':'bad'));
   }
 
@@ -10780,7 +10780,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     pushing=true; dirty=false; var mine=sig();
     try{
       var res=await api('push',{email:s.email,token:s.token,record:student});
-      if(res&&res.ok){ lastCloudAt=res.updatedAt; lastSig=mine; setSync('ok'); return true; }
+      if(res&&res.ok){ lastCloudAt=res.updatedAt; lastSig=mine; authTries=0; setSync('ok'); return true; }
       if(res&&res.error==='AUTH'){ dirty=true; setSync('auth'); needRelogin(); return false; }
       dirty=true; setSync('err'); return false;
     }catch(e){ dirty=true; setSync('offline'); return false; }
@@ -10875,9 +10875,14 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     if(cur){ if($('siName')) $('siName').value=cur.name||''; if($('siEmail')) $('siEmail').value=cur.email||''; }
     info(msg); gate.classList.remove('hidden');
   }
+  /* Students are never signed out automatically. If the server briefly refuses the saved sign-in,
+     keep working on this device (progress stays saved locally) and quietly retry with a growing delay. */
+  var authTimer=null, authTries=0;
   function needRelogin(){
-    var s=readSession(); clearSession(); setMode('login');
-    showGate('Your session ended. Please sign in again to keep saving your progress.',s);
+    dirty=true; setSync('auth');
+    if(authTimer) return;
+    var wait=Math.min(300000, 15000*Math.pow(2,authTries++));
+    authTimer=setTimeout(function(){ authTimer=null; try{ pushNow(); maybePull(true); }catch(e){} },wait);
   }
   function busy(on){ var b=$('siSubmit'); if(!b) return; b.disabled=on; if(on) b.textContent='Please wait…'; else setMode(mode); }
 
@@ -10999,7 +11004,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
             api('device',{email:s.email,token:s.token,device:dev(),deviceId:devId()},15000).catch(function(){});
             return;
           }
-          if(res&&res.error==='AUTH'){ clearSession(); setMode('login'); showGate('Please sign in again.',s); return; }
+          if(res&&res.error==='AUTH'){ student=local; student.name=s.name; student.email=s.email; window.__guestPreview=false; setCurrentStudent({name:s.name,email:s.email}); enterApp(); setSync('auth'); dirty=true; needRelogin(); return; }
         }catch(e){ /* offline: continue with the copy saved on this device */ }
         student=local; student.name=s.name; student.email=s.email; window.__guestPreview=false;
         setCurrentStudent({name:s.name,email:s.email}); enterApp(); setSync('offline'); dirty=true; return;
