@@ -12887,6 +12887,26 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
     }catch(x){}
   },true);
 
+  /* sign-in / visit log: exact time + device of every session start (latest 100), kept in the student's record */
+  function devLabel(){ var u=navigator.userAgent||'';
+    var t=/iPad|Tablet/.test(u)?'Tablet':/Mobi|Android|iPhone/.test(u)?'Phone':'Computer';
+    var b=/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'Browser';
+    return t+' \u00b7 '+b; }
+  var loggedFor='';
+  function logLogin(force){
+    try{
+      if(!ok()) return; var email=String(student.email).toLowerCase();
+      var l=student.loginLog=student.loginLog||[], now=Date.now(), lastT=l.length?new Date(l[l.length-1][0]).getTime():0;
+      if(!force&&loggedFor===email) return;
+      loggedFor=email;
+      if(now-lastT<30*60000) return;            /* a reload within 30 minutes is the same visit */
+      l.push([new Date(now).toISOString(),devLabel()]); if(l.length>100) student.loginLog=l.slice(-100);
+      if(typeof saveStudentRecord==='function') saveStudentRecord(student);
+    }catch(e){}
+  }
+  setInterval(logLogin,4000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden){ try{ var l=student&&student.loginLog; var t=l&&l.length?new Date(l[l.length-1][0]).getTime():0; if(Date.now()-t>2*3600000) logLogin(true); }catch(e){} } });
+
   /* keep the counts when progress from two devices is merged */
   function mergeViews(a,b){
     a=a||{}; b=b||{}; var o={items:{},log:[]}, A=a.items||{}, B=b.items||{};
@@ -12901,8 +12921,9 @@ setInterval(function(){ try{ if(!document.hidden&&window.hmCheckForUpdate) windo
   }
   var _m=window.mergeStudentRecords;
   if(typeof _m==='function') window.mergeStudentRecords=function(base,extra){
-    var bv=base&&base.views, ev=extra&&extra.views, r=_m.apply(this,arguments);
+    var bv=base&&base.views, ev=extra&&extra.views, bl=base&&base.loginLog, el=extra&&extra.loginLog, r=_m.apply(this,arguments);
     try{ if(r&&(bv||ev)) r.views=mergeViews(bv,ev); }catch(e){}
+    try{ if(r&&(bl||el)){ var seen={},out=[]; (bl||[]).concat(el||[]).forEach(function(x){ if(x&&!seen[x[0]]){ seen[x[0]]=1; out.push(x); } }); out.sort(function(p,q){ return p[0]<q[0]?-1:p[0]>q[0]?1:0; }); r.loginLog=out.slice(-100); } }catch(e){}
     return r;
   };
 })();
