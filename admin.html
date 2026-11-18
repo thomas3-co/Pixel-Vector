@@ -1967,7 +1967,8 @@ function liveAgent(){
  var edit=true,css=document.createElement('style');css.id='hm-live-colors';document.head.appendChild(css);
  var ui=document.createElement('style');ui.textContent='body.hm-editmode .flip-card[data-day]:hover{outline:3px dashed #ff7a2d;outline-offset:5px;cursor:crosshair}.flip-card.hm-sel{outline:4px solid #ff7a2d;outline-offset:5px}';document.head.appendChild(ui);
  function mode(on){edit=on;document.body.classList.toggle('hm-editmode',on)}
- function guest(){try{var g=document.getElementById('signInGate');if(g&&!g.classList.contains('hidden')&&typeof continueAsGuest==='function')continueAsGuest()}catch(e){}}
+ function guest(){try{var g=document.getElementById('signInGate');if(!g||g.classList.contains('hidden'))return;try{if(typeof loadStudentRecord==='function'&&typeof enterApp==='function'){student=loadStudentRecord('guest-preview@local');student.name='Admin preview';student.email='guest-preview@local';window.__guestPreview=true;enterApp()}}catch(x){}g.classList.add('hidden')}catch(e){}}
+ function watch(){var g=document.getElementById('signInGate');if(g&&window.MutationObserver)new MutationObserver(guest).observe(g,{attributes:true,attributeFilter:['class']});var n=0,t=setInterval(function(){guest();if(++n>40)clearInterval(t)},400);try{var st=window.showToast;if(typeof st==='function')window.showToast=function(m){if(/guest mode/i.test(String(m)))return;return st.apply(this,arguments)}}catch(e){}guest()}
  function focusDay(d){guest();try{if(typeof goTab==='function')goTab('curriculum')}catch(e){}
   setTimeout(function(){var c=document.querySelector('.flip-card[data-day="'+d+'"]');if(!c)return;var mb=c.closest('.month-block');if(c.offsetParent===null&&mb){var ch=document.querySelector('.chip[data-month="'+mb.getAttribute('data-month')+'"]');if(ch)ch.click()}
    setTimeout(function(){document.querySelectorAll('.hm-sel').forEach(function(x){x.classList.remove('hm-sel')});c.classList.add('hm-sel');c.scrollIntoView({block:'center',behavior:'smooth'})},200)},300)}
@@ -1977,9 +1978,9 @@ function liveAgent(){
  document.addEventListener('click',function(e){if(!edit)return;var c=e.target.closest&&e.target.closest('.flip-card[data-day]');if(!c)return;
   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.querySelectorAll('.hm-sel').forEach(function(x){x.classList.remove('hm-sel')});c.classList.add('hm-sel');
   var h=c.querySelector('h3,h4');parent.postMessage({hmLive:1,t:'pick',day:c.getAttribute('data-day'),title:h?h.textContent:''},'*')},true);
- function ready(){mode(true);setTimeout(guest,500);parent.postMessage({hmLive:1,t:'ready'},'*')}
+ function ready(){mode(true);watch();parent.postMessage({hmLive:1,t:'ready'},'*')}
  if(document.readyState==='complete')ready();else addEventListener('load',ready)}
-function previewHtml(){let h=bake();h=h.replace(/<head>/,'<head><script>('+shimFn.toString()+')()<\/script>');const a='<script>('+liveAgent.toString()+')()<\/script>',i=h.lastIndexOf('</body>');return i>0?h.slice(0,i)+a+h.slice(i):h+a}
+function previewHtml(){let h=bake();h=h.replace(/<head>/,'<head><style>#signInGate{display:none!important}</style><script>('+shimFn.toString()+')()<\/script>');const a='<script>('+liveAgent.toString()+')()<\/script>',i=h.lastIndexOf('</body>');return i>0?h.slice(0,i)+a+h.slice(i):h+a}
 const LVs={sel:'',tab:'curriculum',dev:'100%',edit:true,full:false};window.__csPreviewHtml=previewHtml;
 if(!window.__leMsg){window.__leMsg=1;addEventListener('message',e=>{const w=frameWin();if(!w||e.source!==w)return;const m=e.data;if(!m||!m.hmLive)return;
  if(m.t==='ready'){send({t:'css',css:liveCss()});send({t:'mode',on:LVs.edit});LVs.sel?send({t:'focus',day:LVs.sel}):send({t:'goto',tab:LVs.tab})}
@@ -2050,6 +2051,7 @@ const prev=go;go=function(k){if(k==='liveEdit')return livePage();if(k==='cardCol
 SECT.liveEdit={t:'Live editor'};SECT.cardColors={t:'Card outlines'};SECT.versions={t:'Published versions'};
 const nv=document.getElementById('nav'),mk=(k,l,ic)=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.icon=ic;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};return b};
 const at=(after,...bs)=>{const t=nv.querySelector('.cs27-group button[data-k="'+after+'"]');if(!t)return false;let p=t;bs.forEach(b=>{p.after(b);p=b});return true};
+{const bv=document.getElementById('bpv');if(bv)bv.onclick=()=>go('liveEdit')}
 at('weeks',mk('liveEdit','Live editor','✎'),mk('cardColors','Card outlines','◍'))||0;
 at('publish',mk('versions','Published versions','⎘'))||0;
 }catch(e){console.error('Live editor failed',e)}})();
