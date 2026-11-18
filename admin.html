@@ -1890,6 +1890,171 @@ if(gC){const qb=[...gC.querySelectorAll('button')].find(b=>b.dataset.k==='quizze
 }catch(e){console.error('Views page failed',e)}})();
 </script>
 
+<style id="cs-live-css">
+.le-wrap{display:flex;flex-direction:column;gap:10px}
+.le-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.le-bar .sp{flex:1}.le-bar .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.le-bar .seg button{border:0;background:var(--panel);color:var(--ink);padding:7px 11px;cursor:pointer;font:600 12px Inter}.le-bar .seg button.on{background:var(--acc);color:#fff}
+.le-split{display:flex;gap:12px;align-items:stretch;height:calc(100vh - 235px);min-height:500px}
+.le-stage{flex:1;min-width:0;background:var(--line);border-radius:14px;display:flex;justify-content:center;overflow:auto;padding:10px}
+.le-stage iframe{border:0;background:#fff;border-radius:10px;height:100%;width:100%;transition:width .25s}
+.le-panel{width:360px;flex:none;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.le-panel h4{margin:14px 0 6px;font:700 13px Poppins}.le-panel label{display:block;font-size:11.5px;color:var(--mut);margin:8px 0 3px}
+.le-panel textarea{min-height:70px}.le-sw{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.le-sw i{width:24px;height:24px;border-radius:7px;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.le-row{display:flex;gap:8px;align-items:center}.le-row input[type=color]{width:46px;height:38px;padding:0;border:none;background:none;cursor:pointer}.le-row input[type=text]{flex:1}
+.le-full{position:fixed;inset:0;z-index:150;background:var(--bg);padding:12px;overflow:auto}.le-full .le-split{height:calc(100vh - 100px)}
+.le-pre{white-space:pre-wrap;font:11px/1.5 ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;max-height:140px;overflow:auto;margin:8px 0 0}
+.le-pre:empty{display:none}
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.cc-cell{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel)}
+.cc-prev{height:46px;border-radius:10px;background:var(--bg);border:4px solid var(--oc,var(--line));margin:8px 0;display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--mut)}
+.cc-prev.def{border-style:dashed}
+.ub-bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;background:#111827;color:#fff;border-radius:99px;padding:9px 12px 9px 18px;display:none;gap:12px;align-items:center;box-shadow:0 14px 40px rgba(0,0,0,.4);font:600 13px Inter}
+.ub-bar.on{display:flex}.ub-bar button{border:0;border-radius:99px;padding:7px 14px;font:700 12px Inter;cursor:pointer}.ub-bar .p{background:var(--acc);color:#fff}.ub-bar .g{background:#2b303c;color:#fff}
+.qa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:0 0 14px}
+.qa-t{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;text-align:left;color:var(--ink);font:inherit;transition:.15s}.qa-t:hover{transform:translateY(-2px);border-color:var(--acc)}
+.qa-t b{display:block;font:700 14px Poppins;margin-top:4px}.qa-t span{font-size:11.5px;color:var(--mut)}.qa-t i{font-style:normal;font-size:20px}
+@media(max-width:1000px){.le-split{flex-direction:column;height:auto}.le-stage{height:70vh}.le-panel{width:auto}}
+</style>
+<script id="cs-live">
+(function(){
+try{
+const HEX=/^#[0-9a-f]{6}$/i,PAL=['#2f6fed','#12b886','#ff7a2d','#ef476f','#8b5cf6','#f59f00','#0ea5e9','#111827'];
+const clean=m=>{const o={};Object.entries(m||{}).forEach(([k,v])=>{if(/^\d+-\d+$/.test(k)&&HEX.test(v))o[k]=v});return o};
+const dayCss=m=>Object.entries(clean(m)).map(([k,v])=>'.flip-card[data-day="'+k+'"] .flip-card-front,.flip-card[data-day="'+k+'"] .flip-card-back{border:4px solid '+v+'!important}').join('\n');
+/* ---- 1. the chosen outlines are written into the published site and read back when it is loaded ---- */
+const injectColors=h=>{h=h.replace(/<style id="hm-daycolors"[\s\S]*?<\/style>\s*/,'');const m=clean(D.dayColors),css=dayCss(m);if(!css)return h;return h.replace('</head>','<style id="hm-daycolors" data-colors=\''+JSON.stringify(m)+'\'>\n'+css+'\n</style>\n</head>')};
+const _bake=bake;bake=function(){return injectColors(_bake.apply(this,arguments))};
+const _load=load;load=function(t){const d=_load.apply(this,arguments);try{const m=/<style id="hm-daycolors" data-colors='([^']*)'/.exec(t);d.dayColors=m?clean(JSON.parse(m[1])):{}}catch(e){d.dayColors={}}return d};
+const liveCss=()=>{const t=D.theme||{};return dayCss(D.dayColors)+'\n:root{'+(HEX.test(t.day1||'')?'--c-day1:'+t.day1+';':'')+(HEX.test(t.day2||'')?'--c-day2:'+t.day2+';':'')+'}'};
+const frameWin=()=>{const f=document.getElementById('le-frame');return f&&f.contentWindow};
+const send=m=>{const w=frameWin();if(w)try{w.postMessage(Object.assign({hmLive:1},m),'*')}catch(e){}};
+const pushLive=()=>send({t:'css',css:liveCss()});
+const setColor=(k,v)=>{D.dayColors=D.dayColors||{};if(v&&HEX.test(v))D.dayColors[k]=v;else delete D.dayColors[k];mark();pushLive()};
+const weekNums=()=>[...new Set([...Array(16)].map((_,i)=>i+1).concat((D.weeks||[]).map(w=>+w.n).filter(Boolean)))].sort((a,b)=>a-b);
+const wk=n=>(D.weeks||[]).find(x=>+x.n===n);
+const dayCount=n=>Math.max(2,(wk(n)&&wk(n).days||[]).length);
+const hsl=(h,s,l)=>{s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));const x=v=>Math.round(255*v).toString(16).padStart(2,'0');return '#'+x(f(0))+x(f(8))+x(f(4))};
+const hl=(()=>{let t;return(f,ms)=>{clearTimeout(t);t=setTimeout(f,ms)}})();
+const setCur=(k,title)=>{cur=k;$('#ttl').textContent=title;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))};
+const needSrc=v=>{v.innerHTML='';v.append(E('div',{className:'card'},'<b>Connect first.</b> Open <i>Connect & publish</i> and load your index.html.'))};
+
+/* ---- 2. Card outlines page ---- */
+function cardsPage(){
+ setCur('cardColors','Card outlines');const v=$('#view');v.innerHTML='';if(!src)return needSrc(v);
+ const top=E('div',{className:'card'});top.innerHTML='<h3>Card outline colours</h3><p class="hint">Choose the outline colour of every day card. Cards you do not colour keep the normal look. Colours show in the Live editor straight away and on the student site after you publish.</p>';
+ const bar=E('div',{className:'vw-ctl'});top.append(bar);v.append(top);
+ const all1=E('input',{type:'color',value:'#2f6fed'}),all2=E('input',{type:'color',value:'#12b886'});
+ const b1=E('button',{className:'b',textContent:'Colour every Day 1'}),b2=E('button',{className:'b',textContent:'Colour every Day 2'}),br=E('button',{className:'b',textContent:'Rainbow by week'}),bc=E('button',{className:'b d',textContent:'Clear all outlines'});
+ const apply=(fn)=>{weekNums().forEach(n=>{for(let i=1;i<=dayCount(n);i++){const c=fn(n,i);D.dayColors=D.dayColors||{};if(c===null)delete D.dayColors[n+'-'+i];else if(c)D.dayColors[n+'-'+i]=c}});mark();cardsPage()};
+ b1.onclick=()=>apply((n,i)=>i===1?all1.value:undefined);b2.onclick=()=>apply((n,i)=>i===2?all2.value:undefined);
+ br.onclick=()=>apply((n,i)=>hsl((n*37)%360,72,i===1?44:58));bc.onclick=()=>{if(confirm('Remove every custom card outline?'))apply(()=>null)};
+ bar.append(all1,b1,all2,b2,br,bc);
+ weekNums().forEach(n=>{const c=E('div',{className:'card'});const w=wk(n);c.innerHTML='<h3 style="margin-bottom:8px">Week '+n+(w&&w.title?' · '+esc(w.title):'')+'</h3>';const g=E('div',{className:'cc-grid'});
+  for(let i=1;i<=dayCount(n);i++){const key=n+'-'+i,d=w&&w.days&&w.days[i-1],cur_=(D.dayColors||{})[key];const cell=E('div',{className:'cc-cell'});
+   const prev=E('div',{className:'cc-prev'+(cur_?'':' def')});prev.textContent=cur_?'Custom outline':'Default';if(cur_)prev.style.setProperty('--oc',cur_);
+   cell.innerHTML='<b>Day '+i+'</b> <span class="hint">'+esc((d&&d.title)||'')+'</span>';cell.append(prev);
+   const row=E('div',{className:'le-row'}),ci=E('input',{type:'color',value:cur_||'#2f6fed'}),hx=E('input',{type:'text',value:cur_||'',placeholder:'#RRGGBB'}),rs=E('button',{className:'b mini',textContent:'Reset'});
+   const set=val=>{setColor(key,val);const cc=(D.dayColors||{})[key];prev.classList.toggle('def',!cc);prev.textContent=cc?'Custom outline':'Default';if(cc){prev.style.setProperty('--oc',cc);ci.value=cc;hx.value=cc}else{prev.style.removeProperty('--oc');hx.value=''}};
+   ci.oninput=()=>set(ci.value);hx.oninput=()=>{if(HEX.test(hx.value))set(hx.value)};rs.onclick=()=>set('');row.append(ci,hx,rs);cell.append(row);
+   const sw=E('div',{className:'le-sw'});PAL.forEach(p=>{const s=E('i');s.style.background=p;s.onclick=()=>set(p);sw.append(s)});cell.append(sw);g.append(cell)}
+  c.append(g);v.append(c)})}
+
+/* ---- 3. Live editor: the real student site next to the editing panel ---- */
+function shimFn(){try{localStorage.getItem('x')}catch(e){var mk=function(){var m={};return{getItem:function(k){return k in m?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null},get length(){return Object.keys(m).length}}};try{Object.defineProperty(window,'localStorage',{value:mk()});Object.defineProperty(window,'sessionStorage',{value:mk()})}catch(x){}}
+ var f=window.fetch;window.fetch=function(u){if(/script\.google|googleusercontent|index\.html|\?_hm/.test(String(u)))return Promise.reject(0);return f.apply(this,arguments)}}
+function liveAgent(){
+ var edit=true,css=document.createElement('style');css.id='hm-live-colors';document.head.appendChild(css);
+ var ui=document.createElement('style');ui.textContent='body.hm-editmode .flip-card[data-day]:hover{outline:3px dashed #ff7a2d;outline-offset:5px;cursor:crosshair}.flip-card.hm-sel{outline:4px solid #ff7a2d;outline-offset:5px}';document.head.appendChild(ui);
+ function mode(on){edit=on;document.body.classList.toggle('hm-editmode',on)}
+ function guest(){try{var g=document.getElementById('signInGate');if(g&&!g.classList.contains('hidden')&&typeof continueAsGuest==='function')continueAsGuest()}catch(e){}}
+ function focusDay(d){guest();try{if(typeof goTab==='function')goTab('curriculum')}catch(e){}
+  setTimeout(function(){var c=document.querySelector('.flip-card[data-day="'+d+'"]');if(!c)return;var mb=c.closest('.month-block');if(c.offsetParent===null&&mb){var ch=document.querySelector('.chip[data-month="'+mb.getAttribute('data-month')+'"]');if(ch)ch.click()}
+   setTimeout(function(){document.querySelectorAll('.hm-sel').forEach(function(x){x.classList.remove('hm-sel')});c.classList.add('hm-sel');c.scrollIntoView({block:'center',behavior:'smooth'})},200)},300)}
+ addEventListener('message',function(e){var m=e.data;if(!m||!m.hmLive)return;
+  if(m.t==='css')css.textContent=m.css;else if(m.t==='mode')mode(m.on);
+  else if(m.t==='goto'){guest();try{goTab(m.tab)}catch(x){}}else if(m.t==='focus')focusDay(m.day)});
+ document.addEventListener('click',function(e){if(!edit)return;var c=e.target.closest&&e.target.closest('.flip-card[data-day]');if(!c)return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.querySelectorAll('.hm-sel').forEach(function(x){x.classList.remove('hm-sel')});c.classList.add('hm-sel');
+  var h=c.querySelector('h3,h4');parent.postMessage({hmLive:1,t:'pick',day:c.getAttribute('data-day'),title:h?h.textContent:''},'*')},true);
+ function ready(){mode(true);setTimeout(guest,500);parent.postMessage({hmLive:1,t:'ready'},'*')}
+ if(document.readyState==='complete')ready();else addEventListener('load',ready)}
+function previewHtml(){let h=bake();h=h.replace(/<head>/,'<head><script>('+shimFn.toString()+')()<\/script>');const a='<script>('+liveAgent.toString()+')()<\/script>',i=h.lastIndexOf('</body>');return i>0?h.slice(0,i)+a+h.slice(i):h+a}
+const LVs={sel:'',tab:'curriculum',dev:'100%',edit:true,full:false};window.__csPreviewHtml=previewHtml;
+if(!window.__leMsg){window.__leMsg=1;addEventListener('message',e=>{const w=frameWin();if(!w||e.source!==w)return;const m=e.data;if(!m||!m.hmLive)return;
+ if(m.t==='ready'){send({t:'css',css:liveCss()});send({t:'mode',on:LVs.edit});LVs.sel?send({t:'focus',day:LVs.sel}):send({t:'goto',tab:LVs.tab})}
+ else if(m.t==='pick'){LVs.sel=m.day;drawPanel()}})}
+let panel=null;
+function reload(){const f=document.getElementById('le-frame');if(f)f.srcdoc=previewHtml()}
+function drawPanel(){if(!panel)return;panel.innerHTML='';const sel=LVs.sel,[n,i]=sel?sel.split('-').map(Number):[0,0];
+ if(!sel){panel.innerHTML='<h4 style="margin-top:0">Click a day card</h4><p class="hint">Click any day card in the student site on the left to change its outline colour and text. Switch to “Student mode” to use the site normally.</p>'}
+ else{const w=wk(n),d=w&&w.days&&w.days[i-1],cc=(D.dayColors||{})[sel];
+  panel.innerHTML='<h4 style="margin-top:0">Week '+n+' · Day '+i+'</h4><p class="hint">'+esc((d&&d.title)||LVs.title||'')+'</p><h4>Outline colour</h4>';
+  const row=E('div',{className:'le-row'}),ci=E('input',{type:'color',value:cc||'#2f6fed'}),hx=E('input',{type:'text',value:cc||'',placeholder:'default'}),rs=E('button',{className:'b mini',textContent:'Reset'});
+  const set=val=>{setColor(sel,val);const c2=(D.dayColors||{})[sel];hx.value=c2||'';if(c2)ci.value=c2};ci.oninput=()=>set(ci.value);hx.oninput=()=>{if(HEX.test(hx.value))set(hx.value)};rs.onclick=()=>set('');row.append(ci,hx,rs);panel.append(row);
+  const sw=E('div',{className:'le-sw'});PAL.forEach(p=>{const s=E('i');s.style.background=p;s.onclick=()=>set(p);sw.append(s)});panel.append(sw);
+  panel.append(E('h4',{textContent:'Text on this card'}));
+  if(d){const fld=(lab,key,ta)=>{panel.append(E('label',{textContent:lab}));const x=E(ta?'textarea':'input',ta?{value:d[key]||''}:{type:'text',value:d[key]||''});x.oninput=()=>{d[key]=x.value;mark();hl(()=>reload(),900)};panel.append(x)};
+   panel.append(E('label',{textContent:'Card type'}));const ty=E('select');ty.innerHTML=['lesson','practice','project'].map(t=>'<option>'+t+'</option>').join('');ty.value=d.type||'lesson';ty.onchange=()=>{d.type=ty.value;mark();hl(()=>reload(),300)};panel.append(ty);
+   fld('Title','title');fld('Front text','front',1);fld('Idea / back text','idea',1)}
+  else panel.append(E('p',{className:'hint',textContent:'This week still comes from the built-in site, so its text cannot be edited here yet. Colours work. To edit the text, import the week first (Curriculum & daily lessons → Import built-in week).'}))}
+ panel.append(E('h4',{textContent:'Jump to a card'}));const jr=E('div',{className:'le-row'}),ws=E('select'),ds=E('select');
+ ws.innerHTML=weekNums().map(x=>'<option value="'+x+'"'+(x===n?' selected':'')+'>Week '+x+'</option>').join('');
+ const fill=()=>{const c=dayCount(+ws.value);ds.innerHTML=[...Array(c)].map((_,k)=>'<option value="'+(k+1)+'"'+(k+1===i?' selected':'')+'>Day '+(k+1)+'</option>').join('')};fill();ws.onchange=()=>{fill();go2()};ds.onchange=go2;
+ function go2(){LVs.sel=ws.value+'-'+ds.value;send({t:'focus',day:LVs.sel});drawPanel()}jr.append(ws,ds);panel.append(jr);
+ panel.append(E('h4',{textContent:'Day 1 / Day 2 colours'}));const dr=E('div',{className:'le-row'});[['day1','Day 1'],['day2','Day 2']].forEach(([k,l])=>{const t=(D.theme||{})[k]||getComputedStyle(document.documentElement).getPropertyValue('--c-'+k).trim()||'#2f6fed';const c=E('input',{type:'color',value:HEX.test(t)?t:'#2f6fed'});c.oninput=()=>{D.theme=D.theme||{};D.theme[k]=c.value;applyTheme();mark();pushLive()};dr.append(c,E('span',{textContent:l,style:'font-size:12px;margin-right:8px'}))});panel.append(dr);
+ panel.append(E('h4',{textContent:'Publish'}));panel.append(E('label',{textContent:'Commit message'}));const cm=E('input',{type:'text',id:'cm',placeholder:'Update course content from Course Studio'});panel.append(cm);
+ const pr=E('div',{className:'le-row',style:'margin-top:8px'}),pb=E('button',{className:'b p',textContent:'Publish to students'}),sv=E('button',{className:'b',textContent:'Save a copy'}),dl=E('button',{className:'b',textContent:'Download'});
+ pb.onclick=async()=>{if(!LS||!LS.t){toast('Connect to GitHub first (Connect & publish).');return}pb.disabled=true;lg.textContent='';try{await push()}catch(e){lg.textContent+='Error: '+e.message+'\n'}pb.disabled=false;drawStatus()};
+ sv.onclick=async()=>{await window.__csSaveVersion($('#cm').value||'Saved from Live editor','Saved copy',true);toast('Saved a copy of the current site')};dl.onclick=()=>window.__csDownload(bake(),'index-'+new Date().toISOString().slice(0,10)+'.html');
+ pr.append(pb,sv,dl);panel.append(pr);const lg=E('pre',{className:'le-pre',id:'lg'});panel.append(lg)}
+function drawStatus(){const s=document.getElementById('le-status');if(s){s.textContent=$('#st').textContent;s.className='chip'+(dirty?' dirty':'')}}
+function livePage(){
+ setCur('liveEdit','Live editor');const v=$('#view');v.innerHTML='';if(!src)return needSrc(v);
+ const wrap=E('div',{className:'le-wrap'+(LVs.full?' le-full':'')});v.append(wrap);
+ const bar=E('div',{className:'le-bar'});wrap.append(bar);
+ const seg=(items,get,set)=>{const s=E('div',{className:'seg'});items.forEach(([k,l])=>{const b=E('button',{textContent:l,type:'button'});b.classList.toggle('on',get()===k);b.onclick=()=>{set(k);s.querySelectorAll('button').forEach((x,j)=>x.classList.toggle('on',items[j][0]===k))};s.append(b)});return s};
+ bar.append(seg([[true,'✎ Edit mode'],[false,'▶ Student mode']],()=>LVs.edit,k=>{LVs.edit=k;send({t:'mode',on:k})}));
+ bar.append(seg([['home','Home'],['curriculum','Curriculum'],['screencasts','Screencasts'],['notes','Read Me'],['progress','Progress']],()=>LVs.tab,k=>{LVs.tab=k;LVs.sel='';drawPanel();send({t:'goto',tab:k})}));
+ bar.append(seg([['100%','Desktop'],['820px','Tablet'],['390px','Phone']],()=>LVs.dev,k=>{LVs.dev=k;const f=document.getElementById('le-frame');if(f)f.style.width=k}));
+ bar.append(E('span',{className:'sp'}));const st=E('span',{id:'le-status',className:'chip'});bar.append(st);
+ const rl=E('button',{className:'b',textContent:'⟳ Reload',type:'button'});rl.onclick=reload;const fs=E('button',{className:'b',textContent:LVs.full?'Exit full screen':'⛶ Full screen',type:'button'});fs.onclick=()=>{LVs.full=!LVs.full;wrap.classList.toggle('le-full',LVs.full);fs.textContent=LVs.full?'Exit full screen':'⛶ Full screen'};bar.append(rl,fs);
+ const split=E('div',{className:'le-split'});wrap.append(split);const stage=E('div',{className:'le-stage'});const fr=E('iframe',{id:'le-frame'});fr.sandbox='allow-scripts allow-popups';fr.style.width=LVs.dev;stage.append(fr);panel=E('div',{className:'le-panel'});split.append(stage,panel);
+ drawPanel();drawStatus();fr.srcdoc=previewHtml();pvOn=false}
+
+/* ---- 4. Published versions: every publish is saved here, so any version can be restored or downloaded ---- */
+const VK='cs_versions';
+const getV=async()=>(await idbGet(VK))||[];
+window.__csGetV=getV;window.__csSaveVersion=async(msg,kind,force)=>{if(!src)return;const v=await getV();if(!force&&v[0]&&v[0].html===src)return;const html=force?bake():src,bid=(/name="hm-build" content="([^"]*)"/.exec(html)||[])[1]||'';v.unshift({id:Date.now(),at:new Date().toISOString(),msg:msg||'',kind:kind||'Published',build:bid,size:html.length,html});while(v.length>12)v.pop();await idbSet(VK,v)};
+window.__csDownload=(html,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;a.click()};
+const _push=push;push=async function(){const msg=($('#cm')&&$('#cm').value)||'Update course content from Course Studio';const r=await _push.apply(this,arguments);try{if(!dirty&&src)await window.__csSaveVersion(msg,'Published')}catch(e){}return r};
+async function versionsPage(){
+ setCur('versions','Published versions');const v=$('#view');v.innerHTML='';const list=await getV();
+ const top=E('div',{className:'card'});top.innerHTML='<h3>Published versions</h3><p class="hint">Every time you publish, a full copy of the student site is saved here on this computer (latest 12). Download any copy, open it in a new tab, or restore it into the editor and publish to roll the live site back. GitHub also keeps its own history.</p>';
+ const sv=E('button',{className:'b p',textContent:'Save a copy of the current site now'});sv.onclick=async()=>{if(!src)return toast('Load the site first');await window.__csSaveVersion('Manual copy','Saved copy',true);versionsPage()};top.append(sv);v.append(top);
+ const c=E('div',{className:'card',style:'overflow:auto'});c.innerHTML='<table class="vw-tb"><tr><th>Saved</th><th>Type</th><th>Note</th><th>Build</th><th>Size</th><th></th></tr></table>';const tb=c.querySelector('table');
+ list.forEach(x=>{const tr=E('tr');tr.innerHTML='<td>'+esc(new Date(x.at).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}))+'</td><td><span class="vw-pill">'+esc(x.kind)+'</span></td><td>'+esc(x.msg)+'</td><td>'+esc(x.build||'—')+'</td><td>'+Math.round(x.size/1024)+' KB</td><td></td>';const td=tr.lastChild;td.style.whiteSpace='nowrap';
+  const dl=E('button',{className:'b mini',textContent:'Download'}),op=E('button',{className:'b mini',textContent:'Open'}),rs=E('button',{className:'b mini p',textContent:'Restore'}),rm=E('button',{className:'b mini d',textContent:'Delete'});
+  dl.onclick=()=>window.__csDownload(x.html,'index-'+x.at.slice(0,10)+'.html');op.onclick=()=>{const u=URL.createObjectURL(new Blob([x.html],{type:'text/html'}));window.open(u,'_blank')};
+  rs.onclick=()=>{if(!confirm('Load this version into the editor? Your current unpublished edits will be replaced. Nothing goes live until you press Publish.'))return;src=x.html;D=load(x.html);mark(true);toast('Version restored into the editor. Publish when ready.')};
+  rm.onclick=async()=>{if(!confirm('Delete this saved copy?'))return;const a=(await getV()).filter(y=>y.id!==x.id);await idbSet(VK,a);versionsPage()};td.append(dl,op,rs,rm);tb.append(tr)});
+ if(!list.length)c.append(E('p',{className:'hint',textContent:'Nothing saved yet. Your next publish will be saved automatically.'}));v.append(c)}
+
+/* ---- 5. unpublished-changes bar + dashboard quick actions ---- */
+const ub=E('div',{className:'ub-bar'});ub.innerHTML='<span>● Unpublished changes</span>';const u1=E('button',{className:'g',textContent:'Live editor'}),u2=E('button',{className:'p',textContent:'Publish…'});u1.onclick=()=>go('liveEdit');u2.onclick=()=>go('publish');ub.append(u1,u2);document.body.append(ub);
+setInterval(()=>{ub.classList.toggle('on',!!dirty&&cur!=='liveEdit'&&cur!=='publish')},700);
+function quick(){const v=$('#view');if(!v||v.querySelector('.qa-grid'))return;const g=E('div',{className:'qa-grid'});
+ [['✎','Live editor','Edit with the real site beside you','liveEdit'],['◍','Card outlines','Colour every day card','cardColors'],['⎘','Published versions','Restore or download a past publish','versions'],['⏱','Sign-in activity','Who is online, who signed in','logins'],['◉','Views & activity','Counts, reach and trends','views'],['⇪','Publish','Send changes to students','publish']].forEach(([i,t,s,k])=>{const b=E('button',{className:'qa-t',type:'button'});b.innerHTML='<i>'+i+'</i><b>'+t+'</b><span>'+s+'</span>';b.onclick=()=>go(k);g.append(b)});
+ const hero=v.querySelector('.cs27-hero');hero?hero.after(g):v.insertBefore(g,v.firstChild)}
+const prev=go;go=function(k){if(k==='liveEdit')return livePage();if(k==='cardColors')return cardsPage();if(k==='versions')return versionsPage();const r=prev(k);try{if(k==='dashboard')quick()}catch(e){}return r};
+SECT.liveEdit={t:'Live editor'};SECT.cardColors={t:'Card outlines'};SECT.versions={t:'Published versions'};
+const nv=document.getElementById('nav'),mk=(k,l,ic)=>{const b=E('button',{textContent:l});b.dataset.k=k;b.dataset.icon=ic;b.onclick=()=>{pvOn=false;$('#bpv').textContent='Preview';go(k)};return b};
+const at=(after,...bs)=>{const t=nv.querySelector('.cs27-group button[data-k="'+after+'"]');if(!t)return false;let p=t;bs.forEach(b=>{p.after(b);p=b});return true};
+at('weeks',mk('liveEdit','Live editor','✎'),mk('cardColors','Card outlines','◍'))||0;
+at('publish',mk('versions','Published versions','⎘'))||0;
+}catch(e){console.error('Live editor failed',e)}})();
+</script>
+
 <style id="cs-logins-css">
 .lg-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px}
 .lg-kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;border-top:4px solid var(--kc,var(--acc))}
