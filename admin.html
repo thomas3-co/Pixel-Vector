@@ -292,7 +292,7 @@ function getCtx(){const k=(src||'').length+':'+((D&&D.weeks)||[]).length;if(k!==
 function totals(){const n=((D&&D.notes)||[]).filter(x=>!x.hidden&&x.quiz!==false).length,v=((D&&D.items)||[]).filter(x=>x.released!==false).length;return{lessons:getCtx().list.length,reading:Math.max(5,n),video:Math.max(9,v)}}
 function calc(r){r=r||{};const rc=HMR.reconcile(r,getCtx(),{dry:true}),g=HMR.gradeOf(Object.assign({},r,{completed:rc.ids}),totals()),wq=r.weekQuizzes||{};let sc=0;Object.values(wq).forEach(q=>{sc+=+q.score||0});
  const cw=curWeek(),subs=r.weekSubmissions||{};let due=0,dn=0;for(let w=5;w<=Math.min(cw,16);w++){due++;if(subs[w])dn++}
- const ov=g.overall;return{overall:ov,letter:ov>=90?'A':ov>=80?'B':ov>=70?'C':ov>=60?'D':'Needs work',lessons:rc.ids.length,wq:sc+'/15',weeklyDone:dn,weeklyDue:due}}
+ const ov=g.overall;return{overall:ov,letter:ov>=90?'A':ov>=80?'B':ov>=70?'C':ov>=60?'D':'Needs work',lessons:rc.ids.length,wq:sc+'/15',kc:((r.knowledgeCheck&&r.knowledgeCheck.done)?5:0)+'/5',weeklyDone:dn,weeklyDue:due}}
 const readWb=async f=>XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
 const rowsOf=(wb,n,range)=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:'',range:range||0}):[];
 function impContent(wb){const ws=wb.Sheets.Content;if(!ws)return 'No "Content" sheet in this file.';const rows=XLSX.utils.sheet_to_json(ws,{header:1});
@@ -375,7 +375,7 @@ const extraHtml=(s,e)=>{const r=s.rec||{},p=r.profile||{},dv=s.devs||[],ws=r.wee
  const lg=(EX.log||[]).filter(x=>String(x.student).toLowerCase()==e).slice(-15).reverse();
  const li=a=>a.length?a.map(x=>'<div class="hint">'+esc(x)+'</div>').join(''):'<div class="hint">None</div>';
  return '<h4>Profile</h4><div class="hint">Full name: '+esc(p.fullName||s.fullName||'not provided')+' | Father: '+esc(p.fatherName||'-')+' | Grandfather: '+esc(p.grandfatherName||'-')+' | Account created: '+esc(dt(s.created))+'</div>'+
- '<h4>Quizzes</h4>'+li(Object.keys(wq).map(w=>'Week '+w+': '+wq[w].score+'/'+wq[w].total))+
+ '<h4>Quizzes</h4>'+li(Object.keys(wq).map(w=>'Week '+w+': '+wq[w].score+'/'+wq[w].total).concat((r.knowledgeCheck&&(r.knowledgeCheck.done||r.knowledgeCheck.answered))?['Check Your Knowledge: '+(r.knowledgeCheck.done?5:0)+'/5'+(r.knowledgeCheck.correct!=null?' ('+r.knowledgeCheck.correct+' correct, '+(r.knowledgeCheck.wrong||0)+' wrong, '+(r.knowledgeCheck.timedOut||0)+' timed out)':'')]:[]))+
  doneHtml(r)+
   '<h4>Devices ('+dv.length+')</h4>'+li(dv.map(x=>(x.label||'Unknown')+' - '+(x.n||1)+' sign-ins, last '+dt(x.last)))+
  '<h4>Help messages</h4>'+li(hp.map(x=>dt(x.at)+' '+x.topic+': '+x.text+(x.reply?' -> Reply: '+x.reply:'')))+
@@ -1487,10 +1487,10 @@ function studentDetail(email){
   st.textContent='Loading the live record…';let j;
   try{j=await bk('adminResetPreview',{email})}catch(e){st.textContent='Could not load: '+e.message;return}
   if(!j.ok){st.textContent='Could not load: '+(j.message||j.error||'unknown error');return}
-  const r=obj(j.record),cq=obj(r.contentQuizzes),rd=obj(cq.reading),casts=obj(cq.screencasts),wq=obj(r.weekQuizzes),pa=obj(r.phaseAssessments),vc=obj(r.videoConfirmed),asg=obj(r.assignmentStatus),sm=obj(j.summary);
+  const r=obj(j.record),cq=obj(r.contentQuizzes),rd=obj(cq.reading),casts=obj(cq.screencasts),wq=obj(r.weekQuizzes),pa=obj(r.phaseAssessments),vc=obj(r.videoConfirmed),asg=obj(r.assignmentStatus),sm=obj(j.summary),kc=obj(r.knowledgeCheck),kcMark=kc.done?5:0;
   st.textContent='Live data · last saved '+(j.updatedAt||'not available')+'. Reset only what you need; every reset is backed up first.';
   const s=row(email),n=k=>Object.keys(k).length;
-  const tl=[[s.overall!=null?Math.round(+s.overall)+'%':'-','Overall progress'],[((s.letter||s.p1g||'')+' '+(s.grade!=null?s.grade+'%':'')).trim()||'-','Grade'],[Number(sm.completed||(r.completed||[]).length),'Days completed'],[n(wq),'Weekly quiz marks'],[(r.readingSeen||[]).length,'Read Me viewed'],[n(rd),'Read Me quizzes'],[Object.keys(vc).filter(k=>vc[k]).length,'Screencasts watched'],[n(casts),'Screencast quizzes'],[n(pa),'Phase assessments']];
+  const tl=[[s.overall!=null?Math.round(+s.overall)+'%':'-','Overall progress'],[((s.letter||s.p1g||'')+' '+(s.grade!=null?s.grade+'%':'')).trim()||'-','Grade'],[Number(sm.completed||(r.completed||[]).length),'Days completed'],[n(wq),'Weekly quiz marks'],[(r.readingSeen||[]).length,'Read Me viewed'],[n(rd),'Read Me quizzes'],[Object.keys(vc).filter(k=>vc[k]).length,'Screencasts watched'],[n(casts),'Screencast quizzes'],[n(pa),'Phase assessments'],[kcMark+' / 5','Check Your Knowledge mark']];
   tiles.innerHTML='<div class="tg">'+tl.map(t=>'<div><b>'+esc(t[0])+'</b>'+t[1]+'</div>').join('')+'</div>';
   const dayMap={};(D.weeks||[]).forEach(w=>(w.days||[]).forEach((d,i)=>{dayMap[w.n+'-'+(i+1)]=d.title||('Week '+w.n+' Day '+(i+1))}));(r.completed||[]).forEach(k=>{if(!dayMap[k])dayMap[k]='Day '+k});
   const notes=D.notes||[],list=D.items||[],defs=D.quizzes||[];
@@ -1506,6 +1506,8 @@ function studentDetail(email){
   const ph=Object.keys(pa).map(k=>({type:'phase',key:k,title:k+' assessment',done:true,cur:scoreText(pa[k])}));
   body.innerHTML='';
   [['Daily lessons','Each day the student finished.',days],['Weekly quizzes','Mark of each weekly quiz attempt.',wks],['Read Me notes','Which notes were viewed.',reads],['Read Me pop-out quizzes','Mark of each Read Me quiz.',rqs],['Screencasts','Which recordings were watched.',cs],['Screencast pop-out quizzes','Mark of each screencast quiz.',cqs],['Phase assessments','Mark of each phase assessment.',ph]].forEach(a=>body.append(section(a[0],a[1],a[2])));
+  {const kn=Object.keys(obj(kc.a)).length,ans=kc.answered!=null?kc.answered:kn;let when='';try{if(kc.completedAt)when=' · completed '+new Date(kc.completedAt).toLocaleString()}catch(e){}
+   const d=E('details');d.innerHTML='<summary><span>Check Your Knowledge</span><span class="chip" style="margin-left:8px">'+kcMark+' / 5</span></summary><div class="in"><div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><b style="flex:1">Mark</b><span class="hint"><strong>'+kcMark+' / 5</strong>'+when+'</span></div><div class="row" style="padding:8px 0"><b style="flex:1">Answers</b><span class="hint">'+ans+(kc.questions?' / '+kc.questions:'')+' answered · '+(kc.correct!=null?kc.correct:'-')+' correct · '+(kc.wrong!=null?kc.wrong:'-')+' wrong · '+(kc.timedOut!=null?kc.timedOut:'-')+' timed out</span></div></div>';body.append(d)}
   const pj=Object.keys(asg);if(pj.length){const d=E('details');d.innerHTML='<summary><span>Project submissions</span><span class="chip" style="margin-left:8px">'+pj.length+'</span></summary><div class="in">'+pj.map(k=>'<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><b style="flex:1">'+esc(k)+'</b><span class="hint">'+esc(typeof asg[k]==='object'?(asg[k].status||JSON.stringify(asg[k])):asg[k])+'</span></div>').join('')+'</div>';body.append(d)}
   const dz=E('div',{className:'card',style:'margin-top:14px;border-color:#ef9a9a'});dz.innerHTML='<b>Reset everything for this student</b><p class="hint">Clears all course progress for '+esc(nm)+' only. Account and password stay. A backup is saved first.</p>';
   const g=E('button',{className:'b d',textContent:'Full progress reset…'});g.onclick=async()=>{if(!confirm('FULL RESET for '+nm+'? A backup is saved first.'))return;if(prompt('Type RESET to confirm.')!=='RESET')return;g.disabled=true;try{const z=await bk('adminReset',{email,scope:'all'});if(!z.ok)throw new Error(z.message||z.error||'failed');st.textContent='Full reset done. Previous progress is backed up.';await after()}catch(e){st.textContent='Full reset failed: '+e.message}g.disabled=false};dz.append(g);body.append(dz)}
