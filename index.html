@@ -13302,5 +13302,47 @@ setTimeout(function(){if(gate.classList.contains('hidden'))return;var n=$('#siNa
 })();
 </script>
 
+<style id="hm-noproj-css">
+/* The old bottom-left "Aa" accessibility button is removed from view */
+#a11yBtn{display:none!important}
+/* Projects page: empty while there is no published project (practice weeks) */
+#projects.hm-proj-empty #projSubnav,#projects.hm-proj-empty .proj-view,#projects.hm-proj-empty .project-board-wrap,#projects.hm-proj-empty .view-head p,#projects.hm-proj-empty .hm-info{display:none!important}
+#hmProjEmpty{display:none;text-align:center;max-width:620px;margin:34px auto 20px;padding:42px 32px;background:var(--panel,#fff);border:1px solid var(--line,#e3e7ee);border-radius:24px;box-shadow:0 12px 40px rgba(20,30,60,.07);font-family:Inter,Arial,sans-serif}
+#projects.hm-proj-empty #hmProjEmpty{display:block;animation:hmIn .4s ease both}
+#hmProjEmpty .pe-ico{width:74px;height:74px;margin:0 auto 18px;border-radius:22px;background:linear-gradient(135deg,rgba(47,111,237,.14),rgba(255,122,45,.18));color:var(--c-curriculum,#2f6fed);display:flex;align-items:center;justify-content:center}
+#hmProjEmpty .pe-ico svg{width:34px;height:34px}
+#hmProjEmpty h3{margin:0 0 8px;font:800 23px/1.2 Inter,Arial,sans-serif;letter-spacing:-.01em;color:var(--ink,#101828)}
+#hmProjEmpty p{margin:0 auto 20px;max-width:470px;color:var(--muted,#5b6270);font-size:14.5px;line-height:1.65}
+#hmProjEmpty .pe-tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 22px}
+#hmProjEmpty .pe-tags span{display:inline-flex;align-items:center;gap:7px;background:var(--canvas,#f3f5f8);border:1px solid var(--line,#e3e7ee);border-radius:99px;padding:8px 14px;font:700 13px Inter,Arial,sans-serif;color:var(--ink,#101828)}
+#hmProjEmpty .pe-tags svg{width:15px;height:15px;color:var(--c-projects,#ff7a2d)}
+#hmProjEmpty .pe-act{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#hmProjEmpty .pe-act button{border:0;border-radius:12px;padding:12px 20px;font:700 14px Inter,Arial,sans-serif;cursor:pointer}
+#hmProjEmpty .pe-act .p{background:var(--c-curriculum,#2f6fed);color:#fff}
+#hmProjEmpty .pe-act .g{background:var(--canvas,#f3f5f8);color:var(--ink,#101828);border:1px solid var(--line,#e3e7ee)}
+</style>
+<script id="hm-noproj">
+(function(){
+"use strict";
+try{
+/* Change the wording here if the practice topics change. */
+var MSG={title:'No project this week',lead:'This is a practice week. Work through these two techniques — your next project will appear here as soon as your instructor publishes it.',topics:['Double Exposure','3D Text Effect']};
+var sec=document.getElementById('projects');if(!sec)return;
+var hi=window.hmIc||function(){return ''};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var box=document.createElement('div');box.id='hmProjEmpty';
+box.innerHTML='<div class="pe-ico">'+hi('target')+'</div><h3>'+esc(MSG.title)+'</h3><p>'+esc(MSG.lead)+'</p><div class="pe-tags">'+MSG.topics.map(function(t){return '<span>'+hi('grid')+esc(t)+'</span>'}).join('')+'</div><div class="pe-act"><button type="button" class="p" id="peLessons">Open this week’s lessons</button><button type="button" class="g" id="pePractice">Practice files</button></div>';
+var head=sec.querySelector('.view-head');head?head.parentNode.insertBefore(box,head.nextSibling):sec.insertBefore(box,sec.firstChild);
+box.querySelector('#peLessons').onclick=function(){try{var n=window.hmUX&&window.hmUX.nextCard&&window.hmUX.nextCard();if(n)window.hmUX.focusDay(n.k);else goTab('curriculum')}catch(e){goTab('curriculum')}};
+box.querySelector('#pePractice').onclick=function(){try{goTab('practice')}catch(e){}};
+/* The page shows projects only once one is published AND its week has opened; before that it stays empty. */
+function hasProjects(){try{if(typeof HM_PROJECTS==='undefined'||!HM_PROJECTS||!HM_PROJECTS.length)return false;return HM_PROJECTS.some(function(a){try{return typeof hmOpenWeek==='function'?!!hmOpenWeek(a.week):true}catch(e){return true}})}catch(e){return false}}
+function update(){sec.classList.toggle('hm-proj-empty',!hasProjects())}
+var _g=window.goTab;if(typeof _g==='function')window.goTab=function(name){var r=_g.apply(this,arguments);try{if(name==='projects')update()}catch(e){}return r};
+update();setTimeout(update,1500);setTimeout(update,5000);
+}catch(e){console.error('hm-noproj failed',e)}
+})();
+</script>
+
 </body>
 </html>
