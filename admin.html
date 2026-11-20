@@ -243,7 +243,7 @@ function list(root,arr,spec,ti,mk,nested,sw){
   d.ondragstart=e=>{dragI=i;e.dataTransfer.setData('text','x')};d.ondragend=()=>{d.draggable=false;d.classList.remove('dragover')};
   d.ondragover=e=>{if(dragI!=null){e.preventDefault();d.classList.add('dragover')}};d.ondragleave=()=>d.classList.remove('dragover');
   d.ondrop=e=>{e.preventDefault();if(dragI==null||dragI==i)return;const[m]=arr.splice(dragI,1);arr.splice(i,0,m);dragI=null;mark();draw()};
-  const TCM={lesson:'curriculum',project:'projects',practice:'practice'},tc=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null),dn=(nested&&cur=='weeks'&&i<2&&it&&typeof it.type==='string')?i+1:0;const paint=()=>{const c=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null);if(c){d.style.border='2px solid var(--c-'+c+')';d.style.borderLeft='10px solid var(--c-'+c+')'}else{d.style.border='';d.style.borderLeft=''}if(dn)d.style.boxShadow='inset 0 7px 0 var(--c-day'+dn+',#888)';const yy=s.querySelector('.ty.cty');if(yy&&c){yy.textContent=it.type||c;yy.style.background='var(--c-'+c+')'}};if(dn){const db=E('span',{className:'ty dyb',textContent:'Day '+dn});db.style.background='var(--c-day'+dn+',#888)';s.append(db)}if(tc){const y=E('span',{className:'ty cty',textContent:it.type||tc});y.style.background='var(--c-'+tc+')';s.append(y)}paint()
+  const TCM={lesson:'curriculum',project:'projects',practice:'practice'},tc=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null),dn=(nested&&cur=='weeks'&&i<2&&it&&typeof it.type==='string')?i+1:0;const paint=()=>{const c=TCM[it.type]||(!nested&&(cur=='projects'||cur=='practice')?cur:null);if(c){d.style.border='2px solid var(--c-'+c+')';d.style.borderLeft='10px solid var(--c-'+c+')'}else{d.style.border='';d.style.borderLeft=''}if(dn)d.style.boxShadow='inset 0 7px 0 var(--c-'+(c||'curriculum')+')';const yy=s.querySelector('.ty.cty');if(yy&&c){yy.textContent=it.type||c;yy.style.background='var(--c-'+c+')'}};if(dn){const db=E('span',{className:'ty dyb',textContent:'Day '+dn});db.style.background='var(--c-'+(TCM[it.type]||'curriculum')+')';s.append(db)}if(tc){const y=E('span',{className:'ty cty',textContent:it.type||tc});y.style.background='var(--c-'+tc+')';s.append(y)}paint()
   if((spec===SPEC.items||spec===SPEC.files)&&it.id){const im=E('img',{className:'th',loading:'lazy',referrerPolicy:'no-referrer'}),ch=HMR.thumbChain(it.id,200);let k=0;im.onerror=()=>{if(++k<ch.length)im.src=ch[k];else im.remove()};im.src=ch[0];s.append(im)}
   if(spec===SPEC.notes||spec===SPEC.quizzes){const y=E('span',{className:'ty',textContent:spec===SPEC.notes?'read me':'quiz'});y.style.background='var(--c-notes)';s.append(y)}
   s.append(sp);
@@ -331,13 +331,20 @@ function impView(v){
 let LV={},TK=sessionStorage.getItem('cs_tk')||localStorage.getItem('cs_tk')||'',BK={},liveT=null,EDS=null;try{BK=JSON.parse(localStorage.getItem('cs_bk')||'{}')}catch(e){}
 const DEFAULT_BACKEND='https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec';
 const bkUrl=()=>BK.u||(GAS_BACKEND_URL.indexOf('<?=')===-1?GAS_BACKEND_URL:'')||([...String(src||'').matchAll(/\n\s*var HMA_CLOUD_URL = "([^"]+)"/g)].pop()||[])[1]||DEFAULT_BACKEND;
-async function bk(a,p){const u=bkUrl();if(!u)throw new Error('Enter the web app address first.');
- let r,j;const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),45000);
- try{r=await fetch(u,{method:'POST',signal:ac.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:a,token:TK},p||{}))})}
- catch(e){clearTimeout(tm);throw new Error(e.name==='AbortError'?'The backend took too long to answer. Try again in a moment.':'Cannot reach the backend. Check your internet and the web app address ('+u.slice(0,48)+'…). In Apps Script, the deployment must allow access to "Anyone".')}
- clearTimeout(tm);
- try{j=await r.json()}catch(e){throw new Error('The address answered, but not like the course backend. Open Apps Script → Deploy → Manage deployments, copy the latest Web app URL, and make sure access is "Anyone".')}
- if(j.error==='ADMIN_AUTH'){TK='';(sessionStorage.removeItem('cs_tk'),localStorage.removeItem('cs_tk'));throw new Error('Signed out. Please connect again.')}return j}
+async function bk(a,p){const u0=bkUrl();if(!u0)throw new Error('Enter the web app address first.');
+ /* the saved address first, then any other backend address found in the student site, then the built-in default: only used when the first one cannot be reached at all */
+ const urls=[u0,...[...String(src||'').matchAll(/https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec/g)].map(m=>m[0]),DEFAULT_BACKEND].filter((x,i,A)=>x&&A.indexOf(x)===i);
+ let lastErr;
+ for(const u of urls){
+  let r,j;const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),urls.length>1?25000:45000);
+  try{r=await fetch(u,{method:'POST',signal:ac.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:a,token:TK},p||{}))})}
+  catch(e){clearTimeout(tm);if(e.name==='AbortError')throw new Error('The backend took too long to answer. Try again in a moment.');lastErr=new Error('Cannot reach the backend. Check your internet and the web app address ('+u.slice(0,48)+'…). In Apps Script, the deployment must allow access to "Anyone".');continue}
+  clearTimeout(tm);
+  try{j=await r.json()}catch(e){lastErr=new Error('The address answered, but not like the course backend. Open Apps Script → Deploy → Manage deployments, copy the latest Web app URL, and make sure access is "Anyone".');continue}
+  if(j.error==='ADMIN_AUTH'){TK='';(sessionStorage.removeItem('cs_tk'),localStorage.removeItem('cs_tk'));throw new Error('Signed out. Please connect again.')}
+  if(u!==u0){BK.u=u;try{localStorage.setItem('cs_bk',JSON.stringify(BK))}catch(e){}}
+  return j}
+ throw lastErr}
 async function bkLogin(pw){const j=await bk('adminLogin',{password:pw});if(!j.ok)throw new Error({BADPW:'Wrong admin password.',LOCKED:'Too many wrong tries. Wait 15 minutes.',ADMIN_NOT_SET:'No admin password is set yet. In your Apps Script project run openAdminPasswordDialog once.'}[j.error]||j.message||j.error||'Sign-in failed');TK=j.token;sessionStorage.setItem('cs_tk',TK);try{localStorage.setItem('cs_tk',TK)}catch(e){}}
 async function pollLive(){const j=await bk('adminSnapshot',{fresh:true});if(!j.ok)throw new Error(j.message||j.error);LV={};j.snap.students.forEach(s=>LV[s.email.toLowerCase()]=s)}
 const badgeOf=(e,s)=>{const r=ST[e]&&ST[e].rec,B=(D.profile&&D.profile.badges)||[],T=totals();let pct,res,visits,done,approx=false;
@@ -632,7 +639,7 @@ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.return
 go('publish');
 (async()=>{let d=null;try{await stReady;d=await idbGet('draft')}catch(e){}
  const gh=LS.o&&LS.r&&LS.t;
- if(d&&d.src){src=d.src;D=d.D||load(d.src);sha=d.sha||'';mark(!!d.dirty);window.__restoredAt=d.savedAt;window.__savedAt=d.savedAt;
+ if(d&&d.src){src=d.src;D=d.D||load(d.src);if(!(D.kcs&&D.kcs.length)){try{const f=load(d.src);D.kcs=f.kcs;D.kcCfg=D.kcCfg||f.kcCfg;src=d.src}catch(e){}}sha=d.sha||'';mark(!!d.dirty);window.__restoredAt=d.savedAt;window.__savedAt=d.savedAt;
   if(!d.dirty&&gh){try{await pull()}catch(e){}}
   go('dashboard')}
  else if(gh){try{await pull();go('site')}catch(e){}}
@@ -1885,7 +1892,7 @@ go=function(k){
  if(QP[k])return quizPage(k);
  if(k==='quizzes')window.__qp='all';
  const r=prev(k);
- try{if(k==='weeks'||k==='projects'||k==='practice'){const v=$('#view');if(v&&!v.querySelector('.vw-key')){const g=E('div',{className:'vw-key'});g.innerHTML='<span><i style="border-color:var(--c-curriculum)"></i>Lesson</span><span><i style="border-color:var(--c-practice)"></i>Practice</span><span><i style="border-color:var(--c-projects)"></i>Project</span><span>Card borders follow these colours (change them in Brand &amp; colour system).</span>';v.insertBefore(g,v.firstChild)}}if(k==='weeks'){const v=$('#view');if(v&&!v.querySelector('.vw-daybar'))v.insertBefore(dayBar(),v.firstChild)}}catch(e){}
+ try{if(k==='weeks'||k==='projects'||k==='practice'){const v=$('#view');if(v&&!v.querySelector('.vw-key')){const g=E('div',{className:'vw-key'});g.innerHTML='<span><i style="border-color:var(--c-curriculum)"></i>Lesson</span><span><i style="border-color:var(--c-practice)"></i>Practice</span><span><i style="border-color:var(--c-projects)"></i>Project</span><span>Day 1 / Day 2 cards, borders and labels all follow these type colours (change them in Brand &amp; colour system).</span>';v.insertBefore(g,v.firstChild)}}}catch(e){}
  return r};
 SECT.views={t:'Views & activity'};Object.keys(QP).forEach(k=>SECT[k]={t:QP[k].t});
 const nv=document.getElementById('nav');
@@ -2022,7 +2029,6 @@ function drawPanel(){if(!panel)return;panel.innerHTML='';const sel=LVs.sel,[n,i]
  ws.innerHTML=weekNums().map(x=>'<option value="'+x+'"'+(x===n?' selected':'')+'>Week '+x+'</option>').join('');
  const fill=()=>{const c=dayCount(+ws.value);ds.innerHTML=[...Array(c)].map((_,k)=>'<option value="'+(k+1)+'"'+(k+1===i?' selected':'')+'>Day '+(k+1)+'</option>').join('')};fill();ws.onchange=()=>{fill();go2()};ds.onchange=go2;
  function go2(){LVs.sel=ws.value+'-'+ds.value;send({t:'focus',day:LVs.sel});drawPanel()}jr.append(ws,ds);panel.append(jr);
- panel.append(E('h4',{textContent:'Day 1 / Day 2 colours'}));const dr=E('div',{className:'le-row'});[['day1','Day 1'],['day2','Day 2']].forEach(([k,l])=>{const t=(D.theme||{})[k]||getComputedStyle(document.documentElement).getPropertyValue('--c-'+k).trim()||'#2f6fed';const c=E('input',{type:'color',value:HEX.test(t)?t:'#2f6fed'});c.oninput=()=>{D.theme=D.theme||{};D.theme[k]=c.value;applyTheme();mark();pushLive()};dr.append(c,E('span',{textContent:l,style:'font-size:12px;margin-right:8px'}))});panel.append(dr);
  panel.append(E('h4',{textContent:'Publish'}));panel.append(E('label',{textContent:'Commit message'}));const cm=E('input',{type:'text',id:'cm',placeholder:'Update course content from Course Studio'});panel.append(cm);
  const pr=E('div',{className:'le-row',style:'margin-top:8px'}),pb=E('button',{className:'b p',textContent:'Publish to students'}),sv=E('button',{className:'b',textContent:'Save a copy'}),dl=E('button',{className:'b',textContent:'Download'});
  pb.onclick=async()=>{if(!LS||!LS.t){toast('Connect to GitHub first (Connect & publish).');return}pb.disabled=true;lg.textContent='';try{await push()}catch(e){lg.textContent+='Error: '+e.message+'\n'}pb.disabled=false;drawStatus()};
