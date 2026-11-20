@@ -1947,7 +1947,7 @@ var st=document.createElement('style');st.id='cs-icons-css';st.textContent=css+'
 try{
 const HEX=/^#[0-9a-f]{6}$/i,PAL=['#2f6fed','#12b886','#ff7a2d','#ef476f','#8b5cf6','#f59f00','#0ea5e9','#111827'];
 const clean=m=>{const o={};Object.entries(m||{}).forEach(([k,v])=>{if(/^\d+-\d+$/.test(k)&&HEX.test(v))o[k]=v});return o};
-const dayCss=m=>Object.entries(clean(m)).map(([k,v])=>'.flip-card[data-day="'+k+'"] .flip-card-front,.flip-card[data-day="'+k+'"] .flip-card-back{border:4px solid '+v+'!important}').join('\n');
+const dayCss=m=>Object.entries(clean(m)).map(([k,v])=>'.flip-card[data-day="'+k+'"]{--cc:'+v+'!important}\n.flip-card[data-day="'+k+'"] .flip-card-front,.flip-card[data-day="'+k+'"] .flip-card-back{border:4px solid '+v+'!important}').join('\n');
 /* ---- 1. the chosen outlines are written into the published site and read back when it is loaded ---- */
 const injectColors=h=>{h=h.replace(/<style id="hm-daycolors"[\s\S]*?<\/style>\s*/,'');const m=clean(D.dayColors),css=dayCss(m);if(!css)return h;return h.replace('</head>','<style id="hm-daycolors" data-colors=\''+JSON.stringify(m)+'\'>\n'+css+'\n</style>\n</head>')};
 const _bake=bake;bake=function(){return injectColors(_bake.apply(this,arguments))};
