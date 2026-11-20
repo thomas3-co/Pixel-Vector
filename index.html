@@ -9382,12 +9382,13 @@ const HM_ASSIGNMENTS = [];   /* projects now come only from the admin page (Cour
 if(window.HMC) HMC.applyProjects(HM_ASSIGNMENTS);
 const HM_PROJECTS = HM_ASSIGNMENTS;
 function hmOpenWeek(w){ return typeof isCourseWeekOpen==='function' ? isCourseWeekOpen(w) : w<=1; }
-function hmAssignmentState(id){ return student && student.assignmentStatus ? (student.assignmentStatus[id] || 'Not started') : 'Not started'; }
+function hmAssignmentState(id){ if(!id) return 'Not started'; return student && student.assignmentStatus ? (student.assignmentStatus[id] || 'Not started') : 'Not started'; }
 function hmSetAssignment(id,status){
  if(!student || window.__guestPreview){ showToast('Sign in to save assignment progress.'); return; }
  student.assignmentStatus = student.assignmentStatus || {}; student.assignmentStatus[id]=status; saveStudentRecord(student); renderAssignments(); refreshCompletionGrayStates(); renderHomeLearning(); if(typeof renderProgressView==='function') renderProgressView(); showToast(status==='Submitted'?'Project submission recorded.':'Project status saved.');
 }
 function hmCurrentProject(){
+ if(!HM_PROJECTS.length) return null;
  if(!student) return HM_PROJECTS[0];
  const next=HM_PROJECTS.find(p=>hmOpenWeek(p.week) && hmAssignmentState(p.id)!=='Submitted');
  return next || HM_PROJECTS[HM_PROJECTS.length-1];
@@ -9582,7 +9583,7 @@ function workflowStepMark(step){
  if(step===4) return scoreSet([...readingEntries,...screencastEntries],(phaseReadingPool(1).length+phaseReleasedScreencasts(1).length)*5);
  if(step===5){ const w=weeklyQuizMarks(); return {earned:w.earned,total:w.total,text:`${w.earned}/${w.total}`}; }
  if(step===6){ const q=student?.phaseAssessments?.phase1; const total=Number(q?.total)||phaseAssessmentTotal(); const earned=q?.completedAt?Number(q.score)||0:0; return {earned,total,text:`${earned}/${total}`}; }
- if(step===7){ const marks=Number(HM_PROJECTS[0]?.marks)||15; const earned=hmAssignmentState(HM_PROJECTS[0].id)==='Submitted'?marks:0; return {earned,total:marks,text:`${earned}/${marks}`}; }
+ if(step===7){ const marks=Number(HM_PROJECTS[0]?.marks)||15; const earned=hmAssignmentState(HM_PROJECTS[0]?.id)==='Submitted'?marks:0; return {earned,total:marks,text:`${earned}/${marks}`}; }
  return {earned:0,total:0,text:'0/0'};
 }
 function workflowStepGrade(step){
@@ -9594,7 +9595,7 @@ function hmPhaseAssessmentDone(){ return !!(student && student.phaseAssessments 
 function renderHomeLearning(){
  const el=document.getElementById('homeLearningPanel'); if(!el) return;
  const fallback=el.querySelector('#homeWorkflowFallback');
- const project=HM_PROJECTS[0];
+ const project=HM_PROJECTS[0]||{id:'',week:1,title:'',marks:15,none:true}; /* projects now come from the admin; stay safe when none are published yet */
  const phase1Done=hmPhaseAssessmentDone();
  const projectDone=hmAssignmentState(project.id)==='Submitted';
  const phaseOpen=courseWeekNumber(new Date())>=6;
@@ -10779,6 +10780,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   /* The installer puts your Google Apps Script Web App URL here. */
   var HMA_CLOUD_URL = "https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec";
   window.__hmCloudReady = true;
+  try{ fetch(HMA_CLOUD_URL,{method:'GET',mode:'no-cors',cache:'no-store'}).catch(function(){}); }catch(e){} /* wake the backend early */
 
   var SESS_KEY='hm_cloud_session', GUEST='guest-preview@local';
   var lastCloudAt='', lastSig='', pushTimer=null, pushing=false, dirty=false, lastPull=0, mode='login';
@@ -10828,12 +10830,12 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   }
   /* Tries the saved address, then the backup address, then once more (Apps Script can be slow on a cold start). */
   function api(action,payload,timeoutMs){
-    var ms=timeoutMs||25000, urls=urlList(), seq=urls.concat([urls[0]]), i=0, last;
+    var ms=timeoutMs||12000, urls=urlList(), seq=[urls[0],urls[0]], i=0, last; /* the fetch wrapper already tries the backup address, so 2 rounds is enough */
     function next(){
       if(i>=seq.length) return Promise.reject(last||new Error('NETWORK'));
       var u=seq[i++];
       return post1(u,action,payload,ms).then(function(j){ try{localStorage.setItem('hm_good_url',u);}catch(e){} return j; },
-        function(e){ last=e; return new Promise(function(r){setTimeout(r,600*i);}).then(next); });
+        function(e){ last=e; return new Promise(function(r){setTimeout(r,400*i);}).then(next); });
     }
     return next();
   }
@@ -11065,22 +11067,20 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
       if(s){
         try{ await restoreRecordFromBackup(s.email); }catch(e){}
         var local=loadStudentRecord(s.email);
-        try{
-          var res=await api('pull',{email:s.email,token:s.token},15000);
-          if(res&&res.ok){
-            lastCloudAt=res.updatedAt||''; var rec=res.record?normalizeStudentRecord(res.record,s.email):null;
-            student=rec?mergeStudentRecords(rec,local):local; student.name=res.name||s.name; student.email=s.email;
-            window.__guestPreview=false; setCurrentStudent({name:student.name,email:s.email});
-            saveStudentRecord(student); enterApp();
-            try{ if(window.hmaAfterRemote) window.hmaAfterRemote(); }catch(e){}
-            /* students who stay signed in are recorded too (device type + ID), after the update */
-            api('device',{email:s.email,token:s.token,device:dev(),deviceId:devId()},15000).catch(function(){});
-            return;
-          }
-          if(res&&res.error==='AUTH'){ student=local; student.name=s.name; student.email=s.email; window.__guestPreview=false; setCurrentStudent({name:s.name,email:s.email}); enterApp(); setSync('auth'); dirty=true; needRelogin(); return; }
-        }catch(e){ /* offline: continue with the copy saved on this device */ }
+        /* QUICK LOGIN: open the course immediately from the copy saved on this device, then sync with the backend in the background */
         student=local; student.name=s.name; student.email=s.email; window.__guestPreview=false;
-        setCurrentStudent({name:s.name,email:s.email}); enterApp(); setSync('offline'); dirty=true; return;
+        setCurrentStudent({name:s.name,email:s.email}); enterApp(); setSync('saving');
+        api('pull',{email:s.email,token:s.token},15000).then(function(res){
+          if(res&&res.ok){
+            lastCloudAt=res.updatedAt||''; if(res.name) student.name=res.name;
+            if(res.record) applyRemote(res.record);
+            try{ saveStudentRecord(student); }catch(e){}
+            setSync('ok');
+            api('device',{email:s.email,token:s.token,device:dev(),deviceId:devId()},15000).catch(function(){});
+          } else if(res&&res.error==='AUTH'){ setSync('auth'); dirty=true; needRelogin(); }
+          else { setSync('err'); dirty=true; }
+        }).catch(function(){ setSync('offline'); dirty=true; });
+        return;
       }
       var cur=getCurrentStudent();
       if(cur){ setMode('register'); showGate('Create a password to keep your progress safe and open it on any device or browser.',cur); }
@@ -12601,12 +12601,12 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
       if(b!==A&&b!==B) return _f.apply(this,arguments);
       var q=url.slice(b.length), first=pref();
       if(init&&(init.mode==='no-cors'||init.keepalive)) return _f.call(window,first+q,init);   /* fire-and-forget saves */
-      var order=[first,other(first),first];
+      var order=[first,other(first)];
       function run(i){
         var u=order[i], opts=init;
         if(i>0){
           opts=Object.assign({},init||{}); delete opts.signal;
-          if(window.AbortController){ var c=new AbortController(); opts.signal=c.signal; var t=setTimeout(function(){ c.abort(); },25000); opts.__t=t; }
+          if(window.AbortController){ var c=new AbortController(); opts.signal=c.signal; var t=setTimeout(function(){ c.abort(); },12000); opts.__t=t; }
         }
         var t0=opts&&opts.__t; if(opts&&opts.__t) delete opts.__t;
         return _f.call(window,u+q,opts).then(function(r){
@@ -13792,6 +13792,8 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 .flip-card{--cc:var(--c-curriculum,#2f6fed)}
 .flip-card.project-day{--cc:var(--c-projects,#ff7a2d)}
 .flip-card.practice-day{--cc:var(--c-practice,#ef476f)}
+/* DAY 1 / DAY 2 pill and top accent follow the card type (lesson / practice / project), not a separate day colour */
+.flip-card[data-day$="-1"],.flip-card[data-day$="-2"]{--dayc:var(--cc)}
 .flip-card:not(.done) .flip-card-front{background:radial-gradient(240px 160px at 100% 100%,color-mix(in srgb,var(--cc) 30%,transparent),transparent 70%),linear-gradient(160deg,color-mix(in srgb,var(--cc) 20%,#fff) 0%,color-mix(in srgb,var(--cc) 8%,#fff) 55%,#fff 100%)!important;border:1.5px solid color-mix(in srgb,var(--cc) 45%,#fff)!important;border-left:6px solid var(--cc)!important;color:#111827!important;box-shadow:0 14px 34px color-mix(in srgb,var(--cc) 20%,transparent),inset 0 6px 0 var(--cc)!important}
 .flip-card:not(.done) .flip-card-back{background:linear-gradient(180deg,color-mix(in srgb,var(--cc) 16%,#fff) 0%,color-mix(in srgb,var(--cc) 6%,#fff) 60%,#fff 100%)!important;border:1.5px solid color-mix(in srgb,var(--cc) 45%,#fff)!important;border-left:6px solid var(--cc)!important;color:#1a1d24!important;box-shadow:0 14px 34px color-mix(in srgb,var(--cc) 16%,transparent),inset 0 6px 0 var(--cc)!important}
 .flip-card:not(.done) .flip-card-front h4{color:#0f172a!important;font-size:1.12rem;letter-spacing:-.015em}
