@@ -155,7 +155,8 @@ assessments:[['week','Source week','n'],['q','Question','a'],['opts','Four answe
 files:[['id','Google Drive file ID (leave empty for uploaded files)'],['label','Label'],['url','Uploaded file path (filled automatically by drag & drop)']],
 deadlines:[['title','Deadline title'],['date','Date (YYYY-MM-DD)'],['kind','Colour category','s',['project','practice','exam','other']],['week','Week number','n'],['note','Short note']],
 resources:[['title','Resource title'],['url','HTTPS link'],['desc','Description'],['kind','Category']],
-faq:[['q','Question','a'],['a','Answer','a']]};
+faq:[['q','Question','a'],['a','Answer','a']],
+kcs:[['id','Section id (do not change)'],['name','Short name (e.g. Image 1)'],['title','Section title'],['img','Figure picture (leave empty to keep the built-in screenshot)','img'],['gallery','Show every figure instead of one picture (cross-image section)','b'],['questions','Questions (shown one at a time)','sub',[['q','Question','a'],['options','Options — one per line','lines'],['answer','Correct option number (0 = first line)','n'],['why','Explanation shown after answering','a']],q=>q.q||'New question',()=>({q:'',options:['','','',''],answer:0,why:''})]]};
 const SECT={
 site:{t:'Home & brand text',f:()=>[[D.site,[['brandName','Brand name'],['brandSub','Brand subtitle'],['heroEyebrow','Small line above heading'],['heroTitle','Home heading'],['heroText','Home paragraph','a'],['stats','Home boxes (up to 4) — number | label','pairs',['num','label']],['tabs','Rename tabs — one per line: key = name (curriculum, projects, notes, screencasts, practice, materials, assessment, progress)','map']]]]},
 weeks:{t:'Curriculum weeks',l:'weeks',a:'Import built-in week…',mk:()=>({n:'',title:'',short:'',days:[]}),ti:w=>'Week '+w.n+' — '+(w.title||''),imp:1},
@@ -169,6 +170,8 @@ materials:{t:'Additional materials',l:'materials',sp:'files',mk:()=>({id:'',labe
 practice:{t:'Practice files',l:'practice',sp:'files',mk:()=>({id:'',label:''}),ti:x=>x.label||x.id||'New file'},
 deadlines:{t:'Deadlines',l:'deadlines',mk:()=>({title:'',date:'',kind:'project',week:'',note:''}),ti:x=>(x.date||'No date')+' · '+(x.title||'New deadline')},
 resources:{t:'Quick links & resources',l:'resources',mk:()=>({title:'',url:'',desc:'',kind:'Link'}),ti:x=>x.title||'New resource'},
+kcs:{t:'Check Your Knowledge questions',l:'kcs',mk:()=>({id:'k'+Date.now().toString(36),name:'',title:'',questions:[]}),ti:x=>(x.name||'Section')+' — '+(x.title||'')+' ('+(x.questions||[]).length+' questions)'},
+kcset:{t:'Check Your Knowledge timer',f:()=>[[D.kcCfg||(D.kcCfg={seconds:30}),[['seconds','Seconds per question (default 30)','n']]]]},
 faq:{t:'Student FAQ',l:'faq',mk:()=>({q:'',a:''}),ti:x=>x.q||'New question'},
 progressReset:{t:'Student Progress Reset'},profile:{t:'Badges & profile',f:()=>[[D.profile,[['side','Profile side','s',['left','right']],['accents','Accent colours (comma separated)','csv'],['badges','The 5 badges','sub',[['name','Name'],['color','Colour','c'],['progress','Lessons finished %','n'],['result','Score %','n'],['visits','Days visited','n']],b=>b.name||'Badge',()=>({name:'',color:'#2f6fed',progress:0,result:0,visits:1})]]]]},
 access:{t:'Login screen',f:()=>[[D.login,[['brandLine','Login screen top line'],['notes','Notes under the login button — one per line','lines']]]]},
@@ -460,7 +463,10 @@ function load(t){src=t;const w={HM_CONTENT:{}};['cc-0-profile','cc-1-curriculum'
   if(!assessments.length){const am=src.match(/(?:const|let|var)\s+PHASE1_QUESTIONS\s*=\s*([\s\S]*?);\s*function\s+phaseAssessmentTotal/);if(am){try{assessments=(new Function('return ('+am[1]+')'))()}catch(e){assessments=[]}}}}
  let quizzes=pick('quizzes',[]).slice();const addQuiz=(type,key)=>{if(!quizzes.some(q=>q.type===type&&q.key===key))quizzes.push({type,key,questions:[]})};
  notes.filter(n=>n&&n.quiz&&!n.hidden).forEach(n=>addQuiz('reading',n.id));items.filter(it=>it&&it.id&&!it.removed&&it.released!==false).forEach(it=>addQuiz('video',it.id));
- return{site:Object.assign({stats:[],tabs:{}},pick('site',{})),weeks:Object.entries(wk).map(([n,x])=>({n:Number(n),...x})).sort((a,b)=>a.n-b.n),items:items,groups:sc.groups||[],
+ let kcCfg={seconds:+(b.kc&&b.kc.seconds)||30},kcs=[];
+ if(b.kc&&b.kc.sections&&b.kc.sections.length)kcs=b.kc.sections.map(s=>({id:s.id,name:s.name,title:s.title,img:s.img||'',gallery:!!s.gallery,questions:(s.qs||[]).map(q=>({n:q.n,q:q.q,options:q.o,answer:q.a,why:q.w||''}))}));
+ else{try{const km=/<script type="application\/json" id="kc-data">([\s\S]*?)<\/script>/.exec(src);kcs=JSON.parse(km[1]).map((s,i)=>({id:String(i),name:s.name,title:s.title,img:'',gallery:s.name==='Cross',questions:(s.qs||[]).map(q=>({n:q.n,q:q.q,options:q.o,answer:q.a,why:q.w||''}))}))}catch(e){kcs=[]}}
+ return{kcs:kcs,kcCfg:kcCfg,site:Object.assign({stats:[],tabs:{}},pick('site',{})),weeks:Object.entries(wk).map(([n,x])=>({n:Number(n),...x})).sort((a,b)=>a.n-b.n),items:items,groups:sc.groups||[],
  notes:notes,quizzes:quizzes,assessments:assessments,phases:pick('phases',[]),projects:pick('projects',[]),materials:pick('materials',[]),practice:pick('practice',[]),deadlines:pick('deadlines',[]),resources:pick('resources',[]),faq:pick('faq',[]),
  profile:{side:pf.side||P.side||'left',accents:pf.accents||P.accents||[],badges:JSON.parse(JSON.stringify(pf.badges||P.badges||[]))},
  session:Object.assign({idleMinutes:0,warnMinutes:0},{}),login:Object.assign({notes:[]},w.HM_LOGIN,b.login),theme:readTheme()}}
@@ -474,6 +480,8 @@ function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test
  ['notes','projects','materials','practice','deadlines','resources','faq'].forEach(k=>d[k]&&d[k].length&&(B[k]=d[k]));
  const customQuizzes=(d.quizzes||[]).filter(q=>{const n=(q.questions||[]).length;return n>=5||(+q.draw>0&&n>=1)});if(customQuizzes.length)B.quizzes=customQuizzes;
  if(d.assessments&&d.assessments.length)B.assessments=d.assessments;if(d.phases&&d.phases.length)B.phases=d.phases;
+ (D.kcs||[]).forEach(s=>{let mx=Math.max(0,...(s.questions||[]).map(q=>+q.n||0));(s.questions||[]).forEach(q=>{if(!q.n)q.n=++mx})});
+ if((D.kcs||[]).length)B.kc={seconds:Math.max(5,+(D.kcCfg||{}).seconds||30),sections:D.kcs.map(s=>({id:s.id,name:s.name||'',title:s.title||'',img:s.img||'',gallery:!!s.gallery,qs:(s.questions||[]).filter(q=>q&&q.q).map(q=>({n:q.n,q:q.q,o:(q.options||[]).filter(x=>String(x).trim()),a:+q.answer||0,w:q.why||''}))}))};
  B.profile=d.profile;B.session=d.session;B.login=d.login;
  let t=src.replace(RE9,()=>'<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(B,null,1).replace(/<\//g,'<\\/')+';\n<\/script>');
  t=t.replace(/:root\s*\{[\s\S]*?\}/,b=>b.replace(/(--c-(curriculum|projects|notes|screen|practice)\s*:\s*)(#[0-9a-fA-F]{3,8})/g,(m,a,n,c)=>a+((D.theme||{})[n]||c)));
@@ -752,13 +760,13 @@ go('publish');
  document.head.append(E('style',{},css));
  const categories=[
   ['Overview',['dashboard']],
-  ['Course content',['weeks','notes','items','quizzes','assessments','projects','materials','practice']],
+  ['Course content',['weeks','notes','items','quizzes','kcs','kcset','assessments','projects','materials','practice']],
   ['Site experience',['site','profile','access','theme','resources','faq','explorer']],
   ['Student operations',['students','progressReset','records']],
   ['Data & deployment',['import','source','publish']]
  ];
- const names={dashboard:'Command centre',weeks:'Curriculum & daily lessons',notes:'Read Me library',items:'Screencast library',groups:'Screencast groups',quizzes:'Pop-out quiz studio',assessments:'Phase assessment bank',projects:'Projects & assignments',materials:'Released materials',practice:'Practice files',site:'Home & navigation',profile:'Student profile & badges',access:'Login & session rules',theme:'Brand & colour system',deadlines:'Calendar & deadlines',resources:'Resource links',faq:'Student FAQ',explorer:'Live site explorer',students:'Student directory',progressReset:'Progress reset & recovery',records:'Announcements & activity',import:'Import & data centre',source:'Advanced HTML editor',publish:'Connect & publish'};
- const icons={dashboard:'⌂',weeks:'▦',notes:'▤',items:'▶',groups:'▥',quizzes:'✎',assessments:'✓',projects:'◇',materials:'▣',practice:'⌘',site:'⌂',profile:'◎',access:'⌑',theme:'◐',deadlines:'◷',resources:'↗',faq:'?',explorer:'⌕',students:'♙',progressReset:'↺',records:'▤',import:'⇧',source:'</>',publish:'⇧'};
+ const names={dashboard:'Command centre',weeks:'Curriculum & daily lessons',notes:'Read Me library',items:'Screencast library',groups:'Screencast groups',quizzes:'Pop-out quiz studio',kcs:'Check Your Knowledge',kcset:'Knowledge timer',assessments:'Phase assessment bank',projects:'Projects & assignments',materials:'Released materials',practice:'Practice files',site:'Home & navigation',profile:'Student profile & badges',access:'Login & session rules',theme:'Brand & colour system',deadlines:'Calendar & deadlines',resources:'Resource links',faq:'Student FAQ',explorer:'Live site explorer',students:'Student directory',progressReset:'Progress reset & recovery',records:'Announcements & activity',import:'Import & data centre',source:'Advanced HTML editor',publish:'Connect & publish'};
+ const icons={dashboard:'⌂',weeks:'▦',notes:'▤',items:'▶',groups:'▥',quizzes:'✎',kcs:'?',kcset:'◷',assessments:'✓',projects:'◇',materials:'▣',practice:'⌘',site:'⌂',profile:'◎',access:'⌑',theme:'◐',deadlines:'◷',resources:'↗',faq:'?',explorer:'⌕',students:'♙',progressReset:'↺',records:'▤',import:'⇧',source:'</>',publish:'⇧'};
  // Keep the existing navigation buttons and handlers; reorganise them into clear, discoverable groups.
  const nav=$('#nav');const existing={};nav.querySelectorAll('button[data-k]').forEach(b=>existing[b.dataset.k]=b);
  nav.innerHTML='';
