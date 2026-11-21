@@ -7304,7 +7304,9 @@ function mergeStudentRecords(base,extra){
   base.assignmentStatus=Object.assign({},extra.assignmentStatus||{},base.assignmentStatus||{});
   base.phaseAssessments=Object.assign({},extra.phaseAssessments||{},base.phaseAssessments||{});
   base.weekFinished=Object.assign({},extra.weekFinished||{},base.weekFinished||{});
-  base.knowledgeCheck=(function(a,b){ a=a||{}; b=b||{}; var o=Object.assign({},b,a); o.a=Object.assign({},b.a||{},a.a||{}); o.done=!!(a.done||b.done); if(o.done){ o.score=5; o.total=5; o.completedAt=a.completedAt||b.completedAt||new Date().toISOString(); } return (Object.keys(o.a).length||o.done)?o:undefined; })(base.knowledgeCheck,extra.knowledgeCheck);
+  base.knowledgeCheck=(function(a,b){ a=a||{}; b=b||{}; var o=Object.assign({},b,a); o.a=Object.assign({},b.a||{},a.a||{}); o.t=Object.assign({},b.t||{},a.t||{}); o.d=Object.assign({},b.d||{},a.d||{});
+    Object.keys(o.d).forEach(function(k){ var dt=o.d[k]||0, at=o.t[k]||0; if(dt>=at&&dt>0){ delete o.a[k]; } else { delete o.d[k]; } });   /* an answer cleared by 'retake' stays cleared unless it was answered again later */
+    o.done=!!(a.done||b.done); if(o.done){ o.score=5; o.total=5; o.completedAt=a.completedAt||b.completedAt||new Date().toISOString(); } return (Object.keys(o.a).length||o.done)?o:undefined; })(base.knowledgeCheck,extra.knowledgeCheck);
   base.celebrations=Object.assign({},extra.celebrations||{},base.celebrations||{});
   base.visitDays=union(base.visitDays,extra.visitDays).sort().slice(-400);
   base.legacyCompleted=union(base.legacyCompleted,extra.legacyCompleted);
@@ -10783,7 +10785,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
 .hma-sync{font-size:11px;color:#9aa2b1;margin-top:8px;text-align:center}
 .hma-sync.ok{color:#5fd39a}.hma-sync.bad{color:#ffb4a6}
 </style>
-<script id="   var HMA_CLOUD_URL = "https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec";">
+<script id="hma-cloud-sync">
 (function(){
   "use strict";
   /* The installer puts your Google Apps Script Web App URL here. */
@@ -11251,10 +11253,11 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
 
 
   /* ===== JSONP transport for notifications (browsers block fetch() reads from the Apps Script URL) ===== */
-  var HN_URL=(function(){ try{ var m=document.getElementById('   var HMA_CLOUD_URL = "https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec";').textContent.match(/HMA_CLOUD_URL\s*=\s*"([^"]+)"/); return m?m[1]:''; }catch(e){ return ''; } })();
+  var HN_URL=(function(){ try{ var m=document.getElementById('hma-cloud-sync').textContent.match(/HMA_CLOUD_URL\s*=\s*"([^"]+)"/); return m?m[1]:''; }catch(e){ return ''; } })();
   var hnSeq=0;
   function jsonp(action,payload,timeoutMs){
     return new Promise(function(resolve,reject){
+      try{ var pf=localStorage.getItem('hm_cloud_pref'); if(pf&&/^https:\/\/script\.google\.com\/macros\/s\//.test(pf)) HN_URL=pf; }catch(e){}
       if(!HN_URL){ reject(new Error('no url')); return; }
       var cb='hnCb'+Date.now().toString(36)+(++hnSeq), el=document.createElement('script'), done=false, timer;
       function cleanup(){ done=true; clearTimeout(timer); try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(el.parentNode) el.parentNode.removeChild(el); }
@@ -12622,10 +12625,15 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
         var t0=opts&&opts.__t; if(opts&&opts.__t) delete opts.__t;
         return _f.call(window,u+q,opts).then(function(r){
           clearTimeout(t0);
-          if(r.status>=500) throw new Error('http '+r.status);
-          try{ localStorage.setItem(KEY,u); }catch(e){}
-          return r;
-        },function(err){
+          if(r.status>=500||r.status===401||r.status===403||r.status===404) throw new Error('http '+r.status);
+          /* a Google sign-in / error page (HTML) is NOT the backend: treat it as a failure so the other address is tried */
+          return r.clone().text().then(function(tx){
+            var h=(tx||'').replace(/^[\s\uFEFF]+/,''), c=h.charAt(0);
+            if(!(c==='{'||c==='['||h.indexOf('Course backend is running')>-1)) throw new Error('NOTBACKEND');
+            try{ localStorage.setItem(KEY,u); }catch(e){}
+            return r;
+          });
+        }).catch(function(err){   /* .catch (not a 2nd .then argument) so errors thrown above ALSO move on to the other address */
           clearTimeout(t0);
           if(i+1<order.length) return run(i+1);
           throw err;
@@ -13556,16 +13564,32 @@ function $(s,r){return (r||document).querySelector(s);}
 function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function toast(m){ try{ if(typeof showToast==='function') showToast(m); }catch(e){} }
+var dataSig='';
+function srcSig(cfg){ try{ if(!(cfg&&cfg.sections&&cfg.sections.length)) return 'base'; var n=0; cfg.sections.forEach(function(s,i){ n=(n*31+String(s.id).length+i)%1000003; (s.qs||[]).forEach(function(q){ n=(n*31+String(q&&q.q||'').length+(+q.a||0)+((q&&q.o&&q.o.length)||0))%1000003; }); }); return cfg.sections.length+':'+n+':'+cfg.seconds; }catch(e){ return 'x'; } }
 function load(){
-  if(data) return;
   var base=[]; try{ base=JSON.parse($('#kc-data').textContent); }catch(e){}
   var cfg=null; try{ cfg=(window.HM_CONTENT&&window.HM_CONTENT.kc)||(window.HMC&&window.HMC.data&&window.HMC.data.kc)||null; }catch(e){}
+  var sig=srcSig(cfg); if(data&&sig===dataSig) return;   /* reload automatically when the admin changes the quiz */
+  dataSig=sig; built=false;
   var secs=(cfg&&cfg.sections&&cfg.sections.length)?cfg.sections:base;
   if(cfg&&+cfg.seconds>=5) SECS=Math.min(300,Math.floor(+cfg.seconds));
-  data=secs.map(function(s,i){
-    var qs=(s.qs||[]).filter(function(q){return q&&q.q&&q.o&&q.o.length>1;}).map(function(q,j){ return {n:+q.n||j+1,q:q.q,o:q.o,a:+q.a||0,w:q.w||''}; });
-    return {id:String(s.id!=null?s.id:i),name:s.name||('Section '+(i+1)),title:s.title||'',img:s.img||'',gallery:!!s.gallery||s.name==='Cross',qs:qs};
-  }).filter(function(s){return s.qs.length;});
+  function build1(list){
+    var seenS={};
+    return list.map(function(s,i){
+      var sid=String(s.id!=null?s.id:i); if(seenS[sid]) sid=sid+'_'+i; seenS[sid]=1;
+      var used={}, mx=0;
+      var qs=(s.qs||[]).filter(function(q){ return q&&q.q&&q.o&&(Array.isArray(q.o)?q.o.length>1:String(q.o).length>1); }).map(function(q,j){
+        var o=Array.isArray(q.o)?q.o.map(String):String(q.o).split(/\s*\|\|\s*|\n/).filter(Boolean);
+        var a=parseInt(q.a,10); if(isNaN(a)||a<0||a>=o.length) a=0;
+        var n=parseInt(q.n,10); if(isNaN(n)||n<1||used[n]) n=0; else used[n]=1;
+        return {n:n,q:String(q.q),o:o,a:a,w:q.w||''};
+      }).filter(function(q){ return q.o.length>1; });
+      qs.forEach(function(q){ if(q.n&&q.n>mx) mx=q.n; });
+      qs.forEach(function(q){ if(!q.n){ q.n=++mx; } });   /* every question has its own number, so answers never collide */
+      return {id:sid,name:s.name||('Section '+(i+1)),title:s.title||'',img:s.img||'',gallery:!!s.gallery||s.name==='Cross',qs:qs};
+    }).filter(function(s){return s.qs.length;});
+  }
+  data=build1(secs); if(!data.length&&secs!==base) data=build1(base);
   TOTAL=data.reduce(function(n,s){return n+s.qs.length;},0);
   flat=[]; data.forEach(function(s,si){ s.qs.forEach(function(q,qi){ flat.push([si,qi]); }); });
 }
@@ -13583,6 +13607,7 @@ function persist(now){
   var go=function(){
     if(!dirty) return; dirty=false;
     var r=rec();
+    try{ if(data) syncCounts(obj()); }catch(e){}
     if(r){ try{ saveStudentRecord(r); }catch(e){} }
     else { try{ localStorage.setItem('hm_kc_local',JSON.stringify(localObj)); }catch(e){} }
   };
@@ -13591,10 +13616,16 @@ function persist(now){
 addEventListener('pagehide',function(){persist(true);});
 document.addEventListener('visibilitychange',function(){ if(document.hidden) persist(true); });
 function key(s,q){ return data[s].id+'.'+q.n; }
-function val(s,qi){ return obj().a[key(s,data[s].qs[qi])]; }
+function val(s,qi){
+  var v=obj().a[key(s,data[s].qs[qi])];
+  if(v===undefined||v===null||v==='') return undefined;
+  v=Number(v); if(isNaN(v)) return undefined;
+  if(v!==-1&&(v<0||v>=data[s].qs[qi].o.length)) return undefined;
+  return v;
+}
 function secCount(s){ var c=0; data[s].qs.forEach(function(q,qi){ if(val(s,qi)!==undefined) c++; }); return c; }
 function totals(){
-  var ans=0,ok=0,tm=0;
+  var ans=0,ok=0,tm=0; if(!data) return {ans:0,ok:0,tm:0,wrong:0,total:0};
   data.forEach(function(sec,s){ sec.qs.forEach(function(q,qi){ var v=val(s,qi); if(v!==undefined){ ans++; if(v===q.a) ok++; else if(v===-1) tm++; } }); });
   return {ans:ans,ok:ok,tm:tm,wrong:ans-ok-tm,total:TOTAL};
 }
@@ -13624,7 +13655,7 @@ function startTimer(){
 function root(){ return $('#kcPane'); }
 function build(){
   load(); var r=root(); if(!r) return;
-  built=true; stopTimer(); screen='home'; renderHome();
+  built=true; stopTimer(); screen='home'; bind(); renderHome();
 }
 function renderHome(){
   var r=root(); if(!r) return; stopTimer(); screen='home'; secShown=-1;
@@ -13633,6 +13664,7 @@ function renderHome(){
     return '<button type="button" class="kqs'+(c===n?' done':'')+'" data-s="'+s+'"><u>'+(c===n?'Done':c+'/'+n)+'</u><b>'+esc(sec.name==='Cross'?'Cross-Image':sec.name)+'</b><span>'+esc(sec.title)+'</span><em><i style="width:'+(c/n*100)+'%"></i></em></button>';
   }).join('');
   var t=totals(),o=obj(),next=firstUnanswered();
+  try{ if(o.answered!==t.ans||o.correct!==t.ok||o.wrong!==t.wrong||o.timedOut!==t.tm){ syncCounts(o); dirty=true; persist(false); } }catch(e){}
   r.innerHTML=
    '<div class="kq-hero"><h3>Check Your Knowledge</h3>'
   +'<p>One question at a time, with the screenshot always in view. You have <b>'+SECS+' seconds</b> for each question. Use Next to move on, and finish with a full review of your answers.</p>'
@@ -13708,11 +13740,14 @@ function paintLive(){
 function answer(i){
   if(screen!=='play') return;
   var s=flat[pos][0], qi=flat[pos][1], q=data[s].qs[qi], o=obj(), k=key(s,q);
-  if(o.a[k]!==undefined) return;
-  stopTimer(); o.a[k]=i; dirty=true;
-  var t=syncCounts(o);
-  if(t.ans===TOTAL&&!o.done){ o.done=true; o.completedAt=new Date().toISOString(); o.score=5; o.total=5; o.correct=t.ok; dirty=true; persist(true); toast('Check Your Knowledge complete: 5/5'); }
-  else persist(false);
+  if(val(s,qi)!==undefined) return;
+  stopTimer(); i=Number(i); if(isNaN(i)) return;
+  o.a[k]=i; if(!o.t) o.t={}; o.t[k]=Date.now(); if(o.d) delete o.d[k]; dirty=true;
+  try{
+    var t=syncCounts(o);
+    if(t.ans===TOTAL&&!o.done){ o.done=true; o.completedAt=new Date().toISOString(); o.score=5; o.total=5; o.correct=t.ok; dirty=true; persist(true); toast('Check Your Knowledge complete: 5/5'); }
+    else persist(false);
+  }catch(e){ try{ console.error('kc',e); }catch(_){} }
   renderQ();
 }
 function next(){
@@ -13750,7 +13785,7 @@ function renderReview(){
 }
 function retake(){
   var o=obj(),n=0;
-  data.forEach(function(sec,s){ sec.qs.forEach(function(q,qi){ var st=status(s,qi); if(st==='no'||st==='tm'){ delete o.a[key(s,q)]; n++; } }); });
+  data.forEach(function(sec,s){ sec.qs.forEach(function(q,qi){ var st=status(s,qi); if(st==='no'||st==='tm'){ var kk=key(s,q); delete o.a[kk]; if(o.t) delete o.t[kk]; if(!o.d) o.d={}; o.d[kk]=Date.now(); n++; } }); });
   if(!n) return; syncCounts(o); dirty=true; persist(true);
   var p=firstUnanswered(); if(p>-1) startAt(p);
 }
@@ -13795,7 +13830,9 @@ function lightbox(list,title,start){
 /* ---------- events ---------- */
 function bind(){
   var r=root(); if(!r||r.__kc) return; r.__kc=1;
-  r.addEventListener('click',function(e){
+  r.addEventListener('click',function(e){ try{ kqClick(e); }catch(err){ try{ console.error('kc',err); }catch(_){} try{ if(screen!=='home') renderHome(); }catch(_){} } });
+}
+function kqClick(e){
     var t=e.target, o=t.closest&&t.closest('.kqo'); if(o&&!o.disabled){ answer(+o.dataset.i); return; }
     var f=t.closest&&t.closest('[data-f]'); if(f){ filt=f.dataset.f; renderReview(); return; }
     var sb=t.closest&&t.closest('.kqs'); if(sb){ var s=+sb.dataset.s, p=-1; for(var i=0;i<flat.length;i++){ if(flat[i][0]===s&&val(s,flat[i][1])===undefined){ p=i; break; } } if(p<0){ for(var j=0;j<flat.length;j++){ if(flat[j][0]===s){ p=j; break; } } } startAt(p); return; }
@@ -13809,7 +13846,6 @@ function bind(){
     else if(act==='review'){ filt='all'; renderReview(); }
     else if(act==='retake') retake();
     else if(act==='goq'){ startAt(flat.findIndex(function(x){return x[0]===+a.dataset.s&&x[1]===+a.dataset.qi;})); }
-  });
 }
 function pane(which){
   var f=$('#kcFilesPane'), k=$('#kcPane'); if(!f||!k) return;
@@ -13819,12 +13855,12 @@ function pane(which){
 }
 window.hmOpenKC=function(){ try{ if(typeof goTab==='function') goTab('practice'); }catch(e){} setTimeout(function(){ pane('kc'); },60); };
 function init(){
+  document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('#kcSwitch button[data-kcp]'); if(b){ try{ pane(b.dataset.kcp); }catch(err){ try{ console.error('kc',err); }catch(_){} } } });
   var sw=$('#kcSwitch'); if(!sw) return;
-  sw.addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) pane(b.dataset.kcp); });
   load(); updateBadge();
   var pv=$('#practice');
   if(pv&&window.MutationObserver){
-    new MutationObserver(function(){ if(pv.classList.contains('active')){ updateBadge(); if(!$('#kcPane').hidden&&screen==='home') renderHome(); } else stopTimer(); }).observe(pv,{attributes:true,attributeFilter:['class']});
+    new MutationObserver(function(){ if(pv.classList.contains('active')){ updateBadge(); if(!$('#kcPane').hidden){ if(screen==='home') renderHome(); else if(screen==='play'&&flat[pos]&&val(flat[pos][0],flat[pos][1])===undefined&&T.iv===null) startTimer(); } } else stopTimer(); }).observe(pv,{attributes:true,attributeFilter:['class']});
   }
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
