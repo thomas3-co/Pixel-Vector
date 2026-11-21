@@ -1754,7 +1754,6 @@ function viewsPage(){
 
  if(S.tab==='ov'){
   const a=sum(cur_),b=sum(prv),u=uniq(cur_),wd={};cur_.forEach(e=>{(wd[e.email]=wd[e.email]||new Set()).add(e.day)});const ret=Object.values(wd).filter(s=>s.size>1).length;
-  const k=E('div',{className:'vw-kpis'});[[a,'Views',delta(a,b)],[u+'<small style="display:inline;color:var(--mut)"> / '+N+'</small>','Students who viewed','<span style="color:var(--mut)">'+(N?Math.round(u/N*100):0)+'% of the class reached</span>'],[ret,'Returning viewers','<span style="color:var(--mut)">came back on 2+ different days</span>'],[u?(a/u).toFixed(1):'0','Views per active student','<span style="color:var(--mut)">'+new Set(cur_.map(e=>e.type+'|'+e.key)).size+' different items opened</span>'],[sum(allT.filter(e=>e.day===P.today)),'Views today','<span style="color:var(--mut)">yesterday: '+sum(allT.filter(e=>e.day===addD(P.today,-1)))+'</span>']].forEach(([n,l,s])=>{const c=E('div',{className:'card vw-kpi'});c.innerHTML='<b>'+n+'</b><span>'+l+'</span><small>'+s+'</small>';k.append(c)});body.append(k);
   const big=E('div',{className:'card'});const days=[];for(let i=0;i<P.len;i++)days.push(addD(P.from,i));
   const wk=P.len>120,bks=[];if(wk){for(let i=0;i<days.length;i+=7)bks.push(days.slice(i,i+7))}else days.forEach(d=>bks.push([d]));
   const cnt={};cur_.forEach(e=>cnt[e.day]=(cnt[e.day]||0)+e.n);const vals=bks.map(g=>g.reduce((n,d)=>n+(cnt[d]||0),0)),mx=Math.max(1,...vals),W=860,H=230,L=34,B=26,bw=(W-L)/bks.length;
@@ -1762,7 +1761,29 @@ function viewsPage(){
   [0,.5,1].forEach(f=>{const y=H-B-f*(H-B-12);svg+='<line x1="'+L+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="2" y="'+(y+3)+'">'+Math.round(mx*f)+'</text>'});
   bks.forEach((g,i)=>{const h=vals[i]/mx*(H-B-12),x=L+i*bw;svg+='<rect class="bar'+(S.day===g[0]?' sel':'')+'" data-d="'+g[0]+'" x="'+(x+1)+'" y="'+(H-B-h)+'" width="'+Math.max(1,bw-2)+'" height="'+Math.max(h,vals[i]?1:0)+'" rx="2"><title>'+(wk?'Week of ':'')+fday(g[0])+': '+vals[i]+' views</title></rect>'});
   const step=Math.ceil(bks.length/10);bks.forEach((g,i)=>{if(i%step===0){const d=pd(g[0]);svg+='<text x="'+(L+i*bw)+'" y="'+(H-8)+'">'+d.getDate()+' '+d.toLocaleDateString([],{month:'short'})+'</text>'}});svg+='</svg>';
-  big.innerHTML='<h3>Views per '+(wk?'week':'day')+'</h3>'+svg+'<p class="hint">Click a bar (or a square in the calendar below) to see exactly who viewed what on that day.</p>';body.append(big);
+  const mk=S.ysm||'views',ofDay=ev=>{const m={};ev.forEach(e=>{(m[e.day]=m[e.day]||[]).push(e)});return m},cm_=ofDay(cur_),pm_=ofDay(prv);
+  const MD=[{k:'views',l:'Views',f:es=>sum(es)},{k:'students',l:'Students',f:es=>uniq(es)},{k:'items',l:'Items opened',f:es=>new Set(es.map(e=>e.type+'|'+e.key)).size},{k:'avg',l:'Views per student',f:es=>es.length?Math.round(sum(es)/uniq(es)*10)/10:0}];
+  const cmd=MD.find(m=>m.k===mk)||MD[0],grp=(g,map,sh)=>{let es=[];g.forEach(d=>{const dd=sh?addD(d,-P.len):d;if(map[dd])es=es.concat(map[dd])});return es};
+  const sC=bks.map(g=>cmd.f(grp(g,cm_,0))),sP=bks.map(g=>cmd.f(grp(g,pm_,1)));
+  const pc=(x,y)=>y?Math.round((x-y)/y*100):null,chg=(x,y)=>{const q=pc(x,y);return q===null?(x?'<span class="vw-up">new</span>':'<span style="color:var(--mut)">–</span>'):'<span class="'+(q>=0?'vw-up':'vw-down')+'">'+(q>=0?'▲ ':'▼ ')+Math.abs(q)+'%</span>'};
+  const sg=E('div',{className:'ys-grid'}),left=E('div',{className:'ys-main'}),right=E('div',{className:'ys-side'});sg.append(left,right);body.append(sg);big.className='ys-card';left.append(big);
+  const W2=780,H2=250,L2=40,B2=28,T2=14,mx2=Math.max(1,...sC,...sP),nb=bks.length,xs=i=>L2+(nb>1?i*(W2-L2-12)/(nb-1):(W2-L2)/2),ys=v=>H2-B2-v/mx2*(H2-B2-T2),ln=ar=>ar.map((v,i)=>xs(i).toFixed(1)+','+ys(v).toFixed(1)).join(' ');
+  let sv2='<svg class="ys-chart vw-chart" viewBox="0 0 '+W2+' '+H2+'" width="100%" role="img" aria-label="'+esc(cmd.l)+' over time">';
+  [0,.25,.5,.75,1].forEach(f=>{const y=ys(mx2*f),v=mx2*f;sv2+='<line x1="'+L2+'" x2="'+W2+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="4" y="'+(y+3)+'">'+(Number.isInteger(v)?v:v.toFixed(1))+'</text>'});
+  sv2+='<polyline points="'+ln(sP)+'" fill="none" stroke="var(--mut)" stroke-width="1.6" stroke-dasharray="5 4" opacity=".75"/><polygon points="'+xs(0)+','+(H2-B2)+' '+ln(sC)+' '+xs(nb-1)+','+(H2-B2)+'" fill="var(--acc)" fill-opacity=".12"/><polyline points="'+ln(sC)+'" fill="none" stroke="var(--acc)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
+  bks.forEach((g,i)=>{const bw2=(W2-L2)/nb;sv2+='<rect class="bar ys-hit'+(S.day===g[0]?' sel':'')+'" data-d="'+g[0]+'" x="'+(xs(i)-bw2/2)+'" y="'+T2+'" width="'+bw2+'" height="'+(H2-B2-T2)+'"><title>'+(wk?'Week of ':'')+fday(g[0])+': '+sC[i]+' '+cmd.l.toLowerCase()+' (previous period: '+sP[i]+')</title></rect>';if(nb<=45)sv2+='<circle cx="'+xs(i)+'" cy="'+ys(sC[i])+'" r="2.6" fill="var(--acc)" pointer-events="none"/>'});
+  const stp=Math.ceil(nb/9);bks.forEach((g,i)=>{if(i%stp===0){const d=pd(g[0]);sv2+='<text x="'+(xs(i)-8)+'" y="'+(H2-8)+'">'+d.getDate()+' '+d.toLocaleDateString([],{month:'short'})+'</text>'}});sv2+='</svg>';
+  const T=[['views','Views',a,b],['students','Students',u,uniq(prv)],['items','Items opened',MD[2].f(cur_),MD[2].f(prv)],['avg','Views per student',MD[3].f(cur_),MD[3].f(prv)]];
+  big.innerHTML='<div class="ys-h"><div><span class="ys-eyebrow">Course analytics</span><h3>Your course got <b>'+a+'</b> view'+(a===1?'':'s')+' in the last '+P.len+' days</h3><div class="ys-sub">'+delta(a,b)+' · '+u+' of '+N+' students ('+(N?Math.round(u/N*100):0)+'%) opened something</div></div></div><div class="ys-tabs">'+T.map(t=>'<button type="button" class="ys-m'+(t[0]===mk?' on':'')+'" data-m="'+t[0]+'"><span>'+t[1]+'</span><b>'+t[2]+'</b><small>'+chg(t[2],t[3])+'</small></button>').join('')+'</div>'+sv2+'<div class="ys-leg"><span><i></i>This period</span><span><i class="p"></i>Previous '+P.len+' days</span><span class="hint">Click the chart to see exactly who viewed what on a ' +(wk?'week':'day')+'.</span></div>';
+  big.querySelectorAll('.ys-m').forEach(bt=>bt.onclick=()=>{S.ysm=bt.dataset.m;viewsPage()});
+  const nowT=Date.now(),L48=C.log.filter(l=>(S.type==='all'||S.type===l.type)&&nowT-new Date(l.at)<=48*36e5),hrs48=[];for(let i=47;i>=0;i--){const t=new Date(nowT-i*36e5);t.setMinutes(0,0,0);hrs48.push(t.getTime())}
+  const c48=hrs48.map(h=>L48.filter(l=>{const t=new Date(l.at).getTime();return t>=h&&t<h+36e5}).length),m48=Math.max(1,...c48),act24=new Set(L48.filter(l=>nowT-new Date(l.at)<=24*36e5).map(l=>l.email)).size;
+  const rtc=E('div',{className:'ys-card'});rtc.innerHTML='<div class="ys-rt"><h3>Realtime</h3><span class="ys-live"><i></i>Live</span></div><div class="ys-rtn"><b>'+L48.length+'</b><span>Views · last 48 hours</span></div><div class="vw-bars ys-rtb">'+c48.map((n,i)=>'<div style="height:'+Math.max(3,n/m48*100)+'%" title="'+new Date(hrs48[i]).toLocaleString([],{weekday:'short',hour:'numeric'})+': '+n+'"></div>').join('')+'</div><div class="ys-rtl"><span>48 hours ago</span><span>Now</span></div><div class="ys-line"><b>'+act24+'</b><span>Students active · last 24 hours</span></div>';
+  const lt=L48.slice(0,5);if(lt.length)rtc.innerHTML+='<div class="ys-line2"><span class="ys-eyebrow">Latest activity</span>'+lt.map(l=>'<div class="ys-act"><b>'+esc(l.name)+'</b><span>'+esc(l.l)+'</span><small>'+esc(ago(l.at))+'</small></div>').join('')+'</div>';
+  right.append(rtc);
+  const tcc=E('div',{className:'ys-card'});const topI=agg(cur_).filter(i=>i.type!=='page').sort((x,y)=>y.views-x.views).slice(0,6);
+  tcc.innerHTML='<h3>Top content</h3><p class="ys-sub">Last '+P.len+' days · Views</p>'+(topI.length?topI.map((i,n)=>'<div class="ys-top"><em>'+(n+1)+'</em><div><b>'+esc(i.l)+'</b><small>'+esc((TYPES[i.type]||{one:i.type}).one)+' · '+Object.keys(i.who).length+' students</small></div><strong>'+i.views+'</strong></div>').join(''):'<p class="hint">No dated views in this period yet.</p>');
+  right.append(tcc);
   const slot=E('div');body.append(slot);const show=(d,w)=>{S.day=d;slot.innerHTML='';const c=E('div',{className:'card'});c.append(dayPanel(d,w));slot.append(c);big.querySelectorAll('rect.bar').forEach(r=>r.classList.toggle('sel',r.dataset.d===d))};
   big.querySelectorAll('rect.bar').forEach(r=>r.onclick=()=>show(r.dataset.d,wk));if(S.day)show(S.day,false);
   // insights
@@ -2385,6 +2406,31 @@ const tp=document.getElementById('cs-top');addEventListener('scroll',()=>tp.clas
 </script>
 
 
+
+<style id="cs-ys-css">
+/* YouTube Studio style analytics */
+.ys-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(290px,1fr);gap:16px;align-items:start;margin-bottom:16px}
+.ys-main,.ys-side{display:grid;gap:16px;min-width:0}
+.ys-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.ys-card h3{margin:0;font:600 19px/1.3 Poppins,Inter,sans-serif}.ys-card h3 b{font-weight:700}
+.ys-eyebrow{display:block;font:700 11px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.ys-sub{font-size:12.5px;color:var(--mut);margin:6px 0 0}
+.ys-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:18px -22px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ys-m{border:0;border-right:1px solid var(--line);border-bottom:3px solid transparent;background:transparent;text-align:left;padding:14px 18px 12px;cursor:pointer;color:var(--ink);font:inherit;border-radius:0;display:block}
+.ys-m:last-child{border-right:0}.ys-m span{display:block;font-size:12.5px;color:var(--mut);margin-bottom:4px}.ys-m b{display:block;font:600 28px/1.1 Poppins,Inter,sans-serif}.ys-m small{display:block;font-size:11.5px;margin-top:4px}
+.ys-m:hover{background:var(--bg)}.ys-m.on{background:color-mix(in srgb,var(--acc) 7%,var(--panel));border-bottom-color:var(--acc)}.ys-m.on span{color:var(--ink);font-weight:600}
+.ys-chart{display:block;margin-top:6px}.ys-chart text{fill:var(--mut);font:10px Inter,sans-serif}
+.ys-chart rect.ys-hit{fill:transparent!important;cursor:pointer}.ys-chart rect.ys-hit:hover{fill:var(--acc)!important;fill-opacity:.07}.ys-chart rect.ys-hit.sel{fill:var(--acc)!important;fill-opacity:.12}
+.ys-leg{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--mut);margin-top:6px}.ys-leg i{display:inline-block;width:18px;height:3px;border-radius:2px;background:var(--acc);vertical-align:middle;margin-right:6px}.ys-leg i.p{background:repeating-linear-gradient(90deg,var(--mut) 0 5px,transparent 5px 9px)}
+.ys-rt{display:flex;justify-content:space-between;align-items:center}.ys-live{display:inline-flex;gap:6px;align-items:center;font:700 11px Inter,sans-serif;color:#ef4444;letter-spacing:.06em;text-transform:uppercase}.ys-live i{width:8px;height:8px;border-radius:50%;background:#ef4444;animation:ysPulse 1.6s infinite}
+@keyframes ysPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}100%{box-shadow:0 0 0 9px rgba(239,68,68,0)}}
+.ys-rtn{margin:12px 0 10px;border-bottom:1px solid var(--line);padding-bottom:10px}.ys-rtn b{display:block;font:600 34px/1.1 Poppins,Inter,sans-serif}.ys-rtn span{font-size:12.5px;color:var(--mut)}
+.ys-rtb{height:78px}.ys-rtl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);margin-top:3px}
+.ys-line{display:flex;align-items:baseline;gap:10px;border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.ys-line b{font:600 22px Poppins,Inter,sans-serif}.ys-line span{font-size:12.5px;color:var(--mut)}
+.ys-line2{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.ys-act{display:grid;grid-template-columns:1fr auto;gap:0 10px;padding:6px 0;font-size:12.5px}.ys-act span{color:var(--mut);grid-column:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ys-act small{grid-row:1 / span 2;grid-column:2;color:var(--mut);align-self:center}
+.ys-top{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.ys-top:first-of-type{border-top:0}.ys-top em{font-style:normal;color:var(--mut);font-size:12px}.ys-top b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ys-top small{color:var(--mut);font-size:11.5px}.ys-top strong{font:600 15px Poppins,Inter,sans-serif}
+@media(max-width:1000px){.ys-grid{grid-template-columns:1fr}}
+</style>
 <style id="cs-header-fix">
 /* top bar: one tidy row of controls, no overlapping title */
 header{flex-wrap:wrap!important;row-gap:10px!important;column-gap:10px!important;align-items:center!important;padding:12px 0!important}
