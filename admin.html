@@ -143,7 +143,7 @@ async function saveDraft(){try{if(!src)return;await idbSet('draft',{src,D,sha,di
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveDraft()});
 /* ===== field specs: [key,label,type,extra] ===== */
 const PAIR=['term','def'];
-const DAY=[['type','Type','s',['lesson','project','practice']],['title','Card title'],['front','Front of card','a'],['idea','Back: big idea (**bold**, lines starting "- " = bullets)','a'],['vocab','Vocabulary — one per line: term | definition','pairs',PAIR],['links','Links — one per line: kind | ref | label (kind = screencast, note, project, url)','pairs',['kind','ref','label']]];
+const DAY=[['type','Type','s',['lesson','project','practice']],['title','Card title'],['front','Front of card','a'],['idea','Back: big idea (**bold**, lines starting "- " = bullets)','a'],['vocab','Vocabulary — one per line: term | definition','pairs',PAIR],['links','Links — one per line: kind | ref | label (kind = screencast, note, project, tab, url, placeholder, or kc = the Check Your Knowledge button; for kc leave ref empty)','pairs',['kind','ref','label']]];
 const SPEC={
 weeks:[['n','Week number','n'],['title','Title (e.g. Week 6 — Retouching)'],['short','Short name'],['days','Days','sub',DAY,d=>d.title||'New day',()=>({type:'lesson',title:'',front:'',idea:'',vocab:[],links:[]})]],
 items:[['id','Google Drive file ID'],['title','Title'],['desc','Description','a'],['order','Order','n'],['phase','Phase','n'],['released','Released to students','b'],['graded','Graded','b'],['vocab','Vocabulary — term | definition','pairs',PAIR]],
@@ -488,7 +488,7 @@ function bake(){const B={},d=clean(D);if(d.site){if(/project of the month/i.test
  const customQuizzes=(d.quizzes||[]).filter(q=>{const n=(q.questions||[]).length;return n>=5||(+q.draw>0&&n>=1)});if(customQuizzes.length)B.quizzes=customQuizzes;
  if(d.assessments&&d.assessments.length)B.assessments=d.assessments;if(d.phases&&d.phases.length)B.phases=d.phases;
  (D.kcs||[]).forEach(s=>{let mx=Math.max(0,...(s.questions||[]).map(q=>+q.n||0));(s.questions||[]).forEach(q=>{if(!q.n)q.n=++mx})});
- if((D.kcs||[]).length)B.kc={seconds:Math.max(5,+(D.kcCfg||{}).seconds||30),sections:D.kcs.map(s=>({id:s.id,name:s.name||'',title:s.title||'',img:s.img||'',gallery:!!s.gallery,qs:(s.questions||[]).filter(q=>q&&q.q).map(q=>({n:q.n,q:q.q,o:(q.options||[]).filter(x=>String(x).trim()),a:+q.answer||0,w:q.why||''}))}))};
+ if((D.kcs||[]).length)B.kc={seconds:Math.max(5,+(D.kcCfg||{}).seconds||30),sections:D.kcs.map(s=>({id:s.id,name:s.name||'',title:s.title||'',img:s.img||'',gallery:!!s.gallery,qs:(s.questions||[]).filter(q=>q&&q.q).map(q=>{const keep=(q.options||[]).map((x,i)=>[x,i]).filter(p=>String(p[0]).trim());const ai=keep.findIndex(p=>p[1]===(+q.answer||0));return{n:q.n,q:q.q,o:keep.map(p=>p[0]),a:ai<0?0:ai,w:q.why||''}})}))};
  B.profile=d.profile;B.session=d.session;B.login=d.login;
  let t=src.replace(RE9,()=>'<script id="cc-9-live">\nwindow.HM_BAKED = '+JSON.stringify(B,null,1).replace(/<\//g,'<\\/')+';\n<\/script>');
  t=t.replace(/:root\s*\{[\s\S]*?\}/,b=>b.replace(/(--c-(curriculum|projects|notes|screen|practice)\s*:\s*)(#[0-9a-fA-F]{3,8})/g,(m,a,n,c)=>a+((D.theme||{})[n]||c)));
@@ -1067,6 +1067,25 @@ function parseBulk(text){
   return{qs:out,warn,missing};
 }
 /* ----- the page ----- */
+function cardButtonCard(){
+  const c=E('div',{className:'kcs-card'});
+  c.innerHTML='<h4>Show the Check Your Knowledge button on a lesson card</h4><p class="hint">Pick a lesson day. Students then see a “Check Your Knowledge” button on the back of that card, and it opens the questions you edit below. You can remove it again at any time. Changes reach students after you Publish.</p>';
+  const weeks=(D.weeks||[]).filter(w=>w&&w.n&&(w.days||[]).length);
+  if(!weeks.length){c.append(E('div',{className:'kcs-msg',textContent:'No lesson cards loaded yet. Open Curriculum & daily lessons and import the weeks first.'}));return c}
+  const row=E('div',{className:'kcs-row'});
+  const sel=E('select');
+  const hasKc=d=>(d.links||[]).some(l=>l&&l.kind==='kc');
+  const fill=keep=>{sel.innerHTML='';weeks.forEach(w=>(w.days||[]).forEach((d,i)=>{sel.append(E('option',{value:w.n+'|'+i,textContent:'Week '+w.n+' · Day '+(i+1)+' — '+(d.title||'Untitled')+(hasKc(d)?'   ✓ has the button':'')}))}));if(keep)sel.value=keep};
+  fill();
+  const pick=()=>{const p=sel.value.split('|');const w=weeks.find(x=>String(x.n)===p[0]);return{w,d:w&&w.days[+p[1]],i:+p[1]}};
+  const add=E('button',{className:'b p',type:'button',textContent:'Add the button'});
+  const rm=E('button',{className:'b',type:'button',textContent:'Remove the button'});
+  add.onclick=()=>{const x=pick();if(!x.d)return;x.d.links=x.d.links||[];if(hasKc(x.d)){T('That card already has the button.');return}
+    x.d.links.push({kind:'kc',ref:'',label:'Check Your Knowledge'});mark();fill(sel.value);T('Added to Week '+x.w.n+' · Day '+(x.i+1)+'. Publish to show it to students.')};
+  rm.onclick=()=>{const x=pick();if(!x.d)return;const before=(x.d.links||[]).length;x.d.links=(x.d.links||[]).filter(l=>!(l&&l.kind==='kc'));if(x.d.links.length===before){T('That card has no such button.');return}
+    mark();fill(sel.value);T('Removed from Week '+x.w.n+' · Day '+(x.i+1)+'. Publish to update students.')};
+  row.append(sel,add,rm);c.append(row);return c;
+}
 function render(){
   cur='kcs';$('#ttl').textContent=SECT.kcs.t;
   document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==='kcs'));
@@ -1074,7 +1093,7 @@ function render(){
   const arr=secs();if(KS.sec>=arr.length)KS.sec=Math.max(0,arr.length-1);
   v.innerHTML='<div class="studio-editor-hero"><div class="ey">Question bank · student quiz</div><h3>Check Your Knowledge Studio</h3><p>Bring in the questions from the student site, change anything, and add as many new questions as you like. Everything is saved as a draft and reaches students after you Publish.</p></div><div class="studio-editor-stats" id="kcs-stats"></div>';
   statsPaint();
-  v.append(importCard(),timerCard());
+  v.append(importCard(),timerCard(),cardButtonCard());
   const chipsBox=E('div',{className:'kcs-chips',id:'kcs-chips'});v.append(chipsBox);chipsPaint();
   const panel=E('div',{id:'kcs-panel'});v.append(panel);panelPaint();
 }
