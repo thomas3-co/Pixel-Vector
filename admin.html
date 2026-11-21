@@ -937,6 +937,306 @@ const hb=E('button',{className:'b',textContent:'\ud83d\udd14 Notify',title:'Noti
 new MutationObserver(()=>{document.querySelectorAll('#tb tr.r:not([data-nb])').forEach(r=>{r.dataset.nb=1;const c=r.lastElementChild;if(!c)return;const b=E('button',{className:'b mini',textContent:'Notify',title:'Notify this student'});b.onclick=e=>{e.stopPropagation();toNotify({aud:'pick',pick:{[r.dataset.e]:true}})};c.append(' ',b)})}).observe(document.body,{childList:true,subtree:true});
 }catch(e){console.error('Notify add-on failed',e)}})();
 </script>
+<script id="kc-studio">
+/* ===== CHECK YOUR KNOWLEDGE STUDIO: import from the student site, edit, and add more questions ===== */
+(function(){
+'use strict';
+const css=`
+.kcs-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:16px;margin:12px 0;box-shadow:0 5px 18px rgba(25,35,65,.045)}
+.kcs-card h4{margin:0 0 4px;font-size:15px}.kcs-card>p.hint,.kcs-sub{margin:0 0 12px;font-size:12.5px;color:var(--mut)}
+.kcs-imp{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.kcs-tile{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.kcs-tile b{font-size:13.5px}.kcs-tile p{margin:0;font-size:12.5px;color:var(--mut);flex:1}
+.kcs-tile select,.kcs-tile input[type=text]{width:100%}
+.kcs-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kcs-row select{flex:1 1 260px;width:auto;min-width:0}
+.kcs-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:thin}
+.kcs-chip{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:13px;padding:10px 14px;font:600 13px Inter,system-ui,sans-serif;cursor:pointer;text-align:left;min-width:128px;transition:.15s}
+.kcs-chip small{display:block;font-weight:500;color:var(--mut);font-size:11.5px;margin-top:2px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kcs-chip:hover{border-color:var(--acc)}
+.kcs-chip.on{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 20%,transparent);background:color-mix(in srgb,var(--acc) 7%,var(--panel))}
+.kcs-chip.add{border-style:dashed;color:var(--acc);min-width:110px;display:grid;place-items:center}
+.kcs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.kcs-grid label,.kcs-body label{display:block;margin:8px 0 4px;font-weight:600;font-size:12.5px}
+.kcs-fig{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:12px}
+.kcs-fig img.kcs-big{max-width:320px;max-height:190px;border-radius:12px;border:1px solid var(--line);background:#0f1424;display:block}
+.kcs-gal{display:flex;gap:6px;flex-wrap:wrap;max-width:520px}.kcs-gal img{width:88px;height:56px;object-fit:cover;border-radius:7px;border:1px solid var(--line)}
+.kcs-figcap{font-size:12.5px;color:var(--mut);max-width:340px}
+details.kcs-q{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:8px 0;overflow:hidden}
+details.kcs-q[open]{box-shadow:0 8px 24px rgba(25,35,65,.08);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+details.kcs-q>summary{display:flex;gap:9px;align-items:center;padding:10px 12px;cursor:pointer;list-style:none}
+details.kcs-q>summary::-webkit-details-marker{display:none}
+.kcs-n{flex:none;width:32px;height:32px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,var(--panel));color:var(--acc);display:grid;place-items:center;font-weight:800;font-size:12.5px}
+.kcs-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.kcs-ans{flex:none;font-size:11.5px;font-weight:800;color:#0e8a5f;background:color-mix(in srgb,#16a36a 12%,var(--panel));border-radius:99px;padding:3px 10px}
+.kcs-ans.no{color:#b42339;background:color-mix(in srgb,#ef476f 12%,var(--panel))}
+.kcs-body{padding:4px 14px 14px;border-top:1px solid var(--line)}
+.kcs-body textarea{min-height:72px;width:100%}
+.kcs-opt{display:flex;gap:8px;align-items:center;margin:6px 0}.kcs-opt input[type=text]{flex:1;min-width:0}
+.kcs-opt .kcs-l{flex:none;width:22px;text-align:center;font-weight:800;color:var(--mut)}
+.kcs-opt input[type=radio]{width:18px;height:18px;accent-color:#16a36a;flex:none}
+.kcs-opt.ok input[type=text]{border-color:#16a36a;background:color-mix(in srgb,#16a36a 8%,var(--panel))}
+.kcs-hint{font-size:12px;color:var(--mut);margin:4px 0 0}
+.kcs-msg{margin-top:12px;font-size:13px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--acc) 8%,var(--panel));border:1px solid var(--line);white-space:pre-wrap}
+.kcs-msg.bad{background:color-mix(in srgb,var(--bad) 10%,var(--panel))}
+.kcs-bulk textarea{min-height:210px;width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+.kcs-bulk pre{margin:8px 0;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:12px;white-space:pre-wrap}
+#kcs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#111827;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:99999;max-width:90vw}
+#kcs-toast.on{opacity:1;transform:translateX(-50%)}
+`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+
+const KS={sec:0,q:'',bulk:false,msg:'',bad:false,mode:'merge',which:'live',url:'',imgs:null,imgsFor:null,open:new WeakSet()};
+const letter=i=>String.fromCharCode(65+i);
+const norm=t=>String(t||'').toLowerCase().replace(/\s+/g,' ').trim();
+const secs=()=>D.kcs||(D.kcs=[]);
+const nextN=s=>Math.max(0,...(s.questions||[]).map(q=>+q.n||0))+1;
+function T(m){let b=document.getElementById('kcs-toast');if(!b){b=E('div',{id:'kcs-toast'});document.body.append(b)}b.textContent=m;b.className='on';clearTimeout(b._t);b._t=setTimeout(()=>{b.className=''},4200)}
+function builtinImgs(){
+  if(KS.imgs&&KS.imgsFor===src)return KS.imgs;
+  let a=[];try{const m=/<script type="application\/json" id="kc-img">([\s\S]*?)<\/script>/.exec(src||'');if(m)a=JSON.parse(m[1])}catch(e){}
+  KS.imgs=a;KS.imgsFor=src;return a;
+}
+/* ----- reading data in any of the formats we know ----- */
+const mapQ=(q,j)=>({n:+q.n||j+1,q:String(q.q||''),options:(q.options||q.o||[]).map(String),answer:+(q.answer!=null?q.answer:q.a)||0,why:String(q.why!=null?q.why:(q.w||''))});
+const normSec=(s,i)=>({id:String(s.id!=null?s.id:i),name:String(s.name||''),title:String(s.title||''),img:s.img||'',gallery:!!s.gallery||s.name==='Cross',questions:(s.questions||s.qs||[]).map(mapQ).filter(q=>q.q&&q.options.length>1)});
+function readHTML(html,which){
+  const bm=/<script id="cc-9-live">\s*window\.HM_BAKED\s*=\s*([\s\S]*?);\s*<\/script>/.exec(html);
+  if(which==='live'&&bm){try{const o=JSON.parse(bm[1]);if(o.kc&&o.kc.sections&&o.kc.sections.length)return{list:o.kc.sections.map(normSec),from:'the version published on the student site'}}catch(e){}}
+  const m=/<script type="application\/json" id="kc-data">([\s\S]*?)<\/script>/.exec(html);
+  if(!m)throw new Error('That file has no Check Your Knowledge questions in it. Choose the student site index.html.');
+  return{list:JSON.parse(m[1]).map(normSec),from:'the built-in questions of the student site'};
+}
+function readAny(text,which){
+  const t=String(text).trim();
+  if(t[0]==='['||t[0]==='{'){
+    const o=JSON.parse(t);
+    const arr=Array.isArray(o)?o:(o.kc&&o.kc.sections)||o.sections||o.kcs;
+    if(!Array.isArray(arr))throw new Error('This JSON file does not contain any Check Your Knowledge sections.');
+    return{list:arr.map(normSec),from:'the JSON file'};
+  }
+  return readHTML(t,which);
+}
+function mergeIn(list){
+  const cur=secs();let aS=0,aQ=0;
+  list.forEach(s=>{
+    let t=cur.find(x=>norm(x.name)===norm(s.name)&&norm(x.title)===norm(s.title))||cur.find(x=>String(x.id)===String(s.id)&&norm(x.name)===norm(s.name));
+    if(!t){const c=JSON.parse(JSON.stringify(s));if(cur.some(x=>String(x.id)===String(c.id)))c.id='k'+Date.now().toString(36)+aS;cur.push(c);aS++;aQ+=c.questions.length;return}
+    t.questions=t.questions||[];
+    const have=new Set(t.questions.map(q=>norm(q.q)));let mx=Math.max(0,...t.questions.map(q=>+q.n||0));
+    s.questions.forEach(q=>{if(have.has(norm(q.q)))return;t.questions.push(Object.assign({},q,{n:++mx}));have.add(norm(q.q));aQ++});
+    if(!t.img&&s.img)t.img=s.img;
+  });
+  return{aS,aQ};
+}
+function applyImport(res){
+  const q=l=>l.reduce((n,s)=>n+s.questions.length,0);
+  if(!res.list.length){KS.msg='Nothing to import: no sections with questions were found in '+res.from+'.';KS.bad=true;return render()}
+  if(KS.mode==='replace'){
+    if(!confirm('Replace ALL current sections and questions with '+res.list.length+' sections / '+q(res.list)+' questions from '+res.from+'?\n\nAnything you edited or added here will be lost.'))return;
+    D.kcs=JSON.parse(JSON.stringify(res.list));KS.sec=0;mark();
+    KS.msg='Replaced everything with '+res.list.length+' sections and '+q(res.list)+' questions from '+res.from+'.';
+  }else{
+    const r=mergeIn(res.list);mark();
+    KS.msg=(r.aS||r.aQ)?'Imported from '+res.from+': '+r.aS+' new section'+(r.aS===1?'':'s')+' and '+r.aQ+' new question'+(r.aQ===1?'':'s')+' added. Your existing edits were kept.':'Everything in '+res.from+' is already here, so nothing new was added.';
+  }
+  KS.bad=false;T(KS.msg.split('.')[0]+'.');render();
+}
+/* ----- bulk paste ----- */
+function parseBulk(text){
+  const out=[],warn=[];let missing=0;
+  const rawBlocks=String(text).replace(/\r/g,'').split(/\n\s*\n+/).map(b=>b.trim()).filter(Boolean);
+  const blocks=[];
+  rawBlocks.forEach(b=>{let cur=[],seenOpt=false;b.split('\n').forEach(l=>{const t=l.trim();if(!t)return;const isOpt=/^\(?[A-Fa-f][\)\.\:]\s*\S/.test(t)||/^[-•]\s+\S/.test(t);
+    if(seenOpt&&/^\d+[\.\)]\s+\S/.test(t)&&!isOpt){blocks.push(cur);cur=[];seenOpt=false}
+    if(isOpt)seenOpt=true;cur.push(t)});if(cur.length)blocks.push(cur)});
+  blocks.forEach((lines,bi)=>{
+    const ql=[],opts=[];let ans=-1,why='',mode='q',mark=-1;
+    lines.forEach(l=>{let m;
+      if((m=/^(?:answer|ans|correct(?: answer)?)\s*[:=\-]\s*\(?([A-Fa-f]|\d)\)?/i.exec(l))){ans=/\d/.test(m[1])?(+m[1]-1):m[1].toUpperCase().charCodeAt(0)-65;mode='x';return}
+      if((m=/^(?:why|explanation|because|reason)\s*[:\-]\s*(.*)$/i.exec(l))){why=m[1];mode='w';return}
+      m=/^\(?[A-Fa-f][\)\.\:]\s*(.+)$/.exec(l)||/^[-•]\s+(.+)$/.exec(l);
+      if(m){let t=m[1].trim(),ok=false;if(/(\*|✓|✔|\(correct\))\s*$/i.test(t)){ok=true;t=t.replace(/\s*(\*|✓|✔|\(correct\))\s*$/i,'')}if(/^\*\s*/.test(t)){ok=true;t=t.replace(/^\*\s*/,'')}if(ok)mark=opts.length;opts.push(t);mode='o';return}
+      if(mode==='w')why+=' '+l;else if(mode==='o'&&opts.length)opts[opts.length-1]+=' '+l;else if(mode==='q')ql.push(l.replace(/^\d+[\.\)]\s*/,''))});
+    const q=ql.join(' ').trim();
+    if(!q||opts.length<2){warn.push('Block '+(bi+1)+' skipped: needs a question and at least two options.');return}
+    if(ans<0&&mark>=0)ans=mark;
+    if(ans<0||ans>=opts.length){ans=0;missing++;warn.push('Question "'+q.slice(0,50)+(q.length>50?'…':'')+'" has no clear answer marked: A was used. Fix it after adding.')}
+    out.push({q,options:opts.slice(0,8),answer:ans,why:why.trim()});
+  });
+  return{qs:out,warn,missing};
+}
+/* ----- the page ----- */
+function render(){
+  cur='kcs';$('#ttl').textContent=SECT.kcs.t;
+  document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k==='kcs'));
+  const v=$('#view');v.innerHTML='';
+  const arr=secs();if(KS.sec>=arr.length)KS.sec=Math.max(0,arr.length-1);
+  v.innerHTML='<div class="studio-editor-hero"><div class="ey">Question bank · student quiz</div><h3>Check Your Knowledge Studio</h3><p>Bring in the questions from the student site, change anything, and add as many new questions as you like. Everything is saved as a draft and reaches students after you Publish.</p></div><div class="studio-editor-stats" id="kcs-stats"></div>';
+  statsPaint();
+  v.append(importCard(),timerCard());
+  const chipsBox=E('div',{className:'kcs-chips',id:'kcs-chips'});v.append(chipsBox);chipsPaint();
+  const panel=E('div',{id:'kcs-panel'});v.append(panel);panelPaint();
+}
+function statsPaint(){
+  const a=secs(),n=a.reduce((x,s)=>x+(s.questions||[]).length,0),nw=a.reduce((x,s)=>x+(s.questions||[]).filter(q=>!String(q.why||'').trim()).length,0);
+  const box=$('#kcs-stats');if(!box)return;
+  const s=(b,l)=>'<div class="studio-editor-stat"><b>'+b+'</b><span>'+l+'</span></div>';
+  box.innerHTML=s(a.length,'Sections')+s(n,'Questions in total')+s(nw,'Without an explanation')+s((+(D.kcCfg||{}).seconds||30)+'s','Per question');
+}
+function chipsPaint(){
+  const box=$('#kcs-chips');if(!box)return;box.innerHTML='';
+  secs().forEach((s,i)=>{const b=E('button',{className:'kcs-chip'+(i===KS.sec?' on':''),type:'button'});b.innerHTML=esc(s.name||('Section '+(i+1)))+'<small>'+(s.questions||[]).length+' questions'+(s.title?' · '+esc(s.title):'')+'</small>';b.onclick=()=>{KS.sec=i;KS.q='';KS.bulk=false;chipsPaint();panelPaint()};box.append(b)});
+  const a=E('button',{className:'kcs-chip add',type:'button',textContent:'+ Add section'});
+  a.onclick=()=>{secs().push({id:'k'+Date.now().toString(36),name:'Image '+(secs().length+1),title:'',img:'',gallery:false,questions:[]});KS.sec=secs().length-1;mark();statsPaint();chipsPaint();panelPaint()};
+  box.append(a);
+  const on=box.querySelector('.on');if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function importCard(){
+  const c=E('div',{className:'kcs-card'});
+  const live=readSafe(src,'live'),orig=readSafe(src,'orig');
+  const lq=live?live.list.reduce((n,s)=>n+s.questions.length,0):0;
+  if(!KS.url&&LS&&LS.o&&LS.r)KS.url='https://'+LS.o+'.github.io/'+LS.r+'/';
+  c.innerHTML='<h4>Import questions from the student site</h4><p class="hint">Pull the Check Your Knowledge questions into this studio, then edit them or add more. “Add what is missing” never touches questions you already changed.</p>';
+  const row=E('div',{className:'kcs-row',style:'margin-bottom:12px'});
+  const mode=E('select');[['merge','Add what is missing (keep my edits)'],['replace','Replace everything with the imported set']].forEach(o=>mode.append(E('option',{value:o[0],textContent:o[1]})));mode.value=KS.mode;mode.onchange=()=>KS.mode=mode.value;
+  const wh=E('select');[['live','Source: student site as it is now'],['orig','Source: original built-in set']].forEach(o=>wh.append(E('option',{value:o[0],textContent:o[1]})));wh.value=KS.which;wh.onchange=()=>KS.which=wh.value;
+  row.append(mode,wh);c.append(row);
+  const g=E('div',{className:'kcs-imp'});
+  const t1=E('div',{className:'kcs-tile'});t1.innerHTML='<b>1 · From the connected student site</b><p>'+(live?'Found '+live.list.length+' sections and '+lq+' questions in the site file you loaded.':'Load the student site first (Connect & publish).')+'</p>';
+  const b1=E('button',{className:'b p',type:'button',textContent:'Import from student site'});b1.disabled=!live;b1.onclick=()=>{try{applyImport(readHTML(src,KS.which))}catch(e){KS.msg=e.message;KS.bad=true;render()}};t1.append(b1);
+  const t2=E('div',{className:'kcs-tile'});t2.innerHTML='<b>2 · From a file</b><p>Choose the student site index.html, or a JSON file you exported from here.</p>';
+  const f=E('input',{type:'file',accept:'.html,.htm,.json,text/html,application/json',style:'display:none'});
+  f.onchange=async()=>{const file=f.files[0];if(!file)return;try{applyImport(readAny(await file.text(),KS.which))}catch(e){KS.msg='Could not read that file: '+e.message;KS.bad=true;render()}};
+  const b2=E('button',{className:'b',type:'button',textContent:'Choose file…'});b2.onclick=()=>f.click();t2.append(b2,f);
+  const t3=E('div',{className:'kcs-tile'});t3.innerHTML='<b>3 · From the live website address</b><p>Reads the published student site over the internet.</p>';
+  const u=E('input',{type:'text',placeholder:'https://yourname.github.io/your-site/',value:KS.url});u.oninput=()=>KS.url=u.value;
+  const b3=E('button',{className:'b',type:'button',textContent:'Import from address'});
+  b3.onclick=async()=>{const url=KS.url.trim();if(!/^https?:\/\//i.test(url)){T('Type the full website address first.');return}b3.disabled=true;b3.textContent='Reading…';try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('The site answered '+r.status);applyImport(readHTML(await r.text(),KS.which))}catch(e){KS.msg='Could not read that address ('+e.message+'). Some sites block other pages from reading them. Use “Import from student site” or “Choose file” instead.';KS.bad=true;render()}};
+  t3.append(u,b3);
+  g.append(t1,t2,t3);c.append(g);
+  const ex=E('div',{className:'kcs-row',style:'margin-top:12px'});
+  const be=E('button',{className:'b',type:'button',textContent:'Export all questions (JSON)'});
+  be.onclick=()=>{const o={seconds:+(D.kcCfg||{}).seconds||30,sections:secs().map(s=>({id:s.id,name:s.name,title:s.title,img:s.img||'',gallery:!!s.gallery,qs:(s.questions||[]).map(q=>({n:q.n,q:q.q,o:q.options,a:+q.answer||0,w:q.why||''}))}))};const a=E('a',{href:URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'})),download:'check-your-knowledge.json'});document.body.append(a);a.click();a.remove()};
+  ex.append(be);c.append(ex);
+  if(KS.msg)c.append(E('div',{className:'kcs-msg'+(KS.bad?' bad':'')},esc(KS.msg)));
+  return c;
+}
+function readSafe(html,w){try{return html?readHTML(html,w):null}catch(e){return null}}
+function timerCard(){
+  const c=E('div',{className:'kcs-card'});c.innerHTML='<h4>Time for each question</h4><p class="hint">Students get this many seconds on every question. When time runs out the question counts as answered, as before.</p>';
+  const i=E('input',{type:'number',min:5,max:300,value:+(D.kcCfg||{}).seconds||30,style:'max-width:140px'});
+  i.oninput=()=>{(D.kcCfg||(D.kcCfg={})).seconds=+i.value||30;mark();statsPaint()};c.append(i);return c;
+}
+function panelPaint(){
+  const p=$('#kcs-panel');if(!p)return;p.innerHTML='';
+  const arr=secs();const s=arr[KS.sec];
+  if(!s){p.append(E('div',{className:'studio-empty',textContent:'No sections yet. Import the student questions above, or add a section.'}));return}
+  const c=E('div',{className:'kcs-card'});
+  c.innerHTML='<h4>Section details</h4><p class="hint">The name and title appear on the student quiz. Keep the section id as it is: it links saved student answers to this section.</p>';
+  const g=E('div',{className:'kcs-grid'});
+  const fld=(l,v,fn,ro)=>{const w=E('div');w.append(E('label',{textContent:l}));const x=E('input',{type:'text',value:v||''});if(ro)x.readOnly=true;x.oninput=()=>{fn(x.value);mark();chipsPaint()};w.append(x);return w};
+  g.append(fld('Short name (e.g. Image 1)',s.name,x=>s.name=x),fld('Section title',s.title,x=>s.title=x),fld('Section id (do not change)',s.id,()=>{},true));c.append(g);
+  const gl=E('label',{className:'chk',style:'margin-top:10px'}),gx=E('input',{type:'checkbox'});gx.checked=!!s.gallery;gx.onchange=()=>{s.gallery=gx.checked;mark();figPaint()};gl.append(gx,document.createTextNode(' Show every figure as a gallery instead of one picture (cross-image section)'));c.append(gl);
+  const fig=E('div',{className:'kcs-fig',id:'kcs-fig'});c.append(fig);
+  const act=E('div',{className:'kcs-row',style:'margin-top:14px'});
+  const mv=(d)=>{const j=KS.sec+d;if(j<0||j>=arr.length)return;[arr[j],arr[KS.sec]]=[arr[KS.sec],arr[j]];KS.sec=j;mark();chipsPaint()};
+  const bL=E('button',{className:'b mini',type:'button',textContent:'← Move section earlier'});bL.onclick=()=>mv(-1);
+  const bR=E('button',{className:'b mini',type:'button',textContent:'Move section later →'});bR.onclick=()=>mv(1);
+  const bD=E('button',{className:'b mini d',type:'button',textContent:'Delete this section'});
+  bD.onclick=()=>{if(!confirm('Delete the section “'+(s.name||'Section')+'” and its '+(s.questions||[]).length+' questions?'))return;arr.splice(KS.sec,1);KS.sec=Math.max(0,KS.sec-1);mark();statsPaint();chipsPaint();panelPaint()};
+  act.append(bL,bR,bD);c.append(act);p.append(c);figPaint();
+  /* questions */
+  const qc=E('div',{className:'kcs-card'});
+  qc.innerHTML='<h4>Questions in this section</h4><p class="hint">Click a question to open it. The green dot marks the correct answer. Question numbers stay fixed so saved student answers always match.</p>';
+  const bar=E('div',{className:'studio-editor-toolbar'});
+  const se=E('input',{type:'text',placeholder:'Search these questions…',value:KS.q});se.oninput=()=>{KS.q=se.value;listPaint()};
+  const ba=E('button',{className:'b p',type:'button',textContent:'+ Add question'});
+  ba.onclick=()=>{s.questions=s.questions||[];const q={n:nextN(s),q:'',options:['','','',''],answer:0,why:''};s.questions.push(q);KS.open.add(q);KS.q='';se.value='';mark();statsPaint();chipsPaint();listPaint();const last=$('#kcs-list').lastElementChild;if(last&&last.scrollIntoView)last.scrollIntoView({behavior:'smooth',block:'center'});const ta=last&&last.querySelector('textarea');if(ta)ta.focus()};
+  const bb=E('button',{className:'b',type:'button',textContent:KS.bulk?'Hide bulk add':'Bulk add (paste many)'});bb.onclick=()=>{KS.bulk=!KS.bulk;panelPaint()};
+  bar.append(se,ba,bb);qc.append(bar);
+  if(KS.bulk)qc.append(bulkBox(s));
+  qc.append(E('div',{id:'kcs-list'}));p.append(qc);listPaint();
+}
+function figPaint(){
+  const s=secs()[KS.sec],box=$('#kcs-fig');if(!s||!box)return;box.innerHTML='';
+  const imgs=builtinImgs();
+  const left=E('div');
+  if(s.gallery){
+    const gal=E('div',{className:'kcs-gal'});imgs.forEach(u=>gal.append(E('img',{src:u,alt:'',loading:'lazy'})));left.append(gal);
+    box.append(left,E('div',{className:'kcs-figcap',textContent:'Students see all '+imgs.length+' built-in figures here, large, and can tap any one to enlarge it.'}));return;
+  }
+  const k=parseInt(s.id,10),built=(!s.img&&!isNaN(k)&&imgs[k])?imgs[k]:'';
+  const shown=s.img||built;
+  if(shown){left.append(E('img',{className:'kcs-big',src:shown,alt:'Figure for this section'}))}
+  const right=E('div',{className:'kcs-figcap'});
+  right.innerHTML=s.img?'<b>Your picture</b> is shown to students for this section.':built?'<b>Built-in screenshot</b> is shown to students. Upload a picture to replace it.':'<b style="color:#b42339">No picture yet.</b> Upload the screenshot students should look at for these questions.';
+  const f=E('input',{type:'file',accept:'image/*',style:'display:none'});
+  f.onchange=async()=>{if(!f.files[0])return;try{s.img=await shrinkImage(f.files[0],1400);mark();figPaint();T('Picture added. Students see it after you publish.')}catch(e){T(e.message)}};
+  const bu=E('button',{className:'b mini',type:'button',textContent:shown?'Replace picture':'Upload picture',style:'margin-top:8px'});bu.onclick=()=>f.click();
+  right.append(E('br'),bu,f);
+  if(s.img){const br=E('button',{className:'b mini d',type:'button',textContent:'Remove my picture',style:'margin:8px 0 0 8px'});br.onclick=()=>{s.img='';mark();figPaint()};right.append(br)}
+  box.append(left,right);
+}
+function bulkBox(s){
+  const w=E('div',{className:'kcs-card kcs-bulk',style:'margin:10px 0;background:var(--bg)'});
+  w.innerHTML='<h4>Bulk add questions</h4><p class="hint">Paste questions in this layout, with a blank line between questions. Mark the right answer with <b>*</b> after the option, or add an <b>Answer:</b> line. “Why:” is optional.</p><pre>1. Which tool removes a white fringe?\nA) Filter → Other → Minimum *\nB) Gaussian Blur\nC) Puppet Warp\nD) Crop\nWhy: Minimum shrinks the light edge pixels.\n\n2. What does a clipping mask do?\nA) Deletes pixels\nB) Limits a layer to the shape below\nC) Merges layers\nD) Flattens the image\nAnswer: B</pre>';
+  const ta=E('textarea',{placeholder:'Paste your questions here…'});w.append(ta);
+  const pv=E('div',{className:'kcs-hint',textContent:'Nothing pasted yet.'});w.append(pv);
+  const row=E('div',{className:'kcs-row',style:'margin-top:10px'});
+  const add=E('button',{className:'b p',type:'button',textContent:'Add these questions',disabled:true});row.append(add);w.append(row);
+  let res=null;
+  ta.oninput=()=>{res=parseBulk(ta.value);pv.textContent=ta.value.trim()?('Found '+res.qs.length+' question'+(res.qs.length===1?'':'s')+(res.warn.length?'. '+res.warn.join(' '):'.')):'Nothing pasted yet.';add.disabled=!res.qs.length;add.textContent=res.qs.length?'Add '+res.qs.length+' question'+(res.qs.length===1?'':'s'):'Add these questions'};
+  add.onclick=()=>{if(!res||!res.qs.length)return;s.questions=s.questions||[];let n=nextN(s);res.qs.forEach(q=>{const o=Object.assign({n:n++},q);s.questions.push(o);KS.open.add(o)});const c=res.qs.length;mark();KS.bulk=false;statsPaint();chipsPaint();panelPaint();T(c+' question'+(c===1?'':'s')+' added to '+(s.name||'this section')+'.')};
+  return w;
+}
+function listPaint(){
+  const box=$('#kcs-list');if(!box)return;box.innerHTML='';
+  const s=secs()[KS.sec];if(!s)return;const qs=s.questions||(s.questions=[]);const f=norm(KS.q);let shown=0;
+  qs.forEach((q,i)=>{
+    if(f&&!norm(q.q+' '+(q.options||[]).join(' ')+' '+q.why).includes(f))return;shown++;
+    box.append(qCard(s,q,i));
+  });
+  if(!qs.length)box.append(E('div',{className:'studio-empty',textContent:'No questions yet. Use “+ Add question” or “Bulk add”.'}));
+  else if(!shown)box.append(E('div',{className:'studio-empty',textContent:'No question matches that search.'}));
+}
+function qCard(s,q,i){
+  q.options=q.options||['','','',''];while(q.options.length<2)q.options.push('');
+  const d=E('details',{className:'kcs-q'});d.open=KS.open.has(q);d.addEventListener('toggle',()=>{d.open?KS.open.add(q):KS.open.delete(q)});
+  const sm=E('summary');
+  const num=E('span',{className:'kcs-n',textContent:String(i+1)}),ttl=E('span',{className:'kcs-t'}),an=E('span',{className:'kcs-ans'});
+  const paintSum=()=>{ttl.textContent=q.q||'New question (click to write it)';const a=+q.answer||0;const ok=String(q.options[a]||'').trim();an.textContent=ok?'✓ '+letter(a):'No answer';an.className='kcs-ans'+(ok?'':' no')};
+  paintSum();sm.append(num,ttl,an);
+  const mini=(t,fn,cls)=>{const b=E('button',{className:'b mini '+(cls||''),type:'button',textContent:t,title:t});b.onclick=e=>{e.preventDefault();e.stopPropagation();fn()};sm.append(b)};
+  const qs=s.questions;
+  mini('Up',()=>{if(i>0){[qs[i-1],qs[i]]=[qs[i],qs[i-1]];mark();listPaint()}});
+  mini('Down',()=>{if(i<qs.length-1){[qs[i+1],qs[i]]=[qs[i],qs[i+1]];mark();listPaint()}});
+  mini('Copy',()=>{const c=JSON.parse(JSON.stringify(q));c.n=nextN(s);qs.splice(i+1,0,c);KS.open.add(c);mark();statsPaint();chipsPaint();listPaint()});
+  mini('Delete',()=>{if(confirm('Delete this question?')){qs.splice(i,1);mark();statsPaint();chipsPaint();listPaint()}},'d');
+  const body=E('div',{className:'kcs-body'});
+  body.append(E('label',{textContent:'Question'}));
+  const ta=E('textarea');ta.value=q.q||'';ta.oninput=()=>{q.q=ta.value;mark();paintSum()};body.append(ta);
+  body.append(E('label',{textContent:'Answer options — tick the circle beside the correct one'}));
+  const ob=E('div');body.append(ob);
+  const name='kcs_'+Date.now().toString(36)+'_'+i+'_'+Math.floor(Math.random()*1e6);
+  const optPaint=()=>{ob.innerHTML='';q.options.forEach((o,j)=>{
+    const r=E('div',{className:'kcs-opt'+(+q.answer===j?' ok':'')});
+    const rd=E('input',{type:'radio',name:name,checked:+q.answer===j,title:'This is the correct answer'});rd.onchange=()=>{q.answer=j;mark();optPaint();paintSum()};
+    const x=E('input',{type:'text',value:o,placeholder:'Option '+letter(j)});x.oninput=()=>{q.options[j]=x.value;mark();paintSum()};
+    const rm=E('button',{className:'b mini d',type:'button',textContent:'×',title:'Remove this option'});rm.disabled=q.options.length<=2;
+    rm.onclick=()=>{q.options.splice(j,1);if(+q.answer===j)q.answer=0;else if(+q.answer>j)q.answer--;mark();optPaint();paintSum()};
+    r.append(rd,E('span',{className:'kcs-l',textContent:letter(j)}),x,rm);ob.append(r)});
+    if(q.options.length<8){const a=E('button',{className:'b mini',type:'button',textContent:'+ Add option'});a.onclick=()=>{q.options.push('');mark();optPaint()};ob.append(a)}};
+  optPaint();
+  body.append(E('label',{textContent:'Explanation shown after the student answers (recommended)'}));
+  const wx=E('textarea');wx.value=q.why||'';wx.oninput=()=>{q.why=wx.value;mark();statsPaint()};body.append(wx);
+  d.append(sm,body);return d;
+}
+/* hook into navigation: this sits inside the other pages' wrappers so the crumb and history still work */
+const prev=go;
+go=function(k){if(k==='kcs'&&src)return render();return prev(k)};
+})();
+</script>
 <script>
 /* ===== DATA CENTRE add-on: saved workspace, site/backend import, spreadsheet explorer, recovery, student follow-up ===== */
 (()=>{try{
