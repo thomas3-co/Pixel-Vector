@@ -1737,7 +1737,7 @@ function viewsPage(){
  const rf=E('button',{className:'b p',textContent:'Refresh from backend'}),ms=E('span',{className:'hint'}),ex=E('button',{className:'b',textContent:'Export CSV'});
  rf.onclick=async()=>{rf.disabled=true;const ok=await pull(ms);rf.disabled=false;if(ok)viewsPage()};ctl.append(sr,f1,f2,st,rf,ex,ms);
  head.append(ctl,E('p',{className:'hint',textContent:N+' student records · '+fday(P.from)+' → '+fday(P.to)}));v.append(head);
- const TABS=[['ov','Overview'],['rt','Realtime'],['ct','Content'],['cm','Day 1 / Day 2'],['au','Audience'],['dy','Day by day'],['lg','Who viewed what']];
+ const TABS=[['ov','Overview'],['in','Insights'],['rt','Realtime'],['ct','Content'],['cm','Day 1 / Day 2'],['au','Audience'],['dy','Day by day'],['lg','Who viewed what']];
  const tb=E('div',{className:'vw-tabs'});TABS.forEach(([k,l])=>{const b=E('button',{className:'b'+(S.tab===k?' on':''),textContent:l});b.onclick=()=>{S.tab=k;S.stu='';viewsPage()};tb.append(b)});v.append(tb);
  const body=E('div');v.append(body);
  const cur_=C.ev.filter(e=>inR(e,P.from,P.to)),prv=C.ev.filter(e=>inR(e,P.pf,P.pt)),allT=C.ev.filter(e=>S.type==='all'||e.type===S.type);
@@ -1787,6 +1787,32 @@ function viewsPage(){
   const g=E('div',{className:'vw-tiles'});SHOW.forEach(t=>{const all=cur_.filter(e=>e.type===t);const x=E('button',{className:'vw-tile'+(S.type===t?' on':'')});x.style.setProperty('--tc',TYPES[t].c);x.innerHTML='<b>'+sum(C.ev.filter(e=>e.day>=P.from&&e.day<=P.to&&e.type===t))+'</b><span>'+esc(TYPES[t].l)+' · '+uniq(C.ev.filter(e=>e.day>=P.from&&e.day<=P.to&&e.type===t))+' students</span>';x.onclick=()=>{S.type=S.type===t?'all':t;S.day='';viewsPage()};g.append(x)});body.append(g);
   const tp=E('div',{className:'card'});tp.innerHTML='<h3>Top content in this period</h3>';agg(cur_).filter(i=>i.type!=='page').sort((x,y)=>y.views-x.views).slice(0,6).forEach(i=>tp.append(rowOf(i)));if(!cur_.length)tp.append(E('p',{className:'hint',textContent:'No dated views in this period yet.'}));body.append(tp);
   const un=C.undated.filter(e=>S.type==='all'||e.type===S.type);if(un.length)body.append(E('div',{className:'cs27-callout',textContent:'Earlier: '+sum(un)+' view(s) by '+uniq(un)+' student(s) happened before daily tracking started, so they have no exact day.'}));
+ }else if(S.tab==='in'){
+  const nP=C.people.length||1,td=P.today,d7=addD(td,-6),lastD={},days={},vw={},byE={};
+  C.ev.forEach(e=>{if(S.type!=='all'&&e.type!==S.type)return;if(!lastD[e.email]||e.day>lastD[e.email])lastD[e.email]=e.day;const o=byE[e.email]=byE[e.email]||{};o[e.day]=(o[e.day]||0)+e.n});
+  cur_.forEach(e=>{vw[e.email]=(vw[e.email]||0)+e.n;(days[e.email]=days[e.email]||new Set()).add(e.day)});
+  const act7=Object.keys(lastD).filter(q=>lastD[q]>=d7).length,actP=Object.keys(vw).length,tot=sum(cur_),ret=Object.keys(days).filter(q=>days[q].size>=2).length;
+  const L=C.log.filter(l=>S.type==='all'||l.type===S.type);
+  const grid=Array.from({length:7},()=>Array(24).fill(0));L.forEach(l=>{const t=new Date(l.at);if(!isNaN(t))grid[(t.getDay()+6)%7][t.getHours()]++});
+  const gmx=Math.max(1,...grid.map(r=>Math.max(...r)));let pk=[0,0,0];grid.forEach((r,i)=>r.forEach((n,h)=>{if(n>pk[0])pk=[n,i,h]}));
+  const DN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],hh=h=>(h%12||12)+(h<12?' am':' pm');
+  const kp=E('div',{className:'vw-kpis'});
+  [[act7+' / '+nP,'Students active, last 7 days',Math.round(act7/nP*100)+'% weekly reach'],[tot,'Views in period',delta(tot,sum(prv))],[actP?(tot/actP).toFixed(1):'0','Views per active student',actP+' active in period'],[ret,'Came back on 2+ days','returning students'],[pk[0]?DN[pk[1]]+' '+hh(pk[2]):'-','Peak study time',pk[0]?pk[0]+' timed views':'no timed data yet']].forEach(x=>{const c=E('div',{className:'card vw-kpi'});c.innerHTML='<b>'+x[0]+'</b><span>'+x[1]+'</span><small>'+x[2]+'</small>';kp.append(c)});body.append(kp);
+  const hm=E('div',{className:'card',style:'overflow:auto'});let sv='<h3>When students study</h3><p class="hint">Weekday and hour, from the exact-time log (each student keeps their latest 120 actions). Darker means more views.</p><svg class="vw-heat" width="'+(44+24*24)+'" height="'+(22+7*24)+'">';
+  for(let h=0;h<24;h+=3)sv+='<text x="'+(44+h*24+2)+'" y="12" font-size="9" fill="var(--mut)">'+hh(h)+'</text>';
+  grid.forEach((r,i)=>{sv+='<text x="0" y="'+(38+i*24)+'" font-size="10" fill="var(--mut)">'+DN[i]+'</text>';r.forEach((n,h)=>{sv+='<rect x="'+(44+h*24)+'" y="'+(22+i*24)+'" width="22" height="22" rx="5" fill="var(--acc)" fill-opacity="'+(n?(.14+.86*n/gmx).toFixed(2):'.05')+'"><title>'+DN[i]+' '+hh(h)+': '+n+' views</title></rect>'})});
+  hm.innerHTML=sv+'</svg>';body.append(hm);
+  const ds=[];for(let i=0;i<P.len;i++)ds.push(addD(P.from,i));const pdy={};cur_.forEach(e=>{pdy[e.day]=(pdy[e.day]||0)+e.n});let acc=0;const cum=ds.map(d=>acc+=pdy[d]||0),cm=Math.max(1,acc),W=640,H=130;
+  const pts=cum.map((v,i)=>(10+i*(W-20)/Math.max(1,cum.length-1)).toFixed(1)+','+(H-10-v/cm*(H-24)).toFixed(1)).join(' ');
+  const cc=E('div',{className:'card'});cc.innerHTML='<h3>Growth: cumulative views</h3><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto"><polygon points="10,'+(H-10)+' '+pts+' '+(W-10)+','+(H-10)+'" fill="var(--acc)" fill-opacity=".12"/><polyline points="'+pts+'" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round"/></svg><div class="hint">'+esc(fday(P.from))+' to '+esc(fday(P.to))+' · '+acc+' views</div>';body.append(cc);
+  const rows=C.people.map(p=>{const v=vw[p.email]||0,dc=(days[p.email]||new Set()).size,ld=lastD[p.email]||'',gap=ld?diffD(ld,td):999,st=!ld?['Never opened','#8a90a6']:gap<=2?['Active','#12b886']:gap<=7?['Cooling','#f59f00']:['At risk','#ef476f'],sp=[];for(let i=13;i>=0;i--)sp.push((byE[p.email]||{})[addD(td,-i)]||0);return{p,v,dc,ld,st,sp,score:v+dc*3}}).sort((x,y)=>y.score-x.score);
+  const lb=E('div',{className:'card',style:'overflow:auto'});lb.innerHTML='<h3>Student engagement</h3><p class="hint">Score = views + 3 per active day in this period. Status uses the last day the student opened anything.</p><table class="vw-tb"><tr><th>#</th><th>Student</th><th>Score</th><th>Views</th><th>Active days</th><th>Last 14 days</th><th>Status</th></tr>'+rows.slice(0,40).map((r,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+esc(r.p.name)+'</b></td><td><b>'+r.score+'</b></td><td>'+r.v+'</td><td>'+r.dc+'</td><td>'+spark(r.sp,r.st[1])+'</td><td><span class="vw-pill" style="border-left:5px solid '+r.st[1]+'">'+r.st[0]+(r.ld?' · '+esc(r.ld):'')+'</span></td></tr>').join('')+'</table>'+(rows.length>40?'<p class="hint">Top 40 of '+rows.length+' students.</p>':'');body.append(lb);
+  const A=agg(cur_).filter(i=>i.type!=='page'),B={};agg(prv).forEach(i=>B[i.type+'|'+i.key]=i.views);
+  const tr=A.map(i=>({i,d:i.views-(B[i.type+'|'+i.key]||0)})).filter(x=>x.d!==0),up=tr.filter(x=>x.d>0).sort((x,y)=>y.d-x.d).slice(0,6),dn=tr.filter(x=>x.d<0).sort((x,y)=>x.d-y.d).slice(0,6);
+  const g2=E('div',{className:'vw-2'});const li=(arr,cls)=>arr.length?'<ul class="vw-ins">'+arr.map(x=>'<li><span class="'+cls+'">'+(x.d>0?'▲ +':'▼ ')+x.d+'</span> '+esc(x.i.l)+' '+pill(x.i.type)+'</li>').join('')+'</ul>':'<p class="hint">Nothing yet.</p>';
+  const t1=E('div',{className:'card'});t1.innerHTML='<h3>Trending up</h3><p class="hint">Compared with the previous '+P.len+' days.</p>'+li(up,'vw-up');const t2=E('div',{className:'card'});t2.innerHTML='<h3>Losing attention</h3><p class="hint">Worth a reminder or a refresh.</p>'+li(dn,'vw-down');g2.append(t1,t2);body.append(g2);
+  const fn=[];for(let w=1;w<=16;w++){const s1=new Set(),s2=new Set();allT.forEach(e=>{if(!['lesson','practice','project'].includes(e.type))return;if(e.key===w+'-1')s1.add(e.email);else if(e.key===w+'-2')s2.add(e.email)});if(s1.size||s2.size)fn.push([w,s1.size,s2.size])}
+  const fc=E('div',{className:'card'});fc.innerHTML='<h3>Lesson funnel: Day 1 to Day 2</h3><p class="hint">Students who opened each day card (all time), out of '+nP+'.</p>'+(fn.length?fn.map(f=>'<div style="display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;margin:6px 0"><b>Week '+f[0]+'</b><div><div style="height:10px;border-radius:6px;background:var(--c-day1,#2f6fed);width:'+Math.max(2,f[1]/nP*100)+'%"></div><div style="height:10px;margin-top:3px;border-radius:6px;background:var(--c-day2,#12b886);width:'+Math.max(2,f[2]/nP*100)+'%"></div><small style="color:var(--mut)">Day 1: '+f[1]+' · Day 2: '+f[2]+'</small></div></div>').join(''):'<p class="hint">No lesson views recorded yet.</p>');body.append(fc);
  }else if(S.tab==='rt'){
   const now=Date.now(),hrs=[];for(let i=47;i>=0;i--){const t=new Date(now-i*36e5);t.setMinutes(0,0,0);hrs.push(t.getTime())}
   const L2=C.log.filter(l=>(S.type==='all'||l.type===S.type)&&now-new Date(l.at)<=48*36e5),cnt=hrs.map(h=>L2.filter(l=>{const t=new Date(l.at).getTime();return t>=h&&t<h+36e5}).length),mx=Math.max(1,...cnt);
@@ -2358,4 +2384,44 @@ const tp=document.getElementById('cs-top');addEventListener('scroll',()=>tp.clas
 }catch(e){console.error('UX2 failed',e)}})();
 </script>
 
+
+<style id="cs-header-fix">
+/* top bar: one tidy row of controls, no overlapping title */
+header{flex-wrap:wrap!important;row-gap:10px!important;column-gap:10px!important;align-items:center!important;padding:12px 0!important}
+header .cs-hd{flex:1 1 240px!important;min-width:200px!important}
+header .cs-hd h2,header #ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+header>*:not(.cs-hd){flex:none!important;white-space:nowrap!important;max-width:100%}
+header .b,header .chip{white-space:nowrap!important;padding-left:12px;padding-right:12px}
+.cs-kbtn span{display:none!important}.cs-kbtn::before{content:"\2315 Search";font-weight:600}
+header>*:not(.cs-hd):first-of-type{margin-right:0}
+@media(min-width:1200px){header .cs-hd{flex-basis:320px!important}}
+@media(max-width:800px){header>*:not(.cs-hd){font-size:12px}}
+</style>
+<style id="cs-click-fx">
+/* click feedback: ripple at the pointer + a quick press on whatever was tapped */
+.hm-rip{position:fixed;z-index:2147483000;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(79,110,255,.45),rgba(79,110,255,.18) 60%,transparent 70%);animation:hmRip .55s ease-out forwards}
+@keyframes hmRip{from{transform:scale(.6);opacity:.95}to{transform:scale(7);opacity:0}}
+@keyframes hmTap{0%{transform:scale(1)}40%{transform:scale(.965)}100%{transform:scale(1)}}
+.hm-tap:not(.flip-card-inner){animation:hmTap .3s cubic-bezier(.3,.7,.4,1)}
+button:not(:disabled),.b,.tab,.chip,.hbtn,.kqo,.kqs{transition:transform .15s ease,box-shadow .2s ease,background-color .2s ease,border-color .2s ease,filter .2s ease}
+button:not(:disabled):hover,.b:hover,.hbtn:hover{filter:brightness(1.04)}
+button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{transform:scale(.965)}
+.kqo:not(:disabled):hover{transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){.hm-rip{display:none}.hm-tap{animation:none!important}}
+</style>
+<script id="hm-click-fx">
+(function(){
+  if(window.__hmClickFx) return; window.__hmClickFx=1;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches; if(reduce) return;
+  var SEL='button,.b,.tab,.chip,.hbtn,a.ll,.ll,.llq,.wk-btn,.flip-card,.media-card,.theater-item,.progress-card,.stat,.vw-tile,.vw-chip,nav button,.kqo,.kqs,.kq-btn,summary,[role=button],[role=tab]';
+  document.addEventListener('pointerdown',function(e){
+    try{
+      var t=e.target&&e.target.closest?e.target.closest(SEL):null; if(!t||t.disabled) return;
+      var d=document.createElement('span'); d.className='hm-rip'; d.style.left=e.clientX+'px'; d.style.top=e.clientY+'px';
+      document.body.appendChild(d); setTimeout(function(){ d.remove(); },600);
+      t.classList.remove('hm-tap'); void t.offsetWidth; t.classList.add('hm-tap'); setTimeout(function(){ t.classList.remove('hm-tap'); },320);
+    }catch(x){}
+  },{passive:true,capture:true});
+})();
+</script>
 </body></html>
