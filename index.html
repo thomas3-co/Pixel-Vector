@@ -14208,5 +14208,68 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 /* viewer: open at a large size */
 .kc-lb-body img{width:min(1600px,100%)}
 </style>
+
+<style id="hm-level-up">
+/* ===== LEVEL UP: opened cards, reading chip, quiz shortcuts, picture magnifier ===== */
+.week-card .flip-card.flipped:not(#hmfx) .flip-card-front:not(#hmfx),
+.week-card .flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx){box-shadow:inset 0 5px 0 var(--cc,#2f6fed),0 18px 44px -14px rgba(16,24,40,.28)!important}
+.week-card .flip-card.flipped:not(#hmfx) .flip-card-front:not(#hmfx) h4{font-size:1.45rem!important}
+.hm-read{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;margin:0 0 12px;padding:5px 12px;border-radius:999px;background:#f2f4f7;border:1px solid #e4e7ec;color:#475467;font:800 .68rem/1 'Inter',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx) .wk-act{margin-top:12px}
+/* quiz: keyboard shortcut hint under the answers */
+.kq-opts::after{content:"Keyboard: A-D answer \00B7 \2192 next \00B7 \2190 back";display:block;margin-top:10px;font:700 11px/1.3 'Inter',Arial,sans-serif;color:#98a2b3;letter-spacing:.02em}
+@media(pointer:coarse){.kq-opts::after{display:none}}
+/* magnifier lens on the Cross-Image pictures (mouse only) */
+.hm-lens{position:absolute;width:200px;height:200px;border-radius:50%;border:3px solid #fff;box-shadow:0 10px 30px rgba(0,0,0,.55);pointer-events:none;display:none;background-repeat:no-repeat;z-index:6}
+.kq-cross .kq-gal button{cursor:none}
+@media(pointer:coarse){.kq-cross .kq-gal button{cursor:zoom-in}}
+</style>
+<script id="hm-level-up-js">
+(function(){
+  /* 1) reading-time chip on a card the first time it opens */
+  document.addEventListener('click',function(e){
+    var card=e.target.closest&&e.target.closest('.flip-card'); if(!card) return;
+    setTimeout(function(){
+      if(!card.classList.contains('flipped')) return;
+      var back=card.querySelector('.flip-card-back'); if(!back||back.querySelector('.hm-read')) return;
+      var words=(back.textContent||'').trim().split(/\s+/).length, min=Math.max(1,Math.round(words/180));
+      var chip=document.createElement('div'); chip.className='hm-read'; chip.textContent='\u23F1 about '+min+' min read';
+      back.insertBefore(chip,back.firstChild);
+    },80);
+  });
+  /* 2) Esc closes opened cards */
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape'||document.querySelector('.kc-lb.open')) return;
+    document.querySelectorAll('.flip-card.flipped').forEach(function(c){ c.classList.remove('flipped'); });
+  });
+  /* 3) quiz keyboard: A-D (or 1-4) answer, Right/Enter next, Left back */
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey||e.metaKey||e.altKey||document.querySelector('.kc-lb.open')) return;
+    var t=e.target; if(t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    var box=document.getElementById('kqCardBox'); if(!box||box.offsetParent===null) return;
+    var k=e.key.toLowerCase(), i='abcdefgh'.indexOf(k); if(i<0&&/^[1-8]$/.test(k)) i=+k-1;
+    if(k.length===1&&i>=0){ var o=box.querySelectorAll('.kqo')[i]; if(o&&!o.disabled){ e.preventDefault(); o.click(); } return; }
+    var act=(k==='arrowright'||k==='enter')?'next':(k==='arrowleft'?'prev':'');
+    if(act){ var b=box.querySelector('[data-act="'+act+'"]'); if(b&&!b.disabled){ e.preventDefault(); b.click(); } }
+  });
+  /* 4) magnifier on Cross-Image pictures */
+  var Z=2.6,R=100;
+  document.addEventListener('mousemove',function(e){
+    var btn=e.target.closest&&e.target.closest('.kq-cross .kq-gal button'); if(!btn) return;
+    var img=btn.querySelector('img'); if(!img) return;
+    var lens=btn.querySelector('.hm-lens');
+    if(!lens){ lens=document.createElement('div'); lens.className='hm-lens'; lens.style.backgroundImage='url("'+img.src+'")'; btn.appendChild(lens); }
+    var r=img.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+    lens.style.display='block'; lens.style.left=(x-R)+'px'; lens.style.top=(y-R)+'px';
+    lens.style.backgroundSize=(r.width*Z)+'px '+(r.height*Z)+'px';
+    lens.style.backgroundPosition=(R-x*Z)+'px '+(R-y*Z)+'px';
+  });
+  document.addEventListener('mouseout',function(e){
+    var btn=e.target.closest&&e.target.closest('.kq-cross .kq-gal button'); if(!btn) return;
+    if(e.relatedTarget&&btn.contains(e.relatedTarget)) return;
+    var l=btn.querySelector('.hm-lens'); if(l) l.style.display='none';
+  });
+})();
+</script>
 </body>
 </html>
