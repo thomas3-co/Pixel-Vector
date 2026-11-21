@@ -14088,5 +14088,37 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 .kc-lb-body{display:block;padding:8px 16px 28px;-webkit-overflow-scrolling:touch}
 .kc-lb-body img{max-width:none;margin:0 auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 </style>
+<style id="hm-flip-fix">
+/* =====================================================================
+   FLIP-CARD TEXT FIX
+   The "FLIP CARDS v4" layer hid every piece of writing on the back of a card
+   with opacity:0 !important and only showed it again when the card carried the
+   .flipped class or was hovered. If the turn and that class ever disagreed (or the
+   browser did not repaint a faded child inside a 3D face - common on iPhone/Safari
+   and touch screens), the back of the card turned over but stayed BLANK.
+   The face that points away from the reader is already hidden by
+   backface-visibility, so the extra fading is not needed. Writing is now always
+   painted; only the 3D turn decides which side you see.
+   ===================================================================== */
+.flip-card:not(#hmfx) .flip-card-front>*:not(#hmfx),
+.flip-card:not(#hmfx) .flip-card-back>*:not(#hmfx),
+.flip-card:not(#hmfx) .flip-card-front::after,
+.flip-card:not(#hmfx) .flip-card-back::after{
+  opacity:1!important;
+  transition:none!important;
+  visibility:visible!important;
+}
+/* the old touch-scrolling hint on a 3D face is the classic cause of blank text in iOS Safari */
+.flip-card:not(#hmfx) .flip-card-back:not(#hmfx){-webkit-overflow-scrolling:auto!important}
+/* keep each face on its own layer so the turn never repaints the text of the other side */
+.flip-card:not(#hmfx) .flip-card-front:not(#hmfx),
+.flip-card:not(#hmfx) .flip-card-back:not(#hmfx){
+  -webkit-backface-visibility:hidden!important;backface-visibility:hidden!important;
+}
+/* make sure the back text has a readable colour on every card type */
+.flip-card:not(#hmfx) .flip-card-back:not(#hmfx) p,
+.flip-card:not(#hmfx) .flip-card-back:not(#hmfx) li,
+.flip-card:not(#hmfx) .flip-card-back:not(#hmfx) .big-ideas{color:#1f2937}
+</style>
 </body>
 </html>
