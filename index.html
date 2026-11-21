@@ -14057,7 +14057,7 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 .week-card .flip-card.flip-card .flip-card-back li{line-height:1.55;margin-bottom:6px}
 .week-card .flip-card.flip-card .flip-card-back ul{padding-left:20px}
 /* quiet cue on the back, pinned to the bottom of the card */
-.flip-card-back::after{content:"Tap to flip back";display:block;position:sticky;bottom:0;margin-top:auto;padding:14px 0 14px;text-align:right;
+.flip-card-back::after{content:"Tap to close";display:block;position:sticky;bottom:0;margin-top:auto;padding:14px 0 14px;text-align:right;
   background:linear-gradient(to top,var(--hb,#fff) 62%,transparent);font:700 .7rem/1 'Inter',Arial,sans-serif;letter-spacing:.04em;color:#98a2b3;pointer-events:none}
 
 /* =====================================================================
@@ -14119,6 +14119,94 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 .flip-card:not(#hmfx) .flip-card-back:not(#hmfx) p,
 .flip-card:not(#hmfx) .flip-card-back:not(#hmfx) li,
 .flip-card:not(#hmfx) .flip-card-back:not(#hmfx) .big-ideas{color:#1f2937}
+</style>
+
+<style id="hm-flip-both">
+/* =====================================================================
+   FLIP CARDS v5 - no more 3D turn, so no mirrored writing.
+   Tap a card and it opens to a wide card that shows BOTH sides at once:
+   the lesson summary (front) on the left, the full lesson (back) on the right.
+   On phones the two sides stack, front first, back below.
+   Tap again to close. Colours, completed ticks and progress logic are unchanged.
+   ===================================================================== */
+.flip-card:not(#hmfx) .flip-card-inner:not(#hmfx){
+  transform:none;-webkit-transform:none;transform-style:flat;-webkit-transform-style:flat;will-change:auto;
+}
+.flip-card:not(#hmfx) .flip-card-front:not(#hmfx),
+.flip-card:not(#hmfx) .flip-card-back:not(#hmfx){
+  transform:none;-webkit-transform:none;
+  backface-visibility:visible;-webkit-backface-visibility:visible;
+}
+/* closed: front only */
+.flip-card:not(.flipped):not(#hmfx) .flip-card-back:not(#hmfx){display:none!important}
+
+/* open: both sides, side by side, card spans the whole row */
+.week-card .flip-card.flipped:not(#hmfx){grid-column:1/-1;height:auto!important;min-height:0}
+.flip-card.flipped:not(#hmfx) .flip-card-inner:not(#hmfx){
+  display:grid!important;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:18px;
+  height:auto!important;align-items:stretch;text-align:left;
+}
+.flip-card.flipped:not(#hmfx) .flip-card-front:not(#hmfx),
+.flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx){
+  position:relative!important;inset:auto;width:auto!important;height:auto!important;min-height:320px;
+  overflow:visible!important;display:flex;flex-direction:column;box-sizing:border-box;
+}
+.flip-card.flipped:not(#hmfx) .flip-card-front:not(#hmfx){justify-content:center;text-align:left}
+.flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx){
+  justify-content:flex-start;text-align:left;padding-bottom:6px!important;
+  animation:hmBothIn .42s cubic-bezier(.2,.7,.2,1) both;
+}
+/* the front's "Tap to flip" pill is not needed while both sides are open */
+.flip-card.flipped:not(#hmfx) .flip-card-front .flip-hint{display:none!important}
+.flip-card.flipped:not(#hmfx) .flip-card-front:not(#hmfx) p{max-width:none}
+@keyframes hmBothIn{from{opacity:0;transform:translateX(-22px) scale(.985)}to{opacity:1;transform:none}}
+@media(max-width:760px){
+  .flip-card.flipped:not(#hmfx) .flip-card-inner:not(#hmfx){grid-template-columns:minmax(0,1fr);gap:12px}
+  .flip-card.flipped:not(#hmfx) .flip-card-front:not(#hmfx){min-height:0;padding-bottom:22px!important}
+  .flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx){min-height:0}
+  .flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx){animation-name:hmBothInUp}
+}
+@keyframes hmBothInUp{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.flip-card.flipped:not(#hmfx) .flip-card-back:not(#hmfx){animation:none}}
+/* hover no longer turns the card - a tap/click opens it, so the layout never jumps under the pointer */
+@media(hover:hover){.week-card .flip-card.flip-card:not(.flipped):hover .flip-card-inner{transform:translateY(-3px)}}
+</style>
+<script id="hm-flip-both-js">
+/* keep the opened card in view (it grows when both sides show) */
+(function(){
+  document.addEventListener('click',function(e){
+    var card=e.target.closest&&e.target.closest('.flip-card');
+    if(!card) return;
+    setTimeout(function(){
+      if(!card.classList.contains('flipped')) return;
+      var r=card.getBoundingClientRect(), vh=window.innerHeight||document.documentElement.clientHeight;
+      if(r.top<70||r.bottom>vh){ try{ card.scrollIntoView({behavior:'smooth',block:'start'}); }catch(_){ card.scrollIntoView(); } window.scrollBy&&setTimeout(function(){window.scrollBy({top:-80,behavior:'smooth'});},350); }
+    },60);
+  });
+})();
+</script>
+<style id="hm-kc-cross-xl">
+/* =====================================================================
+   CHECK YOUR KNOWLEDGE - Cross-Image: much larger pictures
+   One big picture per row (full width of its column), the picture column gets
+   most of the screen, and every picture opens full-size in the viewer on tap.
+   ===================================================================== */
+.kq-stage.kq-cross{grid-template-columns:minmax(0,2.5fr) minmax(300px,1fr);gap:22px}
+.kq-cross .kq-gal{grid-template-columns:minmax(0,1fr);gap:18px;padding:14px;max-height:92vh;border-radius:24px}
+.kq-cross .kq-gal button{width:100%;border-radius:16px}
+.kq-cross .kq-gal img{width:100%;height:auto;max-height:none;object-fit:contain;background:#0f1424}
+.kq-cross .kq-gal span{left:12px;bottom:12px;padding:7px 14px;font-size:13px}
+@media(max-width:1100px){
+  .kq-stage.kq-cross{grid-template-columns:minmax(0,1fr)}
+  .kq-cross .kq-gal{max-height:78vh}
+}
+@media(max-width:860px){
+  .kq-cross .kq-gal{display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;max-height:none;gap:12px;padding:10px;scroll-snap-type:x mandatory}
+  .kq-cross .kq-gal button{flex:0 0 96%;width:auto;scroll-snap-align:center}
+  .kq-cross .kq-gal img{width:100%;height:auto;max-height:66vh;object-fit:contain}
+}
+/* viewer: open at a large size */
+.kc-lb-body img{width:min(1600px,100%)}
 </style>
 </body>
 </html>
