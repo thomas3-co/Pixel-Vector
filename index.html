@@ -13936,6 +13936,18 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 .kqo:not(:disabled):hover{transform:translateY(-1px)}
 @media(prefers-reduced-motion:reduce){.hm-rip{display:none}.hm-tap{animation:none!important}}
 </style>
+<style id="hm-card-clean">
+/* one clean layer: no stacked rings or double borders, week 5 included */
+#week5 .flip-card.flip-card .flip-card-front,#week5 .flip-card.flip-card .flip-card-back,
+.week-card .flip-card.flip-card .flip-card-front,.week-card .flip-card.flip-card .flip-card-back{background:#fff!important;background-image:none!important;border:1px solid #e4e7ec!important;border-left:7px solid var(--cc)!important;box-shadow:inset 0 5px 0 var(--cc),0 6px 18px rgba(16,24,40,.08)!important;color:#1a1d24!important;border-radius:14px!important}
+#week5 .flip-card.flip-card .flip-card-front p,#week5 .flip-card.flip-card .flip-card-back p,#week5 .flip-card.flip-card .flip-card-back li{color:#475467!important}
+#week5 .flip-card.flip-card .flip-card-front h4{color:#0f172a!important}
+#week5 .flip-card.flip-card .flip-hint{color:#667085!important;background:none!important;border:0!important}
+#week5 .flip-card.flip-card .project-label,#week5 .flip-card.flip-card .practice-label{background:none!important;border:0!important;color:#344054!important;padding:0!important}
+.week-card .flip-card .flip-card-inner,.week-card .flip-card.done .flip-card-inner,.week-card .flip-card.flip-card.done .flip-card-inner{box-shadow:none!important;border-radius:14px!important}
+.week-card .flip-card.flip-card:hover .flip-card-inner{filter:drop-shadow(0 10px 18px rgba(16,24,40,.12))}
+#week5 .flip-card.week5-orange{--cc:var(--c-curriculum,#2f6fed)}#week5 .flip-card.week5-orange.practice-day{--cc:var(--c-practice,#ef476f)}
+</style>
 <script id="hm-click-fx">
 (function(){
   if(window.__hmClickFx) return; window.__hmClickFx=1;
