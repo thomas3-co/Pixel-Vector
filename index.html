@@ -2,6 +2,9 @@
 
 <html lang="en">
 <head>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <meta name="hm-build" content="studio-202611141722">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-autoupdate">
@@ -7499,7 +7502,7 @@ async function initAuth(){
      even after closing the browser and on another browser/device. */
   if(hmaCloudReady()){
     try{
-      const cloud = await hmaCloudRestore();
+      const cloud = await Promise.race([hmaCloudRestore(), new Promise(r=>setTimeout(()=>r(null),2500))]);
       if(cloud && cloud.email){
         const cloudRecord = cloud.record || loadStudentRecord(cloud.email);
         student = normalizeStudentRecord(cloudRecord,cloud.email);
@@ -7517,9 +7520,9 @@ async function initAuth(){
   }
 
   let cur = getCurrentStudent();
-  if(!cur){ try{ cur = await restoreSavedSession(); }catch(e){} }
+  if(!cur){ try{ cur = await Promise.race([restoreSavedSession(), new Promise(r=>setTimeout(()=>r(null),1500))]); }catch(e){} }
   if(cur){
-    try{ await restoreRecordFromBackup(cur.email); }catch(e){}
+    try{ await Promise.race([restoreRecordFromBackup(cur.email), new Promise(r=>setTimeout(()=>r(null),1200))]); }catch(e){}
     student = loadStudentRecord(cur.email);
     student.name = cur.name;
     student.email = cur.email;
@@ -12252,7 +12255,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
   $('hmpSave').addEventListener('click',function(){ var o=ext(); o.goal=$('hmpGoal').value.trim(); o.bio=$('hmpBio').value.trim(); setExt(o); refresh(); try{ showToast('Profile saved'); }catch(e){} });
   $('hmpProg').addEventListener('click',function(){ close(); try{ goTab('progress'); }catch(e){} });
   $('hmpOut').addEventListener('click',function(){ close(); var b=$('lpSignOutBtn'); if(b) b.click(); });
-  setInterval(function(){ if(!document.hidden) refresh(); },2000); refresh();
+  setInterval(function(){ if(!document.hidden) refresh(); },6000); refresh();
 })();
 </script>
 <style id="hm-ui-pro-css">
@@ -13140,7 +13143,7 @@ function renderToday(){var home=$('#home');if(!home)return;var s=stu();var box=$
   var html='<div class="hm-ring"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="'+R+'" fill="none" stroke="var(--line,#e3e7ee)" stroke-width="9"/><circle cx="48" cy="48" r="'+R+'" fill="none" stroke="var(--c-curriculum,#2f6fed)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pc/100))+'"/></svg><b>'+pc+'%</b></div><div><h3>'+gr+', '+esc(first)+'</h3><p>'+dn+' of '+tot+' lessons complete'+(st.n>1?' · '+hi('flame')+' '+st.n+'-day streak':st.n===1?' · '+hi('flame')+' 1 day — come back tomorrow to build a streak':'')+'</p><div class="hm-row">'+(nx?'<button class="hm-go" id="hmGoNext">'+hi('play')+' Continue: '+esc(nx.t.length>52?nx.t.slice(0,50)+'…':nx.t)+'</button>':'<span style="font-weight:700">'+hi('trophy')+' You have completed every lesson!</span>')+'</div>'+(rc.length?'<div class="hm-row" style="margin-top:10px"><span style="font-size:11px;color:var(--muted,#5b6270)">Recently:</span>'+rc.map(function(r,i){return '<button class="hm-chip2" data-r="'+i+'">'+hi({video:'play',note:'bookopen',lesson:'calendar',practice:'grid',project:'target'}[r.t])+' '+esc(r.l.length>30?r.l.slice(0,28)+'…':r.l)+'</button>'}).join('')+'</div>':'')+'<div class="hm-week">'+st.wk.map(function(d){return '<i class="'+(d.on?'on':'')+'">'+d.l+'</i>'}).join('')+'<span style="margin-left:6px">last 7 days</span></div></div>';
   if(!box){box=document.createElement('div');box.id='hmToday';box.className='hm-today';var anchor=$('.stat-row',home)||$('.hero',home);if(anchor)anchor.parentNode.insertBefore(box,anchor);else home.insertBefore(box,home.firstChild)}
   box.innerHTML=html;var g=$('#hmGoNext',box);if(g)g.onclick=function(){focusDay(nx.k)};$$('[data-r]',box).forEach(function(b){b.onclick=function(){var r=rc[+b.getAttribute('data-r')];if(r.t==='video')openVideo(r.k);else if(r.t==='note')openNote(r.k);else focusDay(r.k)}})}
-setInterval(function(){if(!document.hidden&&$('#home')&&$('#home').classList.contains('active'))renderToday()},4000);setTimeout(renderToday,1200);
+setInterval(function(){if(!document.hidden&&$('#home')&&$('#home').classList.contains('active'))renderToday()},12000);setTimeout(renderToday,1200);
 /* ---------- curriculum toolbar ---------- */
 function curToolbar(){var cv=$('#curriculum');if(!cv||$('#hmCtb'))return;var b=document.createElement('div');b.className='hm-ctb';b.id='hmCtb';
   b.innerHTML='<button class="hm-go" id="hmCtbGo" type="button">'+hi('play')+' Continue</button><div class="hm-seg" id="hmCtbSeg"><button class="on" data-f="all" type="button">All lessons</button><button data-f="todo" type="button">To do</button><button data-f="done" type="button">Done</button></div><span id="hmCtbN" style="font-size:12px;color:var(--muted,#5b6270)"></span>';
@@ -13547,7 +13550,7 @@ update();setTimeout(update,1500);setTimeout(update,5000);
 <script id="kc-js">
 (function(){
 'use strict';
-var data=null, imgs=null, TOTAL=0, SECS=30, localObj=null, dirty=false, tmr=null, built=false;
+var data=null, imgs=null, imgsOk=false, TOTAL=0, SECS=30, localObj=null, dirty=false, tmr=null, built=false;
 var flat=[], pos=0, secShown=-1, screen='home', filt='all', T={left:0,iv:null};
 function $(s,r){return (r||document).querySelector(s);}
 function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
@@ -13556,7 +13559,6 @@ function toast(m){ try{ if(typeof showToast==='function') showToast(m); }catch(e
 function load(){
   if(data) return;
   var base=[]; try{ base=JSON.parse($('#kc-data').textContent); }catch(e){}
-  try{ imgs=JSON.parse($('#kc-img').textContent); }catch(e){ imgs=[]; }
   var cfg=null; try{ cfg=(window.HM_CONTENT&&window.HM_CONTENT.kc)||(window.HMC&&window.HMC.data&&window.HMC.data.kc)||null; }catch(e){}
   var secs=(cfg&&cfg.sections&&cfg.sections.length)?cfg.sections:base;
   if(cfg&&+cfg.seconds>=5) SECS=Math.min(300,Math.floor(+cfg.seconds));
@@ -13567,7 +13569,8 @@ function load(){
   TOTAL=data.reduce(function(n,s){return n+s.qs.length;},0);
   flat=[]; data.forEach(function(s,si){ s.qs.forEach(function(q,qi){ flat.push([si,qi]); }); });
 }
-function secImg(s){ var d=data[s]; if(d.img) return d.img; var k=parseInt(d.id,10); return (!isNaN(k)&&imgs[k])?imgs[k]:''; }
+function IM(){ if(!imgsOk){ imgsOk=true; try{ imgs=JSON.parse($('#kc-img').textContent); }catch(e){ imgs=[]; } } return imgs||[]; }
+function secImg(s){ var d=data[s]; if(d.img) return d.img; var k=parseInt(d.id,10); return (!isNaN(k)&&IM()[k])?IM()[k]:''; }
 function rec(){ try{ return (typeof student!=='undefined'&&student&&student.email)?student:null; }catch(e){ return null; } }
 function obj(){
   var r=rec();
@@ -13655,7 +13658,7 @@ function renderShell(s){
   secShown=s; var d=data[s], r=root();
   var fig;
   if(d.gallery){
-    fig='<div class="kq-gal">'+imgs.map(function(src,i){ return '<button type="button" data-act="zoom" data-fig="'+i+'" aria-label="Open figure '+(i+1)+'"><img alt="Figure '+(i+1)+'" src="'+src+'"><span>Image '+(i+1)+'</span></button>'; }).join('')+'</div>';
+    fig='<div class="kq-gal">'+IM().map(function(src,i){ return '<button type="button" data-act="zoom" data-fig="'+i+'" aria-label="Open figure '+(i+1)+'"><img alt="Figure '+(i+1)+'" src="'+src+'"><span>Image '+(i+1)+'</span></button>'; }).join('')+'</div>';
   } else {
     fig='<figure class="kq-fig"><img alt="'+esc(d.title)+' — Photoshop screenshot with Layers panel" data-act="zoom" src="'+secImg(s)+'"><figcaption>'+esc(d.name)+' · tap to zoom</figcaption></figure>';
   }
@@ -13764,7 +13767,7 @@ function lightbox(list,title){
     document.addEventListener('keydown',function(e){ if(e.key==='Escape') lb.classList.remove('open'); });
   }
   $('#kcLbT').textContent=title+' · tap the picture to switch between fit and full size';
-  $('#kcLbB').innerHTML=list.map(function(i){return '<img alt="Figure '+(i+1)+'" src="'+imgs[i]+'">';}).join('');
+  $('#kcLbB').innerHTML=list.map(function(i){return '<img alt="Figure '+(i+1)+'" src="'+IM()[i]+'">';}).join('');
   lb.classList.add('open');
 }
 /* ---------- events ---------- */
@@ -13911,6 +13914,42 @@ html{scroll-behavior:auto!important}
 .kq-live .no{background:#fdecee;border-color:#f6c3ca;color:#b42339}
 .kq-live .tm{background:#fff4e0;border-color:#fbd9a0;color:#9a5a00}
 .kq-live .all{background:#eef3ff;border-color:#cddcff;color:#1f4fc4}
+
+/* ===== every week uses the Week 9 / 10 card: white card, thick colour strip + top bar by type, ticked when done ===== */
+.week-card .flip-card.flip-card .flip-card-front,.week-card .flip-card.flip-card .flip-card-back{background:#fff!important;background-image:none!important;border:1px solid #e4e7ec!important;border-left:7px solid var(--cc)!important;box-shadow:inset 0 5px 0 var(--cc),0 6px 18px rgba(16,24,40,.08)!important;color:#1a1d24!important}
+.week-card .flip-card.flip-card .flip-card-front h4,.week-card .flip-card.flip-card .flip-card-front p{color:#0f172a!important}
+.week-card .flip-card.flip-card .flip-card-front p{color:#475467!important}
+.week-card .flip-card.flip-card .flip-card-front .flip-hint{color:#667085!important;background:none!important;border:0!important}
+.week-card .flip-card.flip-card.done .flip-card-front::after{background:#0fa968!important;border:0!important;color:#fff!important;padding:5px 11px!important;border-radius:999px!important}
+.week-card .flip-card.flip-card.done .flip-card-back .vocab-title{color:#475467!important}
+.week-card .flip-card.flip-card.done .flip-card-inner{box-shadow:0 0 0 2px color-mix(in srgb,var(--cc) 55%,#fff),0 10px 24px rgba(16,24,40,.12)}
+.flip-card.lesson-day{--cc:var(--c-curriculum,#2f6fed)}.flip-card.practice-day{--cc:var(--c-practice,#ef476f)}.flip-card.project-day{--cc:var(--c-projects,#ff7a2d)}
+
+/* click feedback: ripple at the pointer + a quick press on whatever was tapped */
+.hm-rip{position:fixed;z-index:2147483000;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(79,110,255,.45),rgba(79,110,255,.18) 60%,transparent 70%);animation:hmRip .55s ease-out forwards}
+@keyframes hmRip{from{transform:scale(.6);opacity:.95}to{transform:scale(7);opacity:0}}
+@keyframes hmTap{0%{transform:scale(1)}40%{transform:scale(.965)}100%{transform:scale(1)}}
+.hm-tap:not(.flip-card-inner){animation:hmTap .3s cubic-bezier(.3,.7,.4,1)}
+button:not(:disabled),.b,.tab,.chip,.hbtn,.kqo,.kqs{transition:transform .15s ease,box-shadow .2s ease,background-color .2s ease,border-color .2s ease,filter .2s ease}
+button:not(:disabled):hover,.b:hover,.hbtn:hover{filter:brightness(1.04)}
+button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{transform:scale(.965)}
+.kqo:not(:disabled):hover{transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){.hm-rip{display:none}.hm-tap{animation:none!important}}
 </style>
+<script id="hm-click-fx">
+(function(){
+  if(window.__hmClickFx) return; window.__hmClickFx=1;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches; if(reduce) return;
+  var SEL='button,.b,.tab,.chip,.hbtn,a.ll,.ll,.llq,.wk-btn,.flip-card,.media-card,.theater-item,.progress-card,.stat,.vw-tile,.vw-chip,nav button,.kqo,.kqs,.kq-btn,summary,[role=button],[role=tab]';
+  document.addEventListener('pointerdown',function(e){
+    try{
+      var t=e.target&&e.target.closest?e.target.closest(SEL):null; if(!t||t.disabled) return;
+      var d=document.createElement('span'); d.className='hm-rip'; d.style.left=e.clientX+'px'; d.style.top=e.clientY+'px';
+      document.body.appendChild(d); setTimeout(function(){ d.remove(); },600);
+      t.classList.remove('hm-tap'); void t.offsetWidth; t.classList.add('hm-tap'); setTimeout(function(){ t.classList.remove('hm-tap'); },320);
+    }catch(x){}
+  },{passive:true,capture:true});
+})();
+</script>
 </body>
 </html>
