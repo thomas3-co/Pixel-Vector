@@ -150,7 +150,7 @@ items:[['id','Google Drive file ID'],['title','Title'],['desc','Description','a'
 groups:[['id','Group id'],['title','Title'],['sub','Subtitle'],['color','Colour','c'],['badge','Badge text']],
 notes:[['id','Note id (e.g. readme-week6)'],['week','Week','n'],['badge','Badge (e.g. WEEK 6)'],['title','Title'],['intro','Intro','a'],['quiz','Has quiz + Mark as Read','b'],['hidden','Hide this note','b'],['tip','Tip box','a'],['cards','Cards','sub',[['title','Card title'],['text','Text','a']],c=>c.title||'New card',()=>({title:'',text:''})],['vocab','Vocabulary — term | definition','pairs',PAIR]],
 quizzes:[['type','Type','s',['reading','video']],['key','Key (Read Me note id, or screencast id)'],['draw','Questions each student gets (blank = 5). Tip: keep the bank at least double this so every student gets a different paper','n'],['shuffleOff','Keep the original order (turn OFF shuffling of questions and answers)','b'],['questions','Questions (need 5+, students get 5 random)','sub',[['q','Question','a'],['options','Options — one per line','lines'],['answer','Correct option number (0 = first line)','n'],['img','Picture for this question (optional)','img']],q=>q.q||'New question',()=>({q:'',options:['','','',''],answer:0})]],
-projects:[['id','Project id'],['week','Week','n'],['title','Title'],['desc','Brief','a'],['skills','Skills (comma separated)','csv'],['checks','Checklist — one per line','lines'],['classroomUrl','Classroom / submission link'],['section','Section (e.g. Phase One)'],['marks','Marks','n'],['hidden','Hide project','b']],
+projects:[['id','Project id'],['week','Week','n'],['title','Title'],['desc','Brief','a'],['skills','Skills (comma separated)','csv'],['checks','Student checklist — one per line (students see this)','lines'],['criteria','Admin grading criteria — instructor only, one per line, e.g. “Clean background removal | 4”','lines'],['classroomUrl','Classroom / submission link'],['section','Section (e.g. Phase One)'],['marks','Marks','n'],['hidden','Hide project','b']],
 assessments:[['week','Source week','n'],['q','Question','a'],['opts','Four answer options — one per line','lines'],['a','Correct option number (0 = first)','n']],
 files:[['id','Google Drive file ID (leave empty for uploaded files)'],['label','Label'],['url','Uploaded file path (filled automatically by drag & drop)']],
 deadlines:[['title','Deadline title'],['date','Date (YYYY-MM-DD)'],['kind','Colour category','s',['project','practice','exam','other']],['week','Week number','n'],['note','Short note']],
@@ -164,7 +164,7 @@ items:{t:'Screencasts',l:'items',mk:()=>({id:'',title:'',desc:'',released:true,g
 groups:{t:'Screencast groups',l:'groups',mk:()=>({id:'',title:'',sub:'',color:'#2f6fed'}),ti:x=>x.title||'New group'},
 notes:{t:'Read Me notes',l:'notes',mk:()=>({id:'',week:'',cards:[],vocab:[],quiz:true}),ti:x=>(x.badge||'')+' '+(x.title||x.id||'New note'),sw:'hidden'},
 quizzes:{t:'Assessment quizzes',l:'quizzes',mk:()=>({type:'reading',key:'',questions:[]}),ti:x=>x.type+' · '+(x.key||'new')+' ('+(x.questions||[]).length+' in bank → each student gets '+Math.min((+x.draw>0?+x.draw:5),(x.questions||[]).length)+')'},
-projects:{t:'Projects',l:'projects',mk:()=>({id:'',skills:[],checks:[]}),ti:x=>x.title||x.id||'New project',sw:'hidden'},
+projects:{t:'Projects',l:'projects',mk:()=>({id:'',skills:[],checks:[],criteria:[]}),ti:x=>x.title||x.id||'New project',sw:'hidden'},
 assessments:{t:'Phase 1 assessment question bank',l:'assessments',mk:()=>({week:1,marks:1,source:'',q:'',opts:['','','',''],a:0}),ti:x=>'Week '+(x.week||'?')+' · '+(x.q||'New assessment question')},
 materials:{t:'Additional materials',l:'materials',sp:'files',mk:()=>({id:'',label:''}),ti:x=>x.label||x.id||'New file'},
 practice:{t:'Practice files',l:'practice',sp:'files',mk:()=>({id:'',label:''}),ti:x=>x.label||x.id||'New file'},
@@ -523,7 +523,11 @@ async function push(retry){const w=retry?[]:check();if(w.length&&!confirm('Warni
 async function resolveConflict(){log('GitHub has a newer version of the file. Fetching it…');
  const ref='?ref='+encodeURIComponent(LS.b||'main'),g=await api(ref);if(!g.ok)return log('Error: could not read the newest file ('+g.status+'). Press “Load from GitHub” and try again.');
  const gj=await g.json();let t;try{t=gj.content?u8(gj.content):await(await api(ref,{headers:{Accept:'application/vnd.github.raw+json'}})).text()}catch(e){return log('Error: could not read the newest file. '+e.message)}
- if(!RE9.test(t))return log('Stopped: the newest file on GitHub has no cc-9-live block, so Course Studio edits cannot be saved into it. Nothing was changed on GitHub.');
+ if(!RE9.test(t)){sha=gj.sha;const gb=(/name="hm-build" content="([^"]*)"/.exec(t)||[])[1]||'none';
+  log('The file Course Studio found on GitHub ('+LS.o+'/'+LS.r+' · branch '+(LS.b||'main')+' · '+(LS.p||'index.html')+') is '+(t.length/1024|0)+' KB, build "'+gb+'", and has no cc-9-live block.');
+  if(!RE9.test(src||''))return log('Stopped. The file you loaded in Course Studio has no cc-9-live block either. Upload your latest index.html to GitHub (or use “Open local index.html”), check Repository / Branch / File path above, then press “Load from GitHub”. Nothing was changed on GitHub.');
+  if(!confirm('The index.html on GitHub is NOT the course file (it has no Course Studio block).\n\nOK = replace it with the file you loaded in Course Studio ('+(src.length/1024|0)+' KB) plus your edits.\nCancel = stop; nothing is changed on GitHub.'))return log('Stopped. Nothing was changed on GitHub. Check Repository / Branch / File path above, then press “Load from GitHub”.');
+  log('Replacing the GitHub file with the file loaded in Course Studio…');return push(true)}
  if(!confirm('GitHub has a newer version of this file than the one you loaded (for example you uploaded an updated index.html).\n\nOK = keep GitHub\'s newest file and re-apply your Course Studio edits on top of it, then publish.\nCancel = stop; nothing is changed.'))return log('Stopped. Nothing was changed on GitHub.');
  src=t;sha=gj.sha;log('Using the newest file ('+(t.length/1024|0)+' KB). Re-applying your edits…');return push(true)}
 function pubView(v){const c=E('div',{className:'card'});
@@ -1721,6 +1725,49 @@ Answer: A</pre><p class="hint">You can also mark the right option with * at the 
    const n=o.apply(L);mark();toast(n+' question(s) added');m.remove();go(cur)}catch(x){say(x.message)}};
  document.body.append(m)}
 const importBar=(title,apply,extra)=>{const c=E('div',{className:'card',style:'border-left:5px solid #8b5cf6'});c.innerHTML='<b>Import from a document</b><span class="hint"> · Word, Excel, CSV, JSON or pasted text</span> ';const b=E('button',{className:'b p',textContent:'Import questions...'});b.onclick=()=>importModal({title,apply,extra});c.append(b);return c};
+/* ---- Projects: import from a file (CSV / Excel / JSON) + instructor-only grading criteria ---- */
+const PJ_ALIAS={id:['id','project id','projectid','code'],week:['week','wk'],title:['title','name','project','project title'],desc:['desc','description','brief','details'],skills:['skills','skills (comma or ; separated)','skill'],checks:['checks','checklist','student checklist','student checklist (one per line)'],criteria:['criteria','admin criteria','grading criteria','rubric','marking criteria','admin grading criteria','admin grading criteria (one per line: text | marks)'],classroomUrl:['classroomurl','classroom','link','url','submission link','classroom link','classroom / submission link'],section:['section'],marks:['marks','points','total marks','max marks'],phase:['phase'],hidden:['hidden','hide']};
+const pjList=(v,re)=>Array.isArray(v)?v.map(x=>String(x).trim()).filter(Boolean):String(v==null?'':v).split(re).map(x=>x.trim()).filter(Boolean);
+function pjNorm(o){
+ if(!o||typeof o!=='object')return null;
+ const keys=Object.keys(o),g=k=>{for(const a of PJ_ALIAS[k])for(const key of keys)if(String(key).toLowerCase().trim()===a)return o[key];return undefined};
+ const title=String(g('title')==null?'':g('title')).trim(),idRaw=String(g('id')==null?'':g('id')).trim();
+ if(!title&&!idRaw)return null;
+ let id=idRaw.replace(/[^A-Za-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'');
+ if(!id)id=title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+ while(id.length<3)id+='-x';
+ const p={id};if(title)p.title=title;
+ const num=k=>{const v=g(k);if(v===undefined||v==='')return;const n=Number(v);if(isFinite(n))p[k]=n};
+ num('week');num('marks');num('phase');
+ const d=g('desc');if(d!==undefined&&String(d).trim()!=='')p.desc=String(d).trim();
+ const s=g('skills');if(s!==undefined&&s!=='')p.skills=pjList(s,/[,;\n]/);
+ const c=g('checks');if(c!==undefined&&c!=='')p.checks=pjList(c,/[;\n]/);
+ const cr=g('criteria');if(cr!==undefined&&cr!=='')p.criteria=pjList(cr,/[;\n]/);
+ const u=g('classroomUrl');if(u!==undefined&&u!=='')p.classroomUrl=String(u).trim();
+ const sec=g('section');if(sec!==undefined&&sec!=='')p.section=String(sec).trim();
+ const h=g('hidden');if(h!==undefined&&h!=='')p.hidden=h===true||/^(1|true|yes|y)$/i.test(String(h).trim());
+ if(p.marks===undefined&&p.criteria){let t=0,n=0;p.criteria.forEach(x=>{const m=/\|\s*(\d+(?:\.\d+)?)\s*$/.exec(x);if(m){t+=+m[1];n++}});if(n)p.marks=t}
+ return p}
+function pjRows(rows){rows=rows.filter(r=>r.some(c=>String(c==null?'':c).trim()));if(rows.length<2)return[];const h=rows[0].map(x=>String(x==null?'':x).trim());return rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>{if(k)o[k]=r[i]});return pjNorm(o)}).filter(Boolean)}
+async function pjRead(f){const n=f.name.toLowerCase();
+ if(/\.xlsx?$/.test(n)){const wb=await readWb(f);return pjRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false}))}
+ const t=(await f.text()).replace(/^\uFEFF/,'');
+ if(/\.json$/.test(n)||/^\s*[\[{]/.test(t)){let j=JSON.parse(t);if(!Array.isArray(j))j=j.projects||[];return j.map(pjNorm).filter(Boolean)}
+ return pjRows(parseCsv(t))}
+function pjApply(list){D.projects=D.projects||[];let add=0,upd=0;list.forEach(p=>{const ex=D.projects.find(x=>x.id===p.id);if(ex){Object.assign(ex,p);upd++}else{D.projects.push(Object.assign({skills:[],checks:[],criteria:[]},p));add++}});return{add,upd}}
+function pjTemplate(){const rows=[['Project id','Week','Title','Brief','Skills (comma or ; separated)','Student checklist (one per line)','Admin grading criteria (one per line: text | marks)','Classroom link','Section','Marks','Phase','Hidden'],['w7-city-composition','7','Around the World','Create a composition using one city.','Selection, Masking, Depth','Subject isolated\nFinal export ready','Clean background removal | 4\nRealistic depth and blur | 4\nFinal presentation | 2','https://classroom.google.com/c/…','Section B','10','1','no']];const t='\uFEFF'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download='projects-template.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function pjImportButtons(bar){
+ const inp=E('input',{type:'file',accept:'.csv,.xlsx,.xls,.json,.txt'});inp.style.display='none';
+ const b=E('button',{className:'b p',textContent:'Import projects from a file…',style:'flex:none'});b.onclick=()=>inp.click();
+ inp.onchange=async()=>{const f=inp.files[0];inp.value='';if(!f)return;
+  try{const list=await pjRead(f);if(!list.length)return toast('No projects found. The first row must be the column names (Title is required).');
+   const ex=new Set((D.projects||[]).map(x=>x.id)),upd=list.filter(p=>ex.has(p.id)).length;
+   if(!confirm('Found '+list.length+' project(s) in “'+f.name+'”:\n• '+(list.length-upd)+' new\n• '+upd+' already exist (same Project id) and will be updated with the file’s values\n\nContinue?'))return;
+   const r=pjApply(list);mark();toast(r.add+' added, '+r.upd+' updated. Check them below, then Save & publish.');go('projects')}
+  catch(e){toast('Could not read that file: '+(e.message||e))}};
+ const t=E('button',{className:'b',textContent:'Download CSV template',style:'flex:none'});t.onclick=pjTemplate;
+ bar.append(b,t,inp)}
+
 
 /* ---------- 4. Views: All students, Phase assessments ---------- */
 const setOn=(k,t)=>{cur=k;$('#ttl').textContent=t;document.querySelectorAll('nav button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))};
@@ -1936,7 +1983,7 @@ go=function(k){
    if(k==='notes'){const x=E('button',{className:'b p',textContent:'Make built-in Read Me notes editable',style:'flex:none'});x.onclick=()=>{if(!confirm('Copy every built-in Read Me note that is not already in the editor, so you can edit it? Imported notes use the standard card layout (text and numbered steps). For pixel-exact edits use Site explorer instead.'))return;const n=impBuiltInNotes();toast(n?n+' note(s) imported - edit them below':'All built-in notes are already in the editor');go('notes')};bar.append(x)}
    if(k==='items'){const x=E('button',{className:'b p',textContent:'Load screencasts already on the site',style:'flex:none'});x.onclick=()=>{try{importSite(['screencasts']);go('items')}catch(e){toast(e.message)}};bar.append(x)}
    if(k==='projects'){const x=E('button',{className:'b p',textContent:'Add the 2 earlier projects (Week 7 and Week 10)',style:'flex:none'});x.onclick=()=>{D.projects=D.projects||[];const B='https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd',Dd='https://classroom.google.com/c/ODg5MDAzNjk4NTky?cjc=f7ese2pk',add=[{id:'w6-individual-city-composition',week:7,title:'Phase 1 - Week 7 Around the World (Individual City Composition)',desc:'Create an individual portrait composition using one of 50 city choices. Remove the background, integrate the subject into the city scene, refine the edge, redesign clothing patterns, and use realistic depth.',skills:['Background Removal','Smudge Tool','Minimum','Gaussian Blur','Portrait Retouching'],checks:['Subject isolated','City background integrated','Clothing pattern redesigned','Final PSD + JPG/PNG ready'],classroomUrl:B,section:'Section B',marks:15},{id:'w9-gojo-popout',week:10,title:'Phase 3 - Week 10 Gojo Pop-Out Project',desc:'Build the assigned pop-out composition with clean masking, depth, and a presentation-ready final export.',skills:['Selection','Masking','Depth','Export'],checks:['Subject isolated','Depth created','Final export ready'],classroomUrl:Dd,section:'Section D',marks:15}];let n=0;add.forEach(a=>{if(!D.projects.some(p=>p.id===a.id)){D.projects.push(a);n++}});mark();toast(n?n+' project(s) added - edit them below, then Save & publish':'Both projects are already in the list');go('projects')};bar.append(x)}
-   const y=E('button',{className:'b',textContent:'Edit any published page text (site explorer)',style:'flex:none'});y.onclick=()=>go('explorer');bar.append(y);top.insertBefore(bar,top.children[1]||null)}}}catch(e){console.error(e)}
+   if(k==='projects')pjImportButtons(bar);const y=E('button',{className:'b',textContent:'Edit any published page text (site explorer)',style:'flex:none'});y.onclick=()=>go('explorer');bar.append(y);top.insertBefore(bar,top.children[1]||null)}}}catch(e){console.error(e)}
  return r};
 const g=[...document.querySelectorAll('#nav .cs27-group')];
 const gc=g.find(x=>x.textContent.indexOf('Course content')>-1),gs=g.find(x=>x.textContent.indexOf('Student operations')>-1);
