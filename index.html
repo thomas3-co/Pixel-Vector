@@ -7,6 +7,23 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <meta name="hm-build" content="studio-202611141722">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+<script id="hm-boot-gate">
+/* Hides the page behind a short "Loading the newest version" screen until two quick checks finish:
+   (1) is this the newest index.html?  (2) is the course content up to date?
+   If either is out of date the page reloads itself while still hidden, so students never see the old version first.
+   Safety: it always lets go after 2.8 s (8 s while a reload is already under way). */
+(function(){
+  if(location.protocol==='file:'||navigator.onLine===false) return;
+  var de=document.documentElement, done=false, t, need={build:1,content:1};
+  var st=document.createElement('style');
+  st.textContent='html.hm-boot body{visibility:hidden!important}html.hm-boot:before{content:"";position:fixed;left:0;top:0;right:0;bottom:0;background:#f3f5fa;z-index:2147483646}html.hm-boot:after{content:"Loading the newest version\\2026";position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font:700 15px/1.4 Inter,Arial,sans-serif;color:#475467;z-index:2147483647;animation:hmBootP 1s ease-in-out infinite alternate}@keyframes hmBootP{from{opacity:.4}to{opacity:1}}';
+  (document.head||de).appendChild(st); de.classList.add('hm-boot');
+  function release(){ if(done) return; done=true; clearTimeout(t); de.classList.remove('hm-boot'); }
+  window.hmBoot={ hold:function(ms){ if(done) return; clearTimeout(t); t=setTimeout(release,ms); }, release:release,
+    step:function(k){ need[k]=0; if(!need.build&&!need.content&&!window.__hmReloading) release(); } };
+  t=setTimeout(release,2800);
+})();
+</script>
 <script id="hm-autoupdate">
 /* Always load the newest version of the site. Student data lives in the browser's localStorage and in the cloud backup,
    neither of which is touched here: we only reload the page itself (after pushing the latest progress to the cloud). */
@@ -32,12 +49,14 @@
   }
   function check(force){
     if(busy) return; var n=Date.now(); if(!force&&n-last<15000) return; last=n;
+    function bootStep(){ try{ if(window.hmBoot) window.hmBoot.step('build'); }catch(e){} }
     remote().then(function(b){
-      if(!b||b===BUILD) return;
+      if(!b||b===BUILD){ bootStep(); return; }
       var seen=''; try{ seen=sessionStorage.getItem(KEY)||''; }catch(e){}
-      if(seen===b) return;          /* already tried this build once: never loop */
+      if(seen===b){ bootStep(); return; }          /* already tried this build once: never loop */
+      window.__hmReloading=true; try{ if(window.hmBoot) window.hmBoot.hold(8000); }catch(e){}
       update(b);
-    }).catch(function(){});
+    }).catch(function(){ bootStep(); });
   }
   check(true);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) check(false); });
@@ -6350,9 +6369,9 @@ window.HM_BAKED = {
   function busy(){ return !!document.querySelector('#cqModal.open,#wqModal.open,#phaseAssessmentModal.open'); }
   var last=0, guard='hm_content_reload';
   HMC.sync=function(force){
-    var url=(window.hmaCloud&&window.hmaCloud.url)||''; if(!url||location.protocol==='file:'&&!force&&!window.__hmForceSync) return;
-    var now=Date.now(); if(!force&&now-last<15000) return; last=now; HMC.lastCheck=now;
-    fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'contentGet',since:HMC.version,cid:(HMC._rep===HMC.version?undefined:cid())})}).then(function(r){return r.json();}).then(function(d){
+    var url=(window.hmaCloud&&window.hmaCloud.url)||''; if(!url||location.protocol==='file:'&&!force&&!window.__hmForceSync) return Promise.resolve();
+    var now=Date.now(); if(!force&&now-last<15000) return Promise.resolve(); last=now; HMC.lastCheck=now;
+    return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'contentGet',since:HMC.version,cid:(HMC._rep===HMC.version?undefined:cid())})}).then(function(r){return r.json();}).then(function(d){
       if(d&&d.ok&&d.same) HMC._rep=HMC.version;
       if(!d||!d.ok||d.same||typeof d.version!=='number'||d.version===HMC.version) return;
       if(d.content){ var blob=JSON.stringify({version:d.version,content:d.content}), stored=false; try{ localStorage.setItem(KEY,blob); stored=(localStorage.getItem(KEY)===blob); }catch(e){} if(!stored){ try{ window.name='HMC1'+blob; }catch(e){} } }
@@ -6362,10 +6381,11 @@ window.HM_BAKED = {
       try{ sessionStorage.setItem(guard,String(d.version)); }catch(e){}
       try{ var bn=document.createElement('div'); bn.textContent='Course updated — refreshing…'; bn.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#10152b;color:#fff;padding:10px 18px;border-radius:99px;z-index:99998;font:700 13px system-ui,Arial;box-shadow:0 10px 30px rgba(0,0,0,.35)'; document.body.appendChild(bn); }catch(e){}
       var go=function(){ if(busy()){ setTimeout(go,30000); return; } var p; try{ p=window.hmaPushNow&&window.hmaPushNow(); }catch(e){} var done=false,fin=function(){ if(done) return; done=true; location.reload(); }; setTimeout(fin,3500); if(p&&p.then) p.then(fin,fin); else fin(); };
+      window.__hmReloading=true; try{ if(window.hmBoot) window.hmBoot.hold(8000); }catch(e){}
       go();
     }).catch(function(){});
   };
-  window.addEventListener('load',function(){ setTimeout(function(){ HMC.sync(true); },1200); });
+  document.addEventListener('DOMContentLoaded',function(){ var p; try{ p=HMC.sync(true); }catch(e){} Promise.resolve(p).then(function(){ try{ if(window.hmBoot) window.hmBoot.step('content'); }catch(e){} },function(){ try{ if(window.hmBoot) window.hmBoot.step('content'); }catch(e){} }); });
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) HMC.sync(false); });
   setInterval(function(){ if(!document.hidden) HMC.sync(false); },20000);
   window.addEventListener('focus',function(){ HMC.sync(false); }); window.addEventListener('online',function(){ HMC.sync(true); });
@@ -10789,7 +10809,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
 (function(){
   "use strict";
   /* The installer puts your Google Apps Script Web App URL here. */
-  var HMA_CLOUD_URL = "https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec";
+  var HMA_CLOUD_URL = "https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec";
   window.__hmCloudReady = true;
   try{ fetch(HMA_CLOUD_URL,{method:'GET',mode:'no-cors',cache:'no-store'}).catch(function(){}); }catch(e){} /* wake the backend early */
 
@@ -10825,7 +10845,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   }
 
   /* ---------- server calls ---------- */
-  var ALT_URL="https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec";
+  var ALT_URL="https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec";
   function urlList(){
     var l=[HMA_CLOUD_URL]; if(ALT_URL&&ALT_URL!==HMA_CLOUD_URL) l.push(ALT_URL);
     try{ var g=localStorage.getItem('hm_good_url'); if(g&&l.indexOf(g)>0){ l.splice(l.indexOf(g),1); l.unshift(g); } }catch(e){}
@@ -12607,7 +12627,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
   var A='https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec';
   var B='https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec';
   var KEY='hm_cloud_pref', _f=window.fetch;
-  function pref(){ try{ var p=localStorage.getItem(KEY); if(p===A||p===B) return p; }catch(e){} return A; }
+  function pref(){ try{ var p=localStorage.getItem(KEY); if(p===A||p===B) return p; }catch(e){} return B; }
   function other(u){ return u===A?B:A; }
   if(_f){
     window.fetch=function(input,init){
