@@ -15,16 +15,16 @@
    so a slow or offline connection never blocks students.  Keep the two backend addresses below in sync with HMA_CLOUD_URL. */
 (function(){
   if(location.protocol==='file:'||navigator.onLine===false) return;
-  var de=document.documentElement, done=false, t, need={build:1,content:1,ready:1};
+  var de=document.documentElement, done=false, t, need={build:1,content:1,ready:1,auth:(function(){ try{ return (localStorage.getItem('hm_cloud_session')||/(?:^|;\s*)hm_ct=/.test(document.cookie))?1:0; }catch(e){ return 0; } })()};
   var URLS=["https://script.google.com/macros/s/AKfycbzoesfGC3MeQfcWPasSVvpg8hBzOlrk-q2oMdjr8Lt-fna689FJdFMBlEoda4S759Rc/exec","https://script.google.com/macros/s/AKfycbzW8hRO-dUA-kWwWt1R4yhjo0cNXR-z_NgNllDHajd76LaUB8Uv1JT7rW3d65j4cqSl/exec"];
   var st=document.createElement('style');
   st.textContent='html.hm-boot body{visibility:hidden!important}html.hm-boot:before{content:"";position:fixed;left:0;top:0;right:0;bottom:0;background:#f5f3ff;z-index:2147483646}html.hm-boot:after{content:"Loading the newest version\\2026";position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font:700 15px/1.4 system-ui,Arial,sans-serif;color:#5b21b6;z-index:2147483647}';
   (document.head||de).appendChild(st); de.classList.add('hm-boot');
   function release(){ if(done) return; done=true; clearTimeout(t); de.classList.remove('hm-boot'); }
   function hold(ms){ if(done) return; clearTimeout(t); t=setTimeout(release,ms); }
-  function step(k){ need[k]=0; if(!need.build&&!need.content&&!need.ready&&!window.__hmReloading) release(); }
+  function step(k){ need[k]=0; if(!need.build&&!need.content&&!need.ready&&!need.auth&&!window.__hmReloading) release(); }
   window.hmBoot={ hold:hold, release:release, step:step };
-  t=setTimeout(release,5000);
+  t=setTimeout(release,need.auth?6500:5000);
   /* page + fonts finished -> no more text re-flow ("tweaking") after the screen opens */
   function ready(){ try{ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ step('ready'); },function(){ step('ready'); }); else step('ready'); }catch(e){ step('ready'); } }
   if(document.readyState==='complete') ready(); else window.addEventListener('load',ready);
@@ -7547,7 +7547,7 @@ function enterApp(){
   const m2=document.querySelector('#monthSwitch .chip[data-month="m2"]');
   if(m2 && courseWeekNumber(new Date())>=5 && courseWeekNumber(new Date())<=8 && !m2.classList.contains('active')) m2.click();
 }
-async function initAuth(){
+async function __hmInitAuthCore(){
   /* Cloud account is checked first. Firebase restores the signed-in student
      even after closing the browser and on another browser/device. */
   if(hmaCloudReady()){
@@ -7595,6 +7595,7 @@ async function initAuth(){
   }
   gate.classList.remove('hidden');
 }
+async function initAuth(){ try{ return await __hmInitAuthCore(); } finally { window.__hmAuthDone=true; try{ if(window.hmAuthSettled) window.hmAuthSettled(); }catch(e){} } }
 /* NOTE: initAuth() is *called* at the very bottom of this script, not here.
    enterApp() (triggered by initAuth when a student is already signed in on
    this device) renders the screencast theater and practice-file grid, so it
@@ -7949,9 +7950,7 @@ function weekStatus(w){
   const done = student ? Array.from(dayEls).filter(c=>student.completed.includes(c.dataset.day)).length : 0;
   return { total, done, pct: total ? Math.round((done/total)*100) : 0 };
 }
-function renderProgressView(){
-  const body = document.getElementById('progressBody');
-  if(!body) return;
+function renderProgressView(){ const body = document.getElementById('progressBody'); if(!body) return; { const pv=document.getElementById('progress'); if(pv && !pv.classList.contains('active') && body.firstChild) return; }
   if(!student){
     body.innerHTML = `<div class="progress-signedout"><h3>Sign in to see your progress</h3><p>Once you're signed in, this page tracks your lessons, quizzes, reading, vocabulary, and screencasts automatically.</p></div>`;
     return;
@@ -10790,8 +10789,8 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   var NAME_RE; try{ NAME_RE=new RegExp("^[\\p{L}\\p{M}' .-]{1,40}$","u"); }catch(e){ NAME_RE=/^[^0-9<>@#$%^&*()_+=\[\]{};:"\\|,\/?]{1,40}$/; }
   function needProfile(){ return !!(student&&student.email&&student.email!==GUESTID&&!(student.profile&&student.profile.fatherName&&student.profile.grandfatherName)); }
   function checkProfile(){
-    if(needProfile()&&!quizOpen()){ var f=cid('hmaPfFirst'); if(f&&student) f.value=student.name||''; pm.classList.add('show'); }
-    else pm.classList.remove('show');
+    if(needProfile()&&!quizOpen()){ var f=cid('hmaPfFirst'); if(f&&student&&f.value!==(student.name||'')) f.value=student.name||''; if(!pm.classList.contains('show')) pm.classList.add('show'); }
+    else if(pm.classList.contains('show')) pm.classList.remove('show');
   }
   cid('hmaPfSave').addEventListener('click',function(){
     var f=cid('hmaPfFather').value.trim(), g=cid('hmaPfGrand').value.trim(), er=cid('hmaPfErr');
@@ -11147,9 +11146,10 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
 
   /* ---------- start-up ---------- */
   async function boot(){
+    var delegated=false;
     try{
       try{ localStorage.removeItem('hm_device_lock'); }catch(e){}   // one student can now use any device
-      if(!HMA_CLOUD_URL){ if(window.__hmOrigInitAuth) window.__hmOrigInitAuth(); return; }
+      if(!HMA_CLOUD_URL){ if(window.__hmOrigInitAuth){ delegated=true; window.__hmOrigInitAuth(); } return; }
       buildGate();
       var s=await restoreSession();
       if(s){
@@ -11173,7 +11173,8 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
       var cur=getCurrentStudent();
       if(cur){ setMode('register'); showGate('Create a password to keep your progress safe and open it on any device or browser.',cur); }
       else { setMode('login'); showGate('',null); }
-    }catch(err){ console.error(err); if(window.__hmOrigInitAuth) window.__hmOrigInitAuth(); }
+    }catch(err){ console.error(err); if(window.__hmOrigInitAuth){ delegated=true; window.__hmOrigInitAuth(); } }
+    finally{ if(!delegated){ window.__hmAuthDone=true; try{ if(window.hmAuthSettled) window.hmAuthSettled(); }catch(e){} } }
   }
   boot();
 })();
@@ -12335,8 +12336,7 @@ footer.appfoot{padding-bottom:max(26px,env(safe-area-inset-bottom))}
   $('hmpSave').addEventListener('click',function(){ var o=ext(); o.goal=$('hmpGoal').value.trim(); o.bio=$('hmpBio').value.trim(); setExt(o); refresh(); try{ showToast('Profile saved'); }catch(e){} });
   $('hmpProg').addEventListener('click',function(){ close(); try{ goTab('progress'); }catch(e){} });
   $('hmpOut').addEventListener('click',function(){ close(); var b=$('lpSignOutBtn'); if(b) b.click(); });
-  setInterval(function(){ if(!document.hidden) refresh(); },6000); refresh();
-})();
+  window.hmProfileRefresh=refresh; setInterval(function(){ if(!document.hidden) refresh(); },6000); refresh(); })();
 </script>
 <style id="hm-ui-pro-css">
 /* EDIT-ME :: LOGIN SCREEN LOOK (background, card, inputs, button) */
@@ -12422,15 +12422,6 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
     var fine=card.querySelector('.si-fine'); card.insertBefore(tr,fine||null);
     try{ if(sessionStorage.getItem('hm_idle_out')){ sessionStorage.removeItem('hm_idle_out'); var nt=document.createElement('div'); nt.className='si-note'; nt.textContent='You were signed out because of inactivity. Your progress is saved - sign in to continue.'; card.insertBefore(nt,card.querySelector('form')); } }catch(e){}
   }
-  /* ---------- HOME greeting ---------- */
-  /* EDIT-ME :: HOME WELCOME STRIP (greeting words and button) */
-  var home=document.getElementById('home'), hero=home&&home.querySelector('.hero');
-  if(home&&hero){ var g=document.createElement('div'); g.className='hm-greet'; g.id='hmGreet'; g.style.display='none';
-    g.innerHTML='<div><small id="hmGreetTime"></small><h2 id="hmGreetName"></h2></div><div class="gc"><span id="hmGreetBadge"></span><button type="button" id="hmGreetGo">Continue learning</button></div>'; home.insertBefore(g,hero);
-    document.getElementById('hmGreetGo').onclick=function(){ window.hmGoCurrentWeek(); };
-    setInterval(function(){ var n=document.getElementById('hmpChipName'), c=document.getElementById('hmpChipGrade'), chip=document.getElementById('hmpBtn'); var ok=chip&&chip.style.display!=='none'&&n&&n.textContent; g.style.display=ok?'flex':'none'; if(!ok) return;
-      var h=new Date().getHours(); document.getElementById('hmGreetTime').textContent=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
-      document.getElementById('hmGreetName').textContent='Welcome back, '+n.textContent; document.getElementById('hmGreetBadge').textContent=(c?c.textContent:'')+' complete'; },1500); }
   /* ---------- AUTO SIGN-OUT after inactivity (default 1 hour, set in CC-8) ---------- */
   /* EDIT-ME :: AUTO SIGN-OUT LOGIC (code - change the minutes in CC-8 instead) */
   /* Auto sign-out removed: a signed-in student stays signed in until they choose to sign out. */
@@ -12764,7 +12755,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 })();
 </script>
 
-<style id="hm-fix-v2">
+<style id="hm-fix-v2-b">
 /* profile chip: far right of the top bar; badge sits beside it, no overlap */
 .topbar{padding-right:10px!important}
 .hmp-chip,.hmp-chip.right,.hmp-chip.left{order:9999!important;margin-left:auto!important;margin-right:0!important}
@@ -12794,7 +12785,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
       function(){ el.className='hm-srv bad'; el.querySelector('span').textContent='Cannot reach the server right now'; });
   }
   function apply(){
-    var g=$('signInGate'); if(!g||g.classList.contains('hidden')){ if(g) g.dataset.v2=''; return; }
+    var g=$('signInGate'); if(!g||g.classList.contains('hidden')){ if(g&&g.dataset.v2!=='') g.dataset.v2=''; return; }
     var n=$('siName'),e=$('siEmail'),p=$('siPass'),form=$('siForm'),sub=$('siSubmit'); if(!n||!e||!p||!form||!sub||g.dataset.v2==='1') return;
     g.dataset.v2='1';
     var u=last(),first=u&&u.name?String(u.name).split(/\s+/)[0]:'';
@@ -12805,7 +12796,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
     if(u&&u.email){
       if(!n.value) n.value=u.name||''; if(!e.value) e.value=u.email;
       bk.innerHTML='<span class="av">'+(first.charAt(0)||'?').toUpperCase()+'</span><div><b>'+u.email.replace(/[<>&"]/g,'')+'</b><small>Remembered on this device</small></div><button type="button">Not you?</button>';
-      bk.classList.add('on'); form.classList.add('hm-compact');
+      bk.classList.add('on');
       bk.querySelector('button').onclick=function(){ try{localStorage.removeItem(LK);}catch(x){} n.value=e.value=p.value=''; bk.classList.remove('on'); form.classList.remove('hm-compact'); n.focus(); };
       try{ if(window.PasswordCredential&&navigator.credentials) navigator.credentials.get({password:true,mediation:'silent'}).then(function(c){ if(c&&c.id&&c.id.toLowerCase()===String(u.email).toLowerCase()&&!p.value) p.value=c.password; }).catch(function(){}); }catch(x){}
       setTimeout(function(){ if(!p.value) p.focus(); },300);
@@ -12828,7 +12819,8 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
   function start(){
     var g=$('signInGate'); if(!g) return;
     new MutationObserver(function(){ apply(); done(); }).observe(g,{attributes:true,attributeFilter:['class']});
-    var n=0,t=setInterval(function(){ apply(); if(++n>60) clearInterval(t); },300);
+      apply();
+      var n=0,t=setInterval(function(){ apply(); if(++n>60) clearInterval(t); },300);
     window.addEventListener('online',function(){ if(!g.classList.contains('hidden')) ping(); });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
@@ -13227,7 +13219,7 @@ function renderToday(){var home=$('#home');if(!home)return;var s=stu();var box=$
   var first=(s.name||'').split(' ')[0]||'there',hr=new Date().getHours(),gr=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening',R=42,C=2*Math.PI*R;
   var html='<div class="hm-ring"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="'+R+'" fill="none" stroke="var(--line,#e3e7ee)" stroke-width="9"/><circle cx="48" cy="48" r="'+R+'" fill="none" stroke="var(--c-curriculum,#7c3aed)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pc/100))+'"/></svg><b>'+pc+'%</b></div><div><h3>'+gr+', '+esc(first)+'</h3><p>'+dn+' of '+tot+' lessons complete'+(st.n>1?' · '+hi('flame')+' '+st.n+'-day streak':st.n===1?' · '+hi('flame')+' 1 day — come back tomorrow to build a streak':'')+'</p><div class="hm-row">'+(nx?'<button class="hm-go" id="hmGoNext">'+hi('play')+' Continue: '+esc(nx.t.length>52?nx.t.slice(0,50)+'…':nx.t)+'</button>':'<span style="font-weight:700">'+hi('trophy')+' You have completed every lesson!</span>')+'</div>'+(rc.length?'<div class="hm-row" style="margin-top:10px"><span style="font-size:11px;color:var(--muted,#5b6270)">Recently:</span>'+rc.map(function(r,i){return '<button class="hm-chip2" data-r="'+i+'">'+hi({video:'play',note:'bookopen',lesson:'calendar',practice:'grid',project:'target'}[r.t])+' '+esc(r.l.length>30?r.l.slice(0,28)+'…':r.l)+'</button>'}).join('')+'</div>':'')+'<div class="hm-week">'+st.wk.map(function(d){return '<i class="'+(d.on?'on':'')+'">'+d.l+'</i>'}).join('')+'<span style="margin-left:6px">last 7 days</span></div></div>';
   if(!box){box=document.createElement('div');box.id='hmToday';box.className='hm-today';var anchor=$('.stat-row',home)||$('.hero',home);if(anchor)anchor.parentNode.insertBefore(box,anchor);else home.insertBefore(box,home.firstChild)}
-  box.innerHTML=html;var g=$('#hmGoNext',box);if(g)g.onclick=function(){focusDay(nx.k)};$$('[data-r]',box).forEach(function(b){b.onclick=function(){var r=rc[+b.getAttribute('data-r')];if(r.t==='video')openVideo(r.k);else if(r.t==='note')openNote(r.k);else focusDay(r.k)}})}
+  var sig=html+'|'+(nx?nx.k:'')+'|'+rc.map(function(r){return r.k}).join(',');if(box.getAttribute('data-sig')===sig)return;box.setAttribute('data-sig',sig);box.innerHTML=html;var g=$('#hmGoNext',box);if(g)g.onclick=function(){focusDay(nx.k)};$$('[data-r]',box).forEach(function(b){b.onclick=function(){var r=rc[+b.getAttribute('data-r')];if(r.t==='video')openVideo(r.k);else if(r.t==='note')openNote(r.k);else focusDay(r.k)}})}
 setInterval(function(){if(!document.hidden&&$('#home')&&$('#home').classList.contains('active'))renderToday()},12000);setTimeout(renderToday,1200);
 /* ---------- curriculum toolbar ---------- */
 function curToolbar(){var cv=$('#curriculum');if(!cv||$('#hmCtb'))return;var b=document.createElement('div');b.className='hm-ctb';b.id='hmCtb';
@@ -14020,15 +14012,15 @@ window.hmGoCurrentWeek=function(){
 /* single login screen: one form (name, email, password) and a plain text link to switch between sign in and create account */
 function one(){
   var g=document.getElementById('signInGate'), f=document.getElementById('siForm'); if(!g||!f) return;
-  f.classList.remove('hm-compact');
+  if(f.classList.contains('hm-compact')) f.classList.remove('hm-compact');
   var sub=document.getElementById('siSubmit'); if(!sub) return;
   var l=document.getElementById('hmModeLink');
   var reg=!!(document.querySelector('.hma-mode button[data-mode="register"].on'));
   if(!l){ l=document.createElement('button'); l.type='button'; l.id='hmModeLink'; sub.parentNode.insertBefore(l,sub.nextSibling);
     l.onclick=function(){ var want=document.querySelector('.hma-mode button[data-mode="'+(document.querySelector('.hma-mode button[data-mode="register"].on')?'login':'register')+'"]'); if(want) want.click(); setTimeout(one,30); }; }
-  l.textContent=reg?'Already have an account? Sign in':'New here? Create your account';
+  var tx=reg?'Already have an account? Sign in':'New here? Create your account'; if(l.textContent!==tx) l.textContent=tx;
 }
-var n=0,iv=setInterval(function(){ one(); if(++n>40) clearInterval(iv); },400);
+one(); var n=0,iv=setInterval(function(){ one(); if(++n>12) clearInterval(iv); },400);
 document.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('#hmModeLink,.hma-mode')) setTimeout(one,60); });
 })();
 </script>
@@ -14421,5 +14413,30 @@ html:has(#signInGate:not(.hidden)) #hmBn{display:none!important}
 #signInGate .si-card,#signInGate .si-shell{transform:none!important}
 @media (prefers-reduced-motion:reduce){#signInGate *{transition:none!important;animation:none!important}}
 </style>
+
+<style id="hm-stable-css">img.hm-img-failed{visibility:hidden!important}</style>
+<script id="hm-stable-js">
+/* STABLE SCREEN: when the app opens, the profile chip and the Today panel are drawn right away (while the loading screen is still up),
+   so nothing pops in or moves a few seconds later. Broken images are hidden instead of showing a broken-picture icon. */
+(function(){
+  "use strict";
+  var gate=document.getElementById('signInGate'), booted=false;
+  function entered(){
+    try{ if(window.hmProfileRefresh) window.hmProfileRefresh(); }catch(e){}
+    try{ if(window.hmUX&&window.hmUX.renderToday) window.hmUX.renderToday(); }catch(e){}
+  }
+  function release(){
+    if(booted) return; booted=true;
+    var rel=function(){ try{ if(window.hmBoot) window.hmBoot.step('auth'); }catch(e){} };
+    if(window.requestAnimationFrame) requestAnimationFrame(function(){ requestAnimationFrame(rel); }); else rel();
+  }
+  function hidden(){ return !!(gate&&gate.classList.contains('hidden')); }
+  window.hmAuthSettled=function(){ if(hidden()) entered(); release(); };
+  if(gate&&window.MutationObserver) new MutationObserver(function(){ if(hidden()){ entered(); release(); } }).observe(gate,{attributes:true,attributeFilter:['class']});
+  if(window.__hmAuthDone||hidden()){ if(hidden()) entered(); release(); }
+  document.addEventListener('error',function(e){ var t=e&&e.target; if(t&&t.tagName==='IMG'&&t.getAttribute('src')) t.classList.add('hm-img-failed'); },true);
+  document.addEventListener('load',function(e){ var t=e&&e.target; if(t&&t.tagName==='IMG'&&t.classList.contains('hm-img-failed')) t.classList.remove('hm-img-failed'); },true);
+})();
+</script>
 </body>
 </html>
