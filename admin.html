@@ -2737,7 +2737,7 @@ const tb=E('button',{className:'cs-ibtn',type:'button',title:'Switch light / dar
 const lv=E('button',{className:'cs-live',type:'button',title:'Open sign-in activity'});lv.innerHTML='<i></i><b>—</b><span> online</span>';lv.onclick=()=>go('logins');
 if(hdr&&st){hdr.insertBefore(lv,st);hdr.insertBefore(tb,st)}
 async function updLive(poll){try{if(poll&&TK&&!document.hidden)await pollLive();const n=Object.keys(LV||{}).length?window.__csLogins.online().length:null;lv.classList.toggle('on',n>0);lv.querySelector('b').textContent=n==null?'—':n}catch(e){}}
-updLive(false);setInterval(()=>updLive(true),60000);
+updLive(false);setInterval(()=>{if(!document.hidden)updLive(true)},60000);
 /* back / forward */
 let H=[],hi=-1,skip=false;const bb=E('button',{className:'cs-ibtn nav2',type:'button',title:'Back (Alt+←)',textContent:'‹'}),fb=E('button',{className:'cs-ibtn nav2',type:'button',title:'Forward (Alt+→)',textContent:'›'});
 if(hdr){const first=hdr.querySelector('.cs-burger');hdr.insertBefore(fb,hdr.querySelector('.cs-hd'));hdr.insertBefore(bb,fb)}
@@ -2836,4 +2836,10 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
   },{passive:true,capture:true});
 })();
 </script>
+<style id="hm-admin-studio-css">
+/* Studio polish (paint only): matches the student site accent */
+:focus-visible{outline:2px solid #c4f042;outline-offset:2px;border-radius:8px}
+::selection{background:#c4f042;color:#14121a}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
 </body></html>
