@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<meta name="hm-build" content="studio-202611141722">
+<meta name="hm-build" content="studio-202611241800">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-boot-gate">
 /* STABLE START. The page stays behind a calm "Loading the newest version" screen until:
@@ -14438,5 +14438,24 @@ html:has(#signInGate:not(.hidden)) #hmBn{display:none!important}
   document.addEventListener('load',function(e){ var t=e&&e.target; if(t&&t.tagName==='IMG'&&t.classList.contains('hm-img-failed')) t.classList.remove('hm-img-failed'); },true);
 })();
 </script>
+
+<style id="hm-studio-css">
+/* STUDIO DESIGN SYSTEM v1 - tokens + polish only (paint, no layout changes) */
+:root{--canvas:#f6f3ee;--line:#e7e1d7;--ink:#14121a;--muted:#5f5b68;--chrome:#14121a;--chrome-2:#201c2b;--radius:14px;
+--shadow:0 1px 2px rgba(20,18,26,.06),0 14px 34px -14px rgba(20,18,26,.22);--hm-accent:#7c3aed;--hm-lime:#c4f042}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,.hero h1{letter-spacing:-.022em}
+.topbar{border-bottom:1px solid rgba(255,255,255,.07)}
+.tab{border-radius:10px;transition:background-color .2s,color .2s}
+.tab.active,.tab[aria-selected="true"]{box-shadow:inset 0 -3px 0 var(--hm-lime)}
+.home-card,.stat,.hm-today,.workflow-node,.hma-pg-card{border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.home-card:hover,.workflow-node:hover{transform:translateY(-2px)}
+.hero{border-radius:24px}
+.hero-eyebrow{letter-spacing:.14em}
+.hbtn.primary,.hero .primary{box-shadow:0 8px 22px -8px rgba(124,58,237,.6)}
+:focus-visible{outline:2px solid var(--hm-accent);outline-offset:2px;border-radius:8px}
+::selection{background:var(--hm-lime);color:#14121a}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
 </body>
 </html>
