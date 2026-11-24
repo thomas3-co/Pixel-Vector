@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<meta name="hm-build" content="studio-202611241830">
+<meta name="hm-build" content="studio-202611241900">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-boot-gate">
 /* STABLE START. The page stays behind a calm "Loading the newest version" screen until:
@@ -9603,7 +9603,7 @@ function phaseTwoMarks(){
  const items=[
   {label:'Screencast',earned:sum(student?.contentQuizzes?.screencasts,k=>phaseOfScreencast(k)===2),total:phaseReleasedScreencasts(2).length*5},
   {label:'Read Me',earned:sum(student?.contentQuizzes?.reading,k=>phaseOfReading(k)===2),total:phaseReadingPool(2).length*5}
- ];
+ ]; { const _pa=student?.phaseAssessments?.phase2; if(_pa&&_pa.completedAt) items.push({label:'Phase 2 Assessment',earned:Number(_pa.score)||0,total:Number(_pa.total)||50}); }
  return {items,earned:items.reduce((a,i)=>a+i.earned,0),total:items.reduce((a,i)=>a+i.total,0)};
 }
 function phaseOneTotalHTML(){
