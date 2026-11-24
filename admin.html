@@ -1439,7 +1439,7 @@ function marksEditor(box,e){const st=ST[e]=ST[e]||{email:e},W=JSON.parse(JSON.st
   const ds=E('div',{className:'dc-sec'});ds.append(E('h3',{textContent:'Completed lessons ('+W.completed.length+')'}));const g=E('div',{className:'dc-grid'});
   keys.forEach(([k,l])=>{const lb=E('label',{title:l}),c=E('input',{type:'checkbox',checked:W.completed.includes(k)});c.onchange=()=>{const i=W.completed.indexOf(k);if(c.checked&&i<0)W.completed.push(k);if(!c.checked&&i>=0)W.completed.splice(i,1)};lb.append(c,k);g.append(lb)});
   const rr=E('div',{className:'row',style:'margin-top:6px'});rr.append(btn('Mark all done',()=>{W.completed=keys.map(x=>x[0]);draw()},'mini'),btn('Clear all',()=>{W.completed=[];draw()},'mini d'));ds.append(g,rr);box.append(ds);
-  box.append(qt('Week quizzes',W.weekQuizzes,k=>'Week '+k+' quiz'),qt('Read Me quizzes',W.contentQuizzes.reading,k=>name(D.notes,k)),qt('Screencast quizzes',W.contentQuizzes.screencasts,k=>name(D.items,k)),qt('Phase assessments',W.phaseAssessments,k=>k));
+  box.append(qt('Week quizzes',W.weekQuizzes,k=>'Week '+k+' quiz'),qt('Read Me quizzes',W.contentQuizzes.reading,k=>name(D.notes,k)),qt('Screencast quizzes',W.contentQuizzes.screencasts,k=>name(D.items,k)),qt('Phase assessments',W.phaseAssessments,k=>k==='phase2'?'Phase 2 Assessment · Section '+((W.phaseAssessments.phase2||{}).section||'?'):k));
   const ws=E('div',{className:'dc-sec'});ws.append(E('h3',{textContent:'Weekly submissions'}));const t=E('table',{className:'tb'});t.innerHTML='<tr><th>Week</th><th>Date</th><th>Late</th><th>Note</th><th></th></tr>';
   Object.keys(W.weekSubmissions).sort((a,b)=>a-b).forEach(k=>{const o=W.weekSubmissions[k]=W.weekSubmissions[k]||{},tr=E('tr');tr.innerHTML='<td>Week '+esc(k)+'</td>';const d=E('td'),di=E('input',{type:'text',value:String(o.at||'').slice(0,10),className:'dc-in',placeholder:'YYYY-MM-DD'});di.onchange=()=>o.at=di.value;d.append(di);const l=E('td'),lci=E('input',{type:'checkbox',checked:!!o.late});lci.onchange=()=>o.late=lci.checked;l.append(lci);const n=E('td'),ni=E('input',{type:'text',value:o.note||''});ni.onchange=()=>o.note=ni.value;n.append(ni);const x=E('td');x.append(btn('Remove',()=>{delete W.weekSubmissions[k];draw()},'mini d'));tr.append(d,l,n,x);t.append(tr)});
   const add=E('div',{className:'row',style:'margin-top:6px'}),wk=E('input',{type:'number',placeholder:'Week',className:'dc-in'});add.append(wk,btn('Add submission',()=>{if(wk.value){W.weekSubmissions[wk.value]={at:new Date().toISOString().slice(0,10),late:false};draw()}},'mini'));ws.append(t,add);box.append(ws);
@@ -2842,4 +2842,31 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 ::selection{background:#c4f042;color:#14121a}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
+<style id="hm-p2-admin-css">
+#p2Fab{position:fixed;left:16px;bottom:16px;z-index:9998;display:none;background:#c4f042;color:#14121a;border:0;border-radius:999px;padding:11px 18px;font:700 13px Inter,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
+#p2Mod{position:fixed;inset:0;z-index:99999;display:none;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:16px}
+#p2Mod.on{display:flex}#p2Mod>div{background:#1b1f2a;color:#eef;border:1px solid #333b52;border-radius:16px;max-width:560px;width:100%;padding:22px;font-family:Inter,sans-serif}
+#p2Mod h3{margin:0 0 4px}#p2Mod p{color:#aab;font-size:13px;line-height:1.5;margin:6px 0}
+#p2Mod .r{display:flex;align-items:center;gap:10px;margin:10px 0;padding:12px;border:1px solid #333b52;border-radius:12px}
+#p2Mod .r b{width:92px}#p2Mod code{flex:1;font:700 16px ui-monospace,monospace;letter-spacing:.08em}#p2Mod button{background:#2b3350;color:#eef;border:0;border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:600}
+</style>
+<button id="p2Fab" type="button">Phase 2 codes</button>
+<div id="p2Mod" role="dialog" aria-label="Phase 2 section codes"><div>
+<h3>Phase 2 Assessment: section codes</h3>
+<p>Give each section only its own code. Each code unlocks only that section's 50 questions. Students open <b>Phase Assessment &rarr; Phase 2 Assessment</b> and type the code. One attempt each. Each student's result appears in their detail page under <b>Phase assessments</b> (with the section letter), and counts in their Phase 2 grade.</p>
+<div id="p2Rows"></div>
+<p style="color:#f3c969">Keep this admin file private: it contains the plain codes.</p>
+<button id="p2Hide" type="button" style="margin-top:6px">Close</button></div></div>
+<script id="hm-p2-admin-js">
+(function(){var C={"B": "PH2B-BKFY-M74S", "C": "PH2C-FGUW-ZJZA", "D": "PH2D-2Q7K-KAW7"},D={B:'Hard',C:'Hardest (two-claim and "which is incorrect" questions)',D:'Hard'};
+var fab=document.getElementById('p2Fab'),mod=document.getElementById('p2Mod'),rows=document.getElementById('p2Rows');
+rows.innerHTML=['B','C','D'].map(function(s){return'<div class="r"><b>Section '+s+'</b><code data-s="'+s+'">••••••••••••</code><button data-a="show" data-s="'+s+'">Show</button><button data-a="copy" data-s="'+s+'">Copy</button></div><p style="margin:-4px 0 8px 12px">50 questions · '+D[s]+'</p>'}).join('');
+rows.onclick=function(e){var b=e.target.closest('button');if(!b)return;var s=b.dataset.s,c=rows.querySelector('code[data-s="'+s+'"]');
+ if(b.dataset.a==='show'){var on=c.textContent.indexOf('•')===-1;c.textContent=on?'••••••••••••':C[s];b.textContent=on?'Show':'Hide'}
+ else{try{navigator.clipboard.writeText(C[s]);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(x){}}};
+fab.onclick=function(){mod.classList.add('on')};document.getElementById('p2Hide').onclick=function(){mod.classList.remove('on')};mod.onclick=function(e){if(e.target===mod)mod.classList.remove('on')};
+function sync(){var g=document.getElementById('cs28-gate');var up=g&&getComputedStyle(g).display!=='none';fab.style.display=up?'none':'block'}
+sync();new MutationObserver(sync).observe(document.body,{childList:true,attributes:true,subtree:true,attributeFilter:['class','style','hidden']});
+})();
+</script>
 </body></html>
