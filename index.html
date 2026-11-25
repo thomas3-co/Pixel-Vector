@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<meta name="hm-build" content="studio-202611241900">
+<meta name="hm-build" content="studio-202611241930">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-boot-gate">
 /* STABLE START. The page stays behind a calm "Loading the newest version" screen until:
@@ -14458,11 +14458,15 @@ h1,h2,h3,.hero h1{letter-spacing:-.022em}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 <style id="hm-p2-css">
-#hmP2{margin:18px 0;padding:20px;border:1px solid var(--line,#e7e1d7);border-radius:16px;background:var(--panel,#fff)}
-#hmP2 h3{margin:0 0 4px}#hmP2 p{margin:4px 0 12px;color:var(--muted,#5f5b68)}
-#hmP2 .row{display:flex;gap:8px;flex-wrap:wrap}#hmP2 input{flex:1;min-width:200px;padding:11px 12px;border:1px solid var(--line,#ccd);border-radius:10px;font:600 15px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
-.hm-p2b{background:#7c3aed;color:#fff;border:0;border-radius:10px;padding:11px 20px;font:700 14px Inter,sans-serif;cursor:pointer}.hm-p2b[disabled]{opacity:.5;cursor:default}
-#hmP2m{min-height:20px;margin-top:8px;font-weight:600}
+#hmP2{margin:0 0 20px;padding:20px;border:2px solid #7c3aed;border-radius:18px;background:var(--panel,#fff)}
+#hmP2 h3{margin:0 0 4px;font-size:20px}#hmP2>p{margin:4px 0 14px;color:var(--muted,#5f5b68)}
+#hmP2 .p2g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+#hmP2 .p2t{border:1px solid var(--line,#e7e1d7);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+#hmP2 .p2t b{font-size:17px}#hmP2 .p2t span{color:var(--muted,#5f5b68);font-size:13px}
+#hmP2 .p2c{display:flex;gap:6px;flex-wrap:wrap}#hmP2 .p2c[hidden]{display:none!important}
+#hmP2 input{flex:1;min-width:120px;padding:10px 12px;border:1px solid var(--line,#ccd);border-radius:10px;font:600 14px Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.hm-p2b{background:#7c3aed;color:#fff;border:0;border-radius:10px;padding:11px 18px;font:700 14px Inter,sans-serif;cursor:pointer}
+#hmP2m{min-height:20px;margin-top:10px;font-weight:600}
 .hm-p2o{position:fixed;inset:0;z-index:99999;background:#f6f3ee;color:#14121a;overflow:auto;padding:18px}.hm-p2o>div{max-width:820px;margin:0 auto}
 .hm-p2q{background:#fff;border:1px solid #e7e1d7;border-radius:14px;padding:16px;margin:12px 0}.hm-p2q b{display:block;white-space:pre-line;margin-bottom:8px;line-height:1.45}
 .hm-p2q label{display:block;padding:10px 12px;margin:6px 0;border:1px solid #e7e1d7;border-radius:10px;cursor:pointer;line-height:1.4}.hm-p2q label:has(input:checked){border-color:#7c3aed;background:#f3ecff}
@@ -14487,15 +14491,16 @@ function st(){try{return typeof student!=='undefined'?student:null}catch(e){retu
 function done(){var s=st();return s&&s.phaseAssessments&&s.phaseAssessments[ID]&&s.phaseAssessments[ID].completedAt?s.phaseAssessments[ID]:null}
 function msg(t,bad){var m=document.getElementById('hmP2m');if(m){m.textContent=t;m.style.color=bad?'#c0392b':'#0f766e'}}
 function render(){var view=document.getElementById('phase-assessment');if(!view)return;var h=document.getElementById('hmP2');
- if(!h){h=document.createElement('section');h.id='hmP2';view.appendChild(h)}var d=done(),s=st();
- h.innerHTML='<h3>Phase 2 Assessment</h3>'+(d?'<p><b>Completed'+(d.section?' · Section '+esc(d.section):'')+': '+d.score+' / '+d.total+'</b></p>':
- '<p>Enter the access code your instructor gave you for your section. You have one attempt. 50 questions.</p><div class="row"><input id="hmP2c" autocomplete="off" spellcheck="false" placeholder="Section code" aria-label="Section access code"><button class="hm-p2b" id="hmP2g"'+(s?'':' disabled')+'>'+(s?'Unlock &amp; start':'Sign in first')+'</button></div><div id="hmP2m" role="status"></div>');
- var g=document.getElementById('hmP2g');if(g)g.onclick=unlock;var c=document.getElementById('hmP2c');if(c)c.onkeydown=function(e){if(e.key==='Enter')unlock()}}
-function unlock(){var s=st();if(!s)return;var code=document.getElementById('hmP2c').value;if(norm(code).length<6)return msg('Type your section code.',1);
- if(Date.now()<lockUntil)return msg('Too many wrong codes. Wait a minute and try again.',1);
- var L=norm(code).charAt(3),order=P[L]?[L].concat(Object.keys(P).filter(function(k){return k!==L})):Object.keys(P);var g=document.getElementById('hmP2g');g.disabled=true;msg('Checking…');
- (function next(i){if(i>=order.length){tries++;if(tries>=5){lockUntil=Date.now()+60000;tries=0}g.disabled=false;return msg('That code is not correct.',1)}
-  dec(P[order[i]],code).then(function(set){g.disabled=false;msg('');open(set)},function(e){if(e&&e.message==='nocrypto'){g.disabled=false;return msg('This page must be opened over https to use the assessment.',1)}next(i+1)})})(0)}
+ if(!h){h=document.createElement('section');h.id='hmP2';var hd=view.querySelector('.view-head');if(hd&&hd.nextSibling)view.insertBefore(h,hd.nextSibling);else view.insertBefore(h,view.firstChild)}
+ var d=done();
+ if(d){h.innerHTML='<h3>Phase 2 Assessment</h3><p><b>Completed'+(d.section?' · Section '+esc(d.section):'')+': '+d.score+' / '+d.total+'</b></p>';return}
+ h.innerHTML='<h3>Phase 2 Assessment</h3><p>Choose your section and press Start. You will be asked for the code your instructor gave your section. One attempt · 50 questions.</p><div class="p2g">'+
+ ['B','C','D'].map(function(s){return'<div class="p2t"><b>Section '+s+'</b><span>50 questions</span><button type="button" class="hm-p2b" data-a="start" data-s="'+s+'">Start Section '+s+'</button><div class="p2c" data-s="'+s+'" hidden><input autocomplete="off" spellcheck="false" placeholder="Section '+s+' code" aria-label="Section '+s+' code"><button type="button" class="hm-p2b" data-a="go" data-s="'+s+'">Unlock</button></div></div>'}).join('')+'</div><div id="hmP2m" role="status"></div>';
+ h.onclick=function(e){var b=e.target.closest('button[data-a]');if(!b)return;var s=b.dataset.s;if(b.dataset.a==='start'){if(!st())return msg('Please sign in first.',1);msg('');h.querySelectorAll('.p2c').forEach(function(c){c.hidden=c.dataset.s!==s});var i=h.querySelector('.p2c[data-s="'+s+'"] input');if(i)i.focus()}else unlock(s)};
+ h.onkeydown=function(e){if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();unlock(e.target.parentNode.dataset.s)}}}
+function unlock(s){if(!st())return msg('Please sign in first.',1);var inp=document.querySelector('#hmP2 .p2c[data-s="'+s+'"] input'),code=inp?inp.value:'';
+ if(norm(code).length<6)return msg('Type the Section '+s+' code.',1);if(Date.now()<lockUntil)return msg('Too many wrong codes. Wait a minute and try again.',1);msg('Checking…');
+ dec(P[s],code).then(function(set){msg('');open(set)},function(e){if(e&&e.message==='nocrypto')return msg('This page must be opened over https to use the assessment.',1);tries++;if(tries>=5){lockUntil=Date.now()+60000;tries=0}msg('That code is not correct for Section '+s+'.',1)})}
 function open(set){var s=st(),rc=0;try{(s.resets||[]).forEach(function(x){if(x.k===ID||x.k==='all')rc++})}catch(e){}
  var r=rnd(hash(String(s.email||'').toLowerCase()+'|'+ID+'|'+set.section+(rc?'|r'+rc:'')));
  var qs=shuf(set.questions,r).map(function(q){return{q:q.q,a:q.a,opts:shuf(q.opts.map(function(t,i){return{t:t,i:i}}),r)}});
