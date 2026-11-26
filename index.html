@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<meta name="hm-build" content="studio-202611261930">
+<meta name="hm-build" content="studio-20261126-hma-domain-v1">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <script id="hm-boot-gate">
 /* FAST START: no "Loading the newest version" screen and no version or content checks at startup.
@@ -460,9 +460,9 @@ footer.appfoot{position:relative;z-index:10;text-align:center;color:var(--muted)
 footer.appfoot .foot-contact{display:inline-flex;align-items:center;gap:8px;margin-top:6px;font-weight:700;}
 footer.appfoot .foot-contact a{color:var(--c-curriculum);text-decoration:none;}
 footer.appfoot .foot-contact a:hover{text-decoration:underline;}
-footer.appfoot .foot-classroom{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;font-weight:700;}
-footer.appfoot .foot-classroom a{color:var(--c-curriculum);text-decoration:none;}
-footer.appfoot .foot-classroom a:hover{text-decoration:underline;}
+
+
+
 @media(max-width:900px){
   .topbar{gap:10px;padding:0 12px;}
   .brand{padding:10px 0;}
@@ -484,7 +484,7 @@ footer.appfoot .foot-classroom a:hover{text-decoration:underline;}
   .view-head{top:60px;}
   .layers-panel{top:60px;max-height:calc(100vh - 60px);max-height:calc(100dvh - 60px);}
 }
-@media(max-width:760px){footer.appfoot .foot-classroom{flex-direction:column;gap:7px;}}
+@media(max-width:760px){}
 /* ===== PROGRESS PAGE ===== */
 .progress-hero{background:linear-gradient(135deg,#1e1245,#7c3aed 150%);color:#fff;border-radius:20px;padding:30px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;box-shadow:var(--shadow);}
 .progress-hero .ph-grade b{font-size:2.4rem;font-family:'Poppins',sans-serif;display:block;}
@@ -1096,6 +1096,21 @@ img,video,canvas,svg,iframe{max-width:100%}
   #hmaChatPanel{height:calc(100dvh - 24px);bottom:12px}
 }
 </style>
+
+<style id="hm-domain-cleanup-v1">
+/* HMA Academy access and visual cleanup */
+#signInGate .si-card{isolation:isolate;overflow:hidden}
+#signInGate .si-fine a[href*=""],
+footer.appfoot a[href*=""],
+.foot-classroom,.hm-classroom-links{display:none!important}
+/* Prevent decorative colour glows from stacking over the main content surfaces. */
+#mainContent .hero::before,#mainContent .hero::after,
+#mainContent .progress-hero::before,#mainContent .progress-hero::after{display:none!important;content:none!important}
+#mainContent .hero,#mainContent .progress-hero{background:#173b32!important;background-image:none!important;box-shadow:0 10px 26px rgba(16,24,40,.08)!important}
+#mainContent .card,#mainContent .panel,#mainContent .section-card{background-color:#fff; background-blend-mode:normal;mix-blend-mode:normal}
+#mainContent [class*="card"],#mainContent [class*="panel"]{background-blend-mode:normal;mix-blend-mode:normal}
+</style>
+
 </head>
 <body>
 <!--
@@ -1127,21 +1142,21 @@ img,video,canvas,svg,iframe{max-width:100%}
 <div aria-labelledby="siHeading" aria-modal="true" id="signInGate" role="dialog">
 <div class="si-card">
 <div aria-hidden="true" class="si-mark">Ps</div>
-<h2 id="siHeading">Sign in to start</h2>
-<p>Enter your name, student email, and password. Your progress, weekly check-ins, and grade are saved under this account for Class of 2028.</p>
+<h2 id="siHeading">HMA Academy student access</h2>
+<p>Use your HMA Academy student email address and password. Only @hmacademy.org accounts are permitted.</p>
 <div class="si-error" id="siError" role="alert"></div>
 <form id="siForm" novalidate="">
 <label for="siName">First Name</label>
 <input autocomplete="name" id="siName" name="name" placeholder="e.g. Mamush " required="" type="text"/>
 <label for="siEmail">Student email</label>
-<input autocomplete="email" id="siEmail" name="email" placeholder="You@hmacademy.org" required="" type="email"/>
+<input autocomplete="email" id="siEmail" name="email" placeholder="you@hmacademy.org" required="" type="email"/>
 <label for="siPassword">Password</label>
 <input autocomplete="current-password" id="siPassword" name="password" placeholder="Enter your password" required="" type="password" minlength="6"/>
 <button class="si-btn" id="siSubmit" type="submit">Sign In</button>
 </form>
-<div style="margin-top:12px;text-align:center;"><a href="#" id="guestSignInLink" style="color:#7c3aed;font-weight:800;text-decoration:none;">Guest sign-in / preview</a></div>
-<button type="button" id="continueGuestBtn" class="si-btn" style="margin-top:8px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;">Continue as guest</button>
-<div class="si-fine">This device remembers one student account at a time. Once you're signed in here, this browser won't let a different email enroll — sign out first if you need to switch. (This is a browser-level check, not account security — clearing browser data resets it.) Signing back in with the same email picks up exactly where you left off. Questions? <a href="mailto:thomas@hmacademy.org" style="color:#7c3aed;font-weight:700;">thomas@hmacademy.org</a><div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"><a href="https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd" target="_blank" rel="noopener noreferrer" style="color:#7c3aed;font-weight:700;text-decoration:none;">Section B — Google Classroom</a></div></div>
+
+
+<div class="si-fine">This device remembers one student account at a time. Once you're signed in here, this browser won't let a different email enroll — sign out first if you need to switch. (This is a browser-level check, not account security — clearing browser data resets it.) Signing back in with the same email picks up exactly where you left off. Questions? <a href="mailto:thomas@hmacademy.org" style="color:#7c3aed;font-weight:700;">thomas@hmacademy.org</a><div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div></div>
 </div>
 </div>
 <!-- ========== WEEKLY CHECK-IN MODAL ========== -->
@@ -2484,7 +2499,7 @@ img,video,canvas,svg,iframe{max-width:100%}
 <div class="lp-grade">
 <span>Overall Grade</span>
 <b id="lpGradeLetter">—</b>
-<span id="lpGradeDetail">Sign in to start tracking.</span>
+<span id="lpGradeDetail">HMA Academy student access tracking.</span>
 </div>
 <button class="lp-report-btn" id="lpReportBtn">Send Progress Report</button>
 <div id="lpReportStatus" style="font-size:10.5px;color:#8f96a6;margin-top:6px;min-height:12px;"></div>
@@ -2493,13 +2508,11 @@ img,video,canvas,svg,iframe{max-width:100%}
 <div class="lp-note">Every lesson card is a "layer." Flip a card in the Curriculum tab to mark that day's lesson complete — the total above and this panel's grade &amp; report stay visible even while the weekly breakdown is collapsed; tap "Weekly breakdown" to expand it. Progress reports are only sent when the student explicitly chooses "Send Progress Report."</div>
 </aside>
 </div>
-<!-- EDIT-ME :: PAGE FOOTER - contact email and Google Classroom links -->
+<!-- PAGE FOOTER -->
 <footer class="appfoot">
     Graphic Design &amp; Photoshop — Class of 2028
     <div class="foot-contact"><a href="mailto:thomas@hmacademy.org">thomas@hmacademy.org</a></div>
-    <div class="foot-classroom" aria-label="Google Classroom links">
-      <a href="https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd" target="_blank" rel="noopener noreferrer">Section B — Google Classroom</a>
-    </div>
+    
 </footer>
 </div><div class="capture-warning" id="captureWarning" aria-hidden="true"><div class="cw-card"><h3>Assessment Protected</h3><p>Screen capture and printing are disabled while an assessment is active. Your assessment has been ended and recorded according to the course rules.</p></div></div><script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -2743,7 +2756,7 @@ HM_CONTENT.projects = [
   /* EXAMPLE:
   { id:"world", week:7, title:"Around the World", desc:"Project brief text",
     skills:["Masking","Blending"], checks:["Uses 3+ layers","Exported as PNG"],
-    classroomUrl:"https://classroom.google.com/...", section:"Phase One", marks:20, hidden:false }
+    section:"Phase One", marks:20, hidden:false }
   */
 ];
 </script>
@@ -11224,6 +11237,8 @@ async function hmaCloudSaveStudent(rec){
   }
 }
 async function hmaCloudSignIn(email,password,name){
+  email=String(email||'').trim().toLowerCase();
+  if(!/^[^\s@]+@hmacademy\.org$/i.test(email)) throw new Error('HMA_DOMAIN_ONLY');
   if(!hmaCloudReady()) return null;
   let cred = null;
   try{
@@ -11240,6 +11255,10 @@ async function hmaCloudSignIn(email,password,name){
     }else{
       throw err;
     }
+  }
+  if(!cred.user || !/^[^\s@]+@hmacademy\.org$/i.test(String(cred.user.email||'').toLowerCase())){
+    try{ await window.HMA_AUTH.signOut(); }catch(e){}
+    throw new Error('HMA_DOMAIN_ONLY');
   }
   hmaCloudSessionSet(cred.user);
   return cred.user;
@@ -11407,6 +11426,10 @@ async function attemptSignIn(){
   siClearError();
   const name = document.getElementById('siName').value.trim();
   const email = document.getElementById('siEmail').value.trim().toLowerCase();
+  if(!/^[^\s@]+@hmacademy\.org$/i.test(email)){
+    siShowError('Access is restricted to HMA Academy accounts ending in @hmacademy.org.');
+    return;
+  }
   const passwordEl = document.getElementById('siPassword');
   const password = passwordEl ? passwordEl.value : '';
 
@@ -11492,15 +11515,17 @@ async function attemptSignIn(){
 document.getElementById('siForm').addEventListener('submit', e=>{ e.preventDefault(); attemptSignIn(); });
 function continueAsGuest(){
   siClearError();
+  siShowError('Guest access is disabled. Please use your @hmacademy.org student account.');
+  return;
   student = loadStudentRecord('guest-preview@local');
   student.name = student.name || 'Guest Preview';
   student.email = 'guest-preview@local';
   window.__guestPreview = true;
   enterApp();
-  showToast('Guest mode started. Sign in later to save personal grades and submissions.');
+  showToast('Guest access is disabled.');
 }
-document.getElementById('guestSignInLink')?.addEventListener('click', e=>{ e.preventDefault(); continueAsGuest(); });
-document.getElementById('continueGuestBtn')?.addEventListener('click', continueAsGuest);
+
+
 document.getElementById('lpSignOutBtn').addEventListener('click', async ()=>{
   if(!confirm('Sign out? Your progress stays saved to your account, and you can sign back in from another browser or device.')) return;
   localStorage.removeItem('hm_current_student');
@@ -11941,7 +11966,7 @@ function askReportPermission(trigger){
 }
 /* ---------- GRADING ---------- */
 function computeGrade(){
-  if(!student) return { pct:0, letter:'—', detail:'Sign in to start tracking.' };
+  if(!student) return { pct:0, letter:'—', detail:'HMA Academy student access tracking.' };
   const totalLessons = cards.length;
   const completionPct = totalLessons ? (student.completed.length/totalLessons)*100 : 0;
   const quizzesTaken = Object.keys(student.weekQuizzes).length;
@@ -13474,7 +13499,7 @@ theaterRenderSide();
 renderProgressView();
 /* ================= LEARNING PLATFORM UPGRADE ================= */
 const PHASE_SUBMISSION_URL = 'https://drive.google.com/drive/folders/1DzGBJliUESjJHW6Qc-QNOM5a8VMBpQqr?usp=sharing';
-const SECTION_B_CLASSROOM_URL = 'https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd';
+const SECTION_B_CLASSROOM_URL = '';
 const HM_ASSIGNMENTS = [];   /* projects now come only from the admin page (Course Studio > Projects) */
 if(window.HMC) HMC.applyProjects(HM_ASSIGNMENTS);
 const HM_PROJECTS = HM_ASSIGNMENTS;
@@ -14624,7 +14649,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
   }
   window.hmaPhaseGrades=phaseGrades;
   window.computeGrade=function(){
-    if(!student) return {pct:0,letter:'—',detail:'Sign in to start tracking.'};
+    if(!student) return {pct:0,letter:'—',detail:'HMA Academy student access tracking.'};
     var g=phaseGrades()[0];
     return {pct:Math.round(g.pct),letter:g.letter,detail:'Phase 1 · '+fm(g.earned)+' / '+fm(g.total)+' marks'};
   };
@@ -15034,7 +15059,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
     var reg=m==='register';
     $('siPass2Wrap').style.display=reg?'block':'none';
     $('siPass').setAttribute('autocomplete',reg?'new-password':'current-password');
-    $('siHeading').textContent=reg?'Create your account':'Sign in to start';
+    $('siHeading').textContent=reg?'Create your account':'HMA Academy student access';
     $('siSubmit').textContent=reg?'Create account':'Sign In';
     siClearError();
   }
@@ -15191,6 +15216,10 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
       if(!HMA_CLOUD_URL){ if(window.__hmOrigInitAuth){ delegated=true; window.__hmOrigInitAuth(); } return; }
       buildGate();
       var s=await restoreSession();
+      if(s && !/^[^\s@]+@hmacademy\.org$/i.test(String(s.email||'').toLowerCase())){
+        clearSession(); try{localStorage.removeItem('hm_current_student');localStorage.removeItem('hm_device_lock');}catch(e){}
+        try{await hmaCloudSignOut();}catch(e){} s=null;
+      }
       if(s){
         try{ await restoreRecordFromBackup(s.email); }catch(e){}
         var local=loadStudentRecord(s.email);
@@ -15210,6 +15239,7 @@ html.hma-hide .app,html.hma-hide .wq-modal,html.hma-hide .phase-modal-backdrop,h
         return;
       }
       var cur=getCurrentStudent();
+      if(cur && !/^[^\s@]+@hmacademy\.org$/i.test(String(cur.email||'').toLowerCase())){ try{localStorage.removeItem('hm_current_student');}catch(e){} cur=null; }
       if(cur){ setMode('register'); showGate('Create a password to keep your progress safe and open it on any device or browser.',cur); }
       else { setMode('login'); showGate('',null); }
     }catch(err){ console.error(err); if(window.__hmOrigInitAuth){ delegated=true; window.__hmOrigInitAuth(); } }
@@ -16683,22 +16713,8 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
 #screencasts .scx-group{display:none!important}
 #screencasts .scx-pill.new{display:none}
 </style>
-<script id="hm-fix-v2">
-(function(){
-  /* keep the profile chip as the very last child of the top bar */
-  var bar=document.querySelector('.topbar'), chip=document.getElementById('hmpBtn');
-  if(bar&&chip&&bar.lastElementChild!==chip) bar.appendChild(chip);
-  /* 3) Login screen and footer: remove the Google Classroom list */
-  function clean(){
-    document.querySelectorAll('#signInGate a[href*="classroom.google.com"]').forEach(function(a){
-      var box=a.parentNode;
-      a.remove();
-      if(box && box.tagName==='DIV' && !box.children.length && !box.textContent.trim()) box.remove();
-    });
-    document.querySelectorAll('footer.appfoot .foot-classroom').forEach(function(n){ n.remove(); });
-  }
-  clean(); setTimeout(clean,1500);
-})();
+<script id="hm-fix-v2" type="text/javascript">
+(function(){var bar=document.querySelector('.topbar'),chip=document.getElementById('hmpBtn');if(bar&&chip&&bar.lastElementChild!==chip)bar.appendChild(chip);})();
 </script>
 
 <style id="hm-fix-v3-css">
@@ -16777,7 +16793,7 @@ html{scrollbar-width:thin;scrollbar-color:#c3cad6 transparent}
     var inBtn=document.querySelector('.hma-mode button[data-mode="login"]'); if(inBtn&&!inBtn.classList.contains('on')) inBtn.click();
     if(!$('hmNotYou')){
       var b=document.createElement('button'); b.type='button'; b.id='hmNotYou'; b.className='hm-notyou'; b.textContent='Not you? Use a different account';
-      b.onclick=function(){ try{ localStorage.removeItem(LK); }catch(e){} nm.value=''; em.value=''; if(pw) pw.value=''; if(h) h.textContent='Sign in to start'; b.remove(); nm.focus(); };
+      b.onclick=function(){ try{ localStorage.removeItem(LK); }catch(e){} nm.value=''; em.value=''; if(pw) pw.value=''; if(h) h.textContent='HMA Academy student access'; b.remove(); nm.focus(); };
       form.parentNode.insertBefore(b,form);
     }
     /* put the cursor on the password (or on the first empty field) */
@@ -16953,7 +16969,7 @@ function renderPhases(){
   host.innerHTML='<h3 style="margin:0 0 4px">More phase assessments</h3>'+list.map(function(p){
     var done=st&&st.phaseAssessments&&st.phaseAssessments[p.id]&&st.phaseAssessments[p.id].completedAt, r=done?st.phaseAssessments[p.id]:null, open=unlocked(p);
     return '<div class="hm-ph-card"><h3>'+esc(p.title)+'</h3><p>'+esc(p.desc||'')+'</p>'+
-      (done?'<b>Completed: '+r.score+' / '+r.total+'</b>':'<button class="hm-go" data-p="'+esc(p.id)+'"'+((!st||!open)?' disabled':'')+'>'+(!st?'Sign in to start':open?'Start assessment':'Unlocks in Week '+(p.unlockWeek||1))+'</button>')+'</div>'; }).join('');
+      (done?'<b>Completed: '+r.score+' / '+r.total+'</b>':'<button class="hm-go" data-p="'+esc(p.id)+'"'+((!st||!open)?' disabled':'')+'>'+(!st?'HMA Academy student access':open?'Start assessment':'Unlocks in Week '+(p.unlockWeek||1))+'</button>')+'</div>'; }).join('');
   host.querySelectorAll('.hm-go').forEach(function(b){ b.onclick=function(){ start(list.filter(function(p){return p.id===b.dataset.p;})[0]); }; });
 }
 function start(p){
@@ -18433,12 +18449,12 @@ button:not(:disabled):active,.b:active,.hbtn:active,.kqo:active,.kqs:active{tran
 #signInGate .si-card h2{color:#1e1b4b!important}
 .si-in input:focus{border-color:var(--si-b)!important;box-shadow:0 0 0 4px rgba(124,58,237,.16)!important}
 .si-in:focus-within>svg.si-ico,.si-eye:hover{color:var(--si-b)!important}
-.si-help:hover,#signInGate .si-fine a,#guestSignInLink{color:var(--si-b)!important}
+.si-help:hover,#signInGate .si-fine a{color:var(--si-b)!important}
 #siSubmit{background:linear-gradient(135deg,var(--si-a),var(--si-b) 55%,var(--si-c))!important;box-shadow:0 12px 28px rgba(124,58,237,.38)!important}
 #siSubmit:hover:not(:disabled){box-shadow:0 16px 34px rgba(124,58,237,.46)!important}
 .si-hello{background:#f5f3ff!important;border-color:#ddd6fe!important;color:#3b0764!important}.si-hello button{color:var(--si-b)!important}
 .hma-info{background:#f5f3ff!important;border:1px solid #ddd6fe!important;color:#4c1d95!important}
-#continueGuestBtn{background:#f5f3ff!important;color:var(--si-b)!important;border:1px solid #ddd6fe!important}
+
 .hma-mode button.on{color:#1e1b4b!important}
 /* the buttons and fields no longer slide/grow while the page is still settling */
 #hmModeLink,#signInGate .si-card>button:not(.si-btn):not(.si-help):not(.si-eye){color:var(--si-b)!important}
@@ -18646,28 +18662,4 @@ setInterval(function(){var st=S(),id=st&&st.email||'';if(id!==lastStudent){lastS
 .p2-single-launch .p2-btn{width:100%;min-height:46px}
 .p2-lock-note{margin:12px 0 0;color:#667085;font-size:11px;line-height:1.5}
 </style>
-<script id="hm-login-classroom-preview">
-(function(){'use strict';
- function ensureLinks(){
-  var gate=document.querySelector('#signInGate .si-card');
-  if(gate){
-   var form=gate.querySelector('#siForm');
-   if(form&&!gate.querySelector('.si-preview-btn')){
-    var b=document.createElement('button');b.type='button';b.className='si-preview-btn';b.textContent='Preview as Guest';
-    b.addEventListener('click',function(){
-     try{
-      if(typeof loadStudentRecord!=='function'||typeof enterApp!=='function'){var e=document.getElementById('siError');if(e)e.textContent='Guest preview is temporarily unavailable. Please use student sign-in.';return}
-      student=loadStudentRecord('guest-preview@local')||{};student.name='Guest Preview';student.email='guest-preview@local';window.__guestPreview=true;
-      enterApp();
-      var notice=document.createElement('div');notice.textContent='Guest preview · assessment submission is disabled';notice.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:999999;background:#14532d;color:white;padding:9px 15px;border-radius:999px;font:700 12px Inter,Arial,sans-serif';document.body.appendChild(notice);
-     }catch(err){var e=document.getElementById('siError');if(e)e.textContent='Guest preview could not be opened. Please sign in normally.'}
-    });form.insertAdjacentElement('afterend',b);
-   }
-   var links=gate.querySelector('.hm-classroom-links');if(!links){links=document.createElement('div');links.className='hm-classroom-links';links.style.cssText='margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb;text-align:center;font:600 12px Inter,Arial,sans-serif';links.innerHTML='<a href="https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd" target="_blank" rel="noopener noreferrer" style="color:#15803d;text-decoration:none">Open Google Classroom · Section B ↗</a>';gate.appendChild(links)}
-  }
-  var foot=document.querySelector('footer.appfoot');if(foot&&!foot.querySelector('.foot-classroom')){var f=document.createElement('div');f.className='foot-classroom';f.setAttribute('aria-label','Google Classroom links');f.innerHTML='<a href="https://classroom.google.com/c/ODg5MDAyNjgwNDU5?cjc=gigvadsd" target="_blank" rel="noopener noreferrer">Section B — Google Classroom</a>';foot.appendChild(f)}
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureLinks,{once:true});else ensureLinks();setTimeout(ensureLinks,1800);
- if(window.MutationObserver){var g=document.getElementById('signInGate');if(g)new MutationObserver(ensureLinks).observe(g,{childList:true,subtree:true})}
-})();
-</script>
+
