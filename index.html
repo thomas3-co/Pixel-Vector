@@ -4175,8 +4175,8 @@ window.HM_BAKED = {
    },
    {
     "id": "1JKuqyTnQ4gXdqrB54Fu2AsHczzZkMp5F",
-    "title": "3D Text Effect",
-    "group": "grp5",
+    "title": "Surreal Camera Lens Portal Photo Manipulation",
+    "group": "grp6",
     "released": true,
     "graded": false,
     "phase": 1,
@@ -4185,23 +4185,23 @@ window.HM_BAKED = {
    },
    {
     "id": "1tiEv2ApLOs-gEh-gNDawjs5mJjVm2i_X",
-    "title": "Double Exposure",
-    "group": "grp6",
-    "released": true,
-    "graded": false,
-    "phase": 1,
-    "removed": false,
-    "order": 24
-   },
-   {
-    "id": "1y13t7n5nTN_3oppd_Nx7AJ1Yfd7nSwdE",
-    "title": "Double Exposure with Memory",
+    "title": "3D Text Effect with Animal",
     "group": "grp5",
     "released": true,
     "graded": false,
     "phase": 1,
     "removed": false,
     "order": 23
+   },
+   {
+    "id": "1mPRtkJd9eHFiyDf1xfsulzonDIUK60eE",
+    "title": "Double Exposure with Memory",
+    "group": "grp6",
+    "released": true,
+    "graded": false,
+    "phase": 1,
+    "removed": false,
+    "order": 24
    }
   ],
   "groups": [
@@ -14617,10 +14617,6 @@ render();var gate=document.getElementById('signInGate');if(gate&&window.Mutation
 #screencasts .cin.is-paused .cin-big{animation:cinPulse 2.2s ease-out infinite}
 #screencasts .cin.is-playing .cin-big,#screencasts .cin.is-wait .cin-big{opacity:0;pointer-events:none;transform:scale(.8);animation:none}
 @keyframes cinPulse{0%{box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 6px rgba(255,255,255,.28)}100%{box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 32px rgba(255,255,255,0)}}
-/* spinner = loading state shown only while the browser is really buffering */
-#screencasts .cin-spin{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:4px solid rgba(255,255,255,.22);border-top-color:#fff;z-index:4;opacity:0;pointer-events:none;transition:opacity .2s}
-#screencasts .cin.is-wait .cin-spin,#screencasts .cin-drive .cin-spin{opacity:1;animation:cinSpin .8s linear infinite}
-@keyframes cinSpin{to{transform:rotate(360deg)}}
 /* quick play/pause flash when the picture is clicked */
 #screencasts .cin-flash{position:absolute;left:50%;top:50%;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;z-index:5}
 #screencasts .cin-flash svg{width:42px;height:42px;display:block}
@@ -14694,7 +14690,7 @@ render();var gate=document.getElementById('signInGate');if(gate&&window.Mutation
     var c=document.createElement('div'); c.className='cin is-paused'; c.dataset.id=id; c.tabIndex=0;
     c.setAttribute('role','group'); c.setAttribute('aria-label','Video player: '+label);
     c.innerHTML='<video playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>'
-      +'<div class="cin-shade"></div><div class="cin-spin"></div><div class="cin-flash"></div>'
+      +'<div class="cin-shade"></div><div class="cin-flash"></div>'
       +'<button type="button" class="cin-big" aria-label="Play">'+IC.play+'</button>'
       +'<div class="cin-ctl">'
         +'<input class="cin-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek">'
@@ -14813,7 +14809,7 @@ render();var gate=document.getElementById('signInGate');if(gate&&window.Mutation
     var w=$('theaterPlayerWrap'); if(!w) return;
     if(hasDrive(w,id)) return;
     stop(); w.innerHTML='';
-    var d=document.createElement('div'); d.className='cin-drive'; d.innerHTML='<div class="cin-spin"></div>';
+    var d=document.createElement('div'); d.className='cin-drive'; 
     var f=document.createElement('iframe'); f.dataset.id=id; f.src=driveEmbedUrl(id,true); f.title=label;
     f.setAttribute('allow','autoplay; fullscreen'); f.setAttribute('allowfullscreen','true');
     d.appendChild(f); w.appendChild(d); lights(true);
