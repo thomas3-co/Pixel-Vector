@@ -146,7 +146,7 @@ const PAIR=['term','def'];
 const DAY=[['type','Type','s',['lesson','project','practice']],['title','Card title'],['front','Front of card','a'],['idea','Back: big idea (**bold**, lines starting "- " = bullets)','a'],['vocab','Vocabulary — one per line: term | definition','pairs',PAIR],['links','Links — one per line: kind | ref | label (kind = screencast, note, project, tab, url, placeholder, or kc = the Check Your Knowledge button; for kc leave ref empty)','pairs',['kind','ref','label']]];
 const SPEC={
 weeks:[['n','Week number','n'],['title','Title (e.g. Week 6 — Retouching)'],['short','Short name'],['days','Days','sub',DAY,d=>d.title||'New day',()=>({type:'lesson',title:'',front:'',idea:'',vocab:[],links:[]})]],
-items:[['id','Google Drive file ID'],['title','Title'],['desc','Description','a'],['order','Order','n'],['phase','Phase','n'],['released','Released to students','b'],['graded','Graded','b'],['vocab','Vocabulary — term | definition','pairs',PAIR]],
+items:[['id','Google Drive file ID (made automatically for uploaded videos)'],['url','Uploaded video file path (filled automatically when you upload an MP4; leave empty for Google Drive videos)'],['title','Title'],['desc','Description','a'],['order','Order','n'],['phase','Phase','n'],['released','Released to students','b'],['graded','Graded','b'],['vocab','Vocabulary — term | definition','pairs',PAIR]],
 groups:[['id','Group id'],['title','Title'],['sub','Subtitle'],['color','Colour','c'],['badge','Badge text']],
 notes:[['id','Note id (e.g. readme-week6)'],['week','Week','n'],['badge','Badge (e.g. WEEK 6)'],['title','Title'],['intro','Intro','a'],['quiz','Has quiz + Mark as Read','b'],['hidden','Hide this note','b'],['tip','Tip box','a'],['cards','Cards','sub',[['title','Card title'],['text','Text','a']],c=>c.title||'New card',()=>({title:'',text:''})],['vocab','Vocabulary — term | definition','pairs',PAIR]],
 quizzes:[['type','Type','s',['reading','video']],['key','Key (Read Me note id, or screencast id)'],['draw','Questions each student gets (blank = 5). Tip: keep the bank at least double this so every student gets a different paper','n'],['shuffleOff','Keep the original order (turn OFF shuffling of questions and answers)','b'],['questions','Questions (need 5+, students get 5 random)','sub',[['q','Question','a'],['options','Options — one per line','lines'],['answer','Correct option number (0 = first line)','n'],['img','Picture for this question (optional)','img']],q=>q.q||'New question',()=>({q:'',options:['','','',''],answer:0})]],
@@ -511,7 +511,7 @@ async function pull(){log('Loading…');const r=await api('?ref='+encodeURICompo
  let t=j.content?u8(j.content):await(await api('?ref='+encodeURIComponent(LS.b||'main'),{headers:{Accept:'application/vnd.github.raw+json'}})).text();
  D=load(t);mark(false);log('Loaded '+(t.length/1024|0)+' KB from '+LS.o+'/'+LS.r);}
 async function push(retry){const w=retry?[]:check();if(w.length&&!confirm('Warnings:\n\n'+w.join('\n')+'\n\nPublish anyway?'))return;
- const out=bake(),msg=$('#cm').value||'Update course content from Course Studio';log(retry?'Publishing on top of the newest GitHub file…':'Publishing…');
+ const out=bake(),msg=(($('#cm')||{}).value||'Update course content from Course Studio');log(retry?'Publishing on top of the newest GitHub file…':'Publishing…');
  const r=await api('',{method:'PUT',body:JSON.stringify({message:msg,content:b64(out),sha,branch:LS.b||'main'})});const j=await r.json();
  if(!r.ok){if((r.status===409||r.status===422)&&!retry)return resolveConflict();return log('Error: '+r.status+' '+(j.message||''))}
  sha=j.content.sha;src=out;mark(false);
@@ -771,14 +771,14 @@ go('publish');
  document.head.append(E('style',{},css));
  const categories=[
   ['Overview',['dashboard','explorer']],
-  ['Course content',['weeks','notes','items','quizzes','kcs','projects','materials','practice']],
+  ['Course content',['weeks','notes','items','uploads','quizzes','kcs','projects','materials','practice']],
   ['Phase assessments',['assessments','phase2','phases','phasecfg']],
   ['Student operations',['students','progressReset','records']],
   ['Settings & preferences',['site','profile','kcset','access','theme','deadlines','resources','faq']],
   ['Data & deployment',['import','source','publish']]
  ];
- const names={dashboard:'Command centre',weeks:'Curriculum & daily lessons',notes:'Read Me library',items:'Screencast library',groups:'Screencast groups',quizzes:'Pop-out quiz studio',kcs:'Check Your Knowledge',kcset:'Check Your Knowledge timer',assessments:'Phase 1 · question bank',phase2:'Phase 2 · picture assessment',phases:'Extra phases (3, 4…)',phasecfg:'Phase schedule & badges',projects:'Projects & assignments',materials:'Released materials',practice:'Practice files',site:'Home & navigation',profile:'Student profile & course badges',access:'Login & session rules',theme:'Brand & colour system',deadlines:'Calendar & deadlines',resources:'Resource links',faq:'Student FAQ',explorer:'Live site explorer',students:'Student directory',progressReset:'Progress reset & recovery',records:'Announcements & activity',import:'Import & data centre',source:'Advanced HTML editor',publish:'Connect & publish'};
- const icons={dashboard:'⌂',weeks:'▦',notes:'▤',items:'▶',groups:'▥',quizzes:'✎',kcs:'?',kcset:'◷',assessments:'✓',phase2:'✎',phases:'☰',phasecfg:'◷',projects:'◇',materials:'▣',practice:'⌘',site:'⌂',profile:'◎',access:'⌑',theme:'◐',deadlines:'◷',resources:'↗',faq:'?',explorer:'⌕',students:'♙',progressReset:'↺',records:'▤',import:'⇧',source:'</>',publish:'⇧'};
+ const names={uploads:'Upload files',dashboard:'Command centre',weeks:'Curriculum & daily lessons',notes:'Read Me library',items:'Screencast library',groups:'Screencast groups',quizzes:'Pop-out quiz studio',kcs:'Check Your Knowledge',kcset:'Check Your Knowledge timer',assessments:'Phase 1 · question bank',phase2:'Phase 2 · picture assessment',phases:'Extra phases (3, 4…)',phasecfg:'Phase schedule & badges',projects:'Projects & assignments',materials:'Released materials',practice:'Practice files',site:'Home & navigation',profile:'Student profile & course badges',access:'Login & session rules',theme:'Brand & colour system',deadlines:'Calendar & deadlines',resources:'Resource links',faq:'Student FAQ',explorer:'Live site explorer',students:'Student directory',progressReset:'Progress reset & recovery',records:'Announcements & activity',import:'Import & data centre',source:'Advanced HTML editor',publish:'Connect & publish'};
+ const icons={uploads:'⇪',dashboard:'⌂',weeks:'▦',notes:'▤',items:'▶',groups:'▥',quizzes:'✎',kcs:'?',kcset:'◷',assessments:'✓',phase2:'✎',phases:'☰',phasecfg:'◷',projects:'◇',materials:'▣',practice:'⌘',site:'⌂',profile:'◎',access:'⌑',theme:'◐',deadlines:'◷',resources:'↗',faq:'?',explorer:'⌕',students:'♙',progressReset:'↺',records:'▤',import:'⇧',source:'</>',publish:'⇧'};
  // Keep the existing navigation buttons and handlers; reorganise them into clear, discoverable groups.
  const nav=$('#nav');const existing={};nav.querySelectorAll('button[data-k]').forEach(b=>existing[b.dataset.k]=b);
  nav.innerHTML='';
@@ -787,7 +787,7 @@ go('publish');
  categories.forEach(([label,keys])=>{const g=E('div',{className:'cs27-group'});g.append(E('div',{className:'cs27-group-label',textContent:label}));keys.forEach(k=>{let b=existing[k];if(!b){b=E('button',{textContent:names[k]||k});b.dataset.k=k;b.onclick=()=>go(k)}b.textContent=names[k]||SECT[k]?.t||k;b.dataset.icon=icons[k]||'·';b.title='Open '+b.textContent;g.append(b)});nav.append(g)});
  const navSearch=$('#cs27-navsearch');navSearch.oninput=()=>{const q=navSearch.value.toLowerCase();nav.querySelectorAll('button[data-k]').forEach(b=>{b.hidden=!!q&&!b.textContent.toLowerCase().includes(q)})};
  // Additional section metadata makes the dashboard available to the original routing system.
- SECT.dashboard={t:'Command centre'};SECT.explorer={t:'Live site explorer'};
+ SECT.dashboard={t:'Command centre'};SECT.uploads={t:'Upload files'};SECT.explorer={t:'Live site explorer'};
  const oldGo27=go;
  function go27(k){if(k==='dashboard')return dashboard();if(k==='explorer')return explorer();return oldGo27(k)}
  go=go27;
@@ -1936,30 +1936,133 @@ function phasesView(){setOn('phases','Phase assessments');const v=$('#view');v.i
  if(!P.length)v.append(E('div',{className:'cs27-callout',textContent:'No extra phases yet. Press "+ Add another phase assessment".'}))}
 
 
-async function uploadRepoFile(f,k){
- if(!LS.t||!LS.o||!LS.r)throw new Error('Connect to GitHub first (Connect & publish page).');
- if(f.size>25*1024*1024)throw new Error(f.name+' is larger than 25 MB.');
+/* ===== Upload files: one uploader for screencasts, practice files and materials ===== */
+const UP_MAX=60*1024*1024;
+const UP_TARGETS=[
+ ['items','Screencast video (appears in the Screencasts tab)','screencasts'],
+ ['practice','Practice file (appears in Practice files)','practice'],
+ ['materials','Additional material (appears in Released materials)','materials'],
+ ['only','Just upload it and give me the link (not added to any list)','other']
+];
+const UP_VIDEO=/\.(mp4|m4v|webm|mov|ogv)$/i;
+let UP_LOG=[],UP_PENDING=0;
+const upNice=n=>n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(1)+' MB';
+const upSleep=ms=>new Promise(r=>setTimeout(r,ms));
+function upFatal(m){const e=new Error(m);e.fatal=true;return e}
+function upReadB64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=()=>rej(upFatal('Could not read “'+f.name+'” from your computer.'));r.onload=()=>{const s=String(r.result);res(s.slice(s.indexOf(',')+1))};r.readAsDataURL(f)})}
+function upSend(url,body,onProg){return new Promise((res,rej)=>{
+ const x=new XMLHttpRequest();x.open('PUT',url);
+ x.setRequestHeader('Accept','application/vnd.github+json');x.setRequestHeader('Authorization','Bearer '+LS.t);x.setRequestHeader('Content-Type','application/json');
+ x.timeout=20*60*1000;
+ if(x.upload&&onProg)x.upload.onprogress=e=>{if(e.lengthComputable)onProg(e.loaded/e.total)};
+ x.onload=()=>{let j={};try{j=JSON.parse(x.responseText)}catch(e){}res({status:x.status,json:j})};
+ x.onerror=()=>rej(Object.assign(new Error('network'),{net:true}));
+ x.ontimeout=()=>rej(Object.assign(new Error('timeout'),{net:true}));
+ x.send(body)})}
+function upExplain(status,msg,f){
+ msg=String(msg||'');
+ if(status===401)return 'GitHub did not accept your token (it may have expired or been mistyped). Open “Connect & publish”, paste a new token and try again.';
+ if(status===403&&/rate limit/i.test(msg))return 'GitHub says you have made too many requests. Wait a few minutes and try again.';
+ if(status===403)return 'Your token is not allowed to write to this repository. Create a fine-grained token for this repository with “Contents: Read and write”, then paste it in “Connect & publish”. ('+msg+')';
+ if(status===404)return 'GitHub cannot find “'+LS.o+'/'+LS.r+'” (branch “'+(LS.b||'main')+'”) with this token. Check the owner, repository and branch in “Connect & publish”, and make sure the token was given access to this repository.';
+ if(status===413)return '“'+f.name+'” ('+upNice(f.size)+') is too large for GitHub. Compress the video (for example with HandBrake, MP4/H.264) and try again.';
+ if(status===422)return 'GitHub refused the file: '+(msg||'invalid request')+' ('+f.name+')';
+ return (msg||('GitHub error '+status))+' ('+f.name+')'}
+async function upExists(endpoint){try{const r=await fetch(endpoint+'?ref='+encodeURIComponent(LS.b||'main')+'&_='+Date.now(),{headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+LS.t}});return r.ok?await r.json():null}catch(e){return null}}
+async function uploadRepoFile(f,folder,onStatus){
+ if(!LS.t||!LS.o||!LS.r)throw upFatal('Connect to GitHub first: open “Connect & publish”, fill in the repository and token, then try again.');
+ if(f.size>UP_MAX)throw upFatal('“'+f.name+'” is '+upNice(f.size)+'. The limit here is '+upNice(UP_MAX)+'. Compress the video (MP4/H.264) or upload it on github.com (Add file → Upload files) and use “Already on GitHub?” below.');
+ if(!f.size)throw upFatal('“'+f.name+'” is empty.');
  const dir=((LS.p||'index.html').match(/^(.*\/)/)||['',''])[1];
  const safe=(f.name.replace(/[^A-Za-z0-9._-]+/g,'-').replace(/^[-.]+/,''))||'file';
- const rel='uploads/'+k+'/'+Date.now().toString(36)+'-'+safe;
- const buf=new Uint8Array(await f.arrayBuffer());let bin='';for(let i=0;i<buf.length;i+=8192)bin+=String.fromCharCode.apply(null,buf.subarray(i,i+8192));
- const r=await fetch('https://api.github.com/repos/'+LS.o+'/'+LS.r+'/contents/'+encodeURI(dir+rel),{method:'PUT',headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+LS.t,'Content-Type':'application/json'},body:JSON.stringify({message:'Upload '+f.name,content:btoa(bin),branch:LS.b||'main'})});
- const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error((j.message||('GitHub error '+r.status))+' ('+f.name+')');
- return rel}
-function addDropZone(k){
- const v=$('#view'),old=$('#up-card');if(old)old.remove();
+ const rel='uploads/'+folder+'/'+Date.now().toString(36)+'-'+safe;
+ const endpoint='https://api.github.com/repos/'+LS.o+'/'+LS.r+'/contents/'+encodeURI(dir+rel);
+ onStatus&&onStatus('Preparing '+f.name+' ('+upNice(f.size)+')…');
+ const content=await upReadB64(f);
+ const body=JSON.stringify({message:'Upload '+f.name,content,branch:LS.b||'main'});
+ const delays=[0,3000,8000,15000];let last=null;
+ for(let a=0;a<delays.length;a++){
+  if(delays[a]){onStatus&&onStatus('Connection problem. Retrying in '+(delays[a]/1000)+' seconds (attempt '+(a+1)+' of '+delays.length+')…');await upSleep(delays[a])}
+  try{
+   const r=await upSend(endpoint,body,p=>onStatus&&onStatus('Uploading '+f.name+' · '+Math.round(p*100)+'% of '+upNice(f.size),p));
+   if(r.status>=200&&r.status<300)return rel;
+   const msg=r.json&&r.json.message;
+   if(r.status===422&&a>0){const ex=await upExists(endpoint);if(ex&&ex.size===f.size)return rel}
+   if(r.status===409||r.status>=500||(r.status===403&&/secondary|abuse/i.test(String(msg||'')))){last=new Error(upExplain(r.status,msg,f));continue}
+   throw upFatal(upExplain(r.status,msg,f))
+  }catch(e){
+   if(e.fatal)throw e;
+   if(e.net){const ex=await upExists(endpoint);if(ex&&ex.size===f.size)return rel;last=new Error('The connection to GitHub dropped while sending “'+f.name+'” ('+upNice(f.size)+'). This usually means a slow or unstable internet connection.');continue}
+   last=e}
+ }
+ throw new Error((last&&last.message||'Upload failed')+' It was tried '+delays.length+' times. You can try again, or upload the file on github.com (Add file → Upload files, into the folder “'+dir+'uploads/'+folder+'”) and then use “Already on GitHub?” below.')}
+function upRegister(target,rel,fileName,title,group){
+ const base=String(title||fileName).replace(/\.[^.]+$/,'').replace(/_+/g,' ').replace(/\s+/g,' ').trim()||'Untitled';
+ const id='up-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+ if(target==='items'){D.items=D.items||[];if(D.items.some(x=>x.url===rel))return false;
+  const order=Math.max(-1,...D.items.map(x=>Number(x.order)||0))+1;
+  const it={id,title:base,desc:'',released:true,graded:false,phase:1,vocab:[],url:rel,order};if(group)it.group=group;D.items.push(it);return true}
+ if(target==='practice'||target==='materials'){D[target]=D[target]||[];if(D[target].some(x=>x.url===rel))return false;D[target].push({id,label:base,url:rel});return true}
+ return false}
+function buildUploadCard(def,onDone){
  const c=E('div',{className:'card',id:'up-card'});
- c.innerHTML='<h3>Upload files</h3><p class="hint">Drag and drop <b>any file format</b> here (PDF, PSD, AI, ZIP, images, video, Word, Excel, PowerPoint…) or click the box. Each file is saved in your GitHub site (uploads folder) and listed below. Students see it after you publish. Up to 25 MB per file.</p><div id="up-dz" style="border:2px dashed var(--acc);border-radius:14px;padding:28px;text-align:center;cursor:pointer;font-weight:700">Drop files here or click to choose</div><input type="file" id="up-in" multiple hidden><p class="hint" id="up-st"></p>';
- v.insertBefore(c,v.firstChild);
- const dz=c.querySelector('#up-dz'),inp=c.querySelector('#up-in'),st=c.querySelector('#up-st');
- const run=async fs=>{fs=[...fs];if(!fs.length)return;D[k]=D[k]||[];let n=0;
-  for(const f of fs){try{st.textContent='Uploading '+f.name+' ('+(n+1)+' of '+fs.length+')…';const rel=await uploadRepoFile(f,k);
-    D[k].push({id:'up-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),label:f.name.replace(/\.[^.]+$/,''),url:rel});n++;mark()}catch(e){st.textContent='Stopped: '+e.message;break}}
-  if(n){toast(n+' file(s) uploaded. Press Save & publish to show them to students.');go(k)}};
- dz.onclick=()=>inp.click();inp.onchange=()=>run(inp.files);
+ const opts=UP_TARGETS.map(t=>'<option value="'+t[0]+'"'+(t[0]===def?' selected':'')+'>'+t[1]+'</option>').join('');
+ const grp=(D.groups||[]).map(g=>'<option value="'+esc(g.id)+'">'+esc(g.title||g.id)+'</option>').join('');
+ c.innerHTML='<h3>Upload files</h3><p class="hint">Choose what the file is for, then drag it into the box (or click the box). The file is saved in your GitHub site (uploads folder) and added to the list you chose. Students see it after you press <b>Save &amp; publish</b>. Up to '+upNice(UP_MAX)+' per file. For videos use <b>MP4 (H.264)</b>: it plays on every iPad, phone and computer.</p>'
+ +'<label>What is this file for?</label><select id="up-for">'+opts+'</select>'
+ +'<div id="up-x"><label>Screencast group (optional)</label><select id="up-grp"><option value="">No group (shown last)</option>'+grp+'</select></div>'
+ +'<label>Title shown to students (optional, used when you add one file)</label><input type="text" id="up-title" placeholder="For example: Double Exposure">'
+ +'<div id="up-dz" style="margin-top:12px;border:2px dashed var(--acc);border-radius:14px;padding:28px;text-align:center;cursor:pointer;font-weight:700">Drop files here or click to choose</div><input type="file" id="up-in" multiple hidden>'
+ +'<div id="up-bar" style="display:none;height:10px;border-radius:99px;background:var(--line);margin-top:12px;overflow:hidden"><div id="up-fill" style="height:100%;width:0;background:var(--acc);transition:width .2s"></div></div>'
+ +'<p class="hint" id="up-st" style="white-space:pre-wrap"></p><div id="up-pub"></div>'
+ +'<details style="margin-top:10px"><summary><span>Already on GitHub? Add it to a list by its path</span></summary><div class="in"><p class="hint">Use this if you uploaded the file on github.com yourself (Add file → Upload files). Type the path from the site folder, for example <b>uploads/screencasts/Double_Exposure.mp4</b>.</p><div class="row"><input type="text" id="up-path" placeholder="uploads/screencasts/my-video.mp4"><button class="b" id="up-add" style="flex:none">Add to list</button></div></div></details>';
+ const sel=c.querySelector('#up-for'),dz=c.querySelector('#up-dz'),inp=c.querySelector('#up-in'),st=c.querySelector('#up-st'),bar=c.querySelector('#up-bar'),fill=c.querySelector('#up-fill'),pub=c.querySelector('#up-pub'),gx=c.querySelector('#up-x'),tt=c.querySelector('#up-title'),grpSel=c.querySelector('#up-grp');
+ const folderOf=()=>(UP_TARGETS.find(t=>t[0]===sel.value)||UP_TARGETS[3])[2];
+ const sync=()=>{gx.style.display=sel.value==='items'?'':'none';inp.accept=sel.value==='items'?'video/mp4,video/webm,video/quicktime,.mp4,.m4v,.webm,.mov':''};sel.onchange=sync;sync();
+ const paintLog=()=>{st.textContent=UP_LOG.slice(-6).join('\n');
+  pub.innerHTML='';if(UP_PENDING>0){const b=E('button',{className:'b p',textContent:'Save & publish now ('+UP_PENDING+' new file'+(UP_PENDING>1?'s':'')+')'});
+   b.onclick=async()=>{b.disabled=true;b.textContent='Publishing…';const ok=await savePublish('Uploaded files');if(ok){UP_PENDING=0;UP_LOG.push('✓ Published. Students see it after GitHub Pages updates (1–2 minutes).')}paintLog()};pub.append(b)}};
+ let busy=false;
+ const run=async fs=>{fs=[...fs];if(!fs.length||busy)return;
+  const target=sel.value;
+  if(target!=='only'&&!src){st.textContent='Load your site first: open “Connect & publish” and press “Load from GitHub”. Then upload again so the file can be added to your site.';return}
+  if(target==='items'){const bad=fs.find(f=>!UP_VIDEO.test(f.name));if(bad){st.textContent='“'+bad.name+'” is not a video. Screencasts must be video files (MP4 is best). Pick “Practice file” or “Additional material” for other file types.';return}}
+  busy=true;let n=0;bar.style.display='block';
+  for(let i=0;i<fs.length;i++){const f=fs[i],pre='File '+(i+1)+' of '+fs.length+': ';
+   try{fill.style.width='0';
+    const rel=await uploadRepoFile(f,folderOf(),(m,p)=>{st.textContent=pre+m;if(typeof p==='number')fill.style.width=Math.round(p*100)+'%'});
+    fill.style.width='100%';
+    if(target!=='only'){upRegister(target,rel,f.name,fs.length===1?tt.value.trim():'',target==='items'?grpSel.value:'');UP_PENDING++;mark()}
+    UP_LOG.push('✓ '+f.name+' uploaded → '+rel);n++
+   }catch(e){UP_LOG.push('✗ '+e.message);break}}
+  busy=false;bar.style.display='none';
+  if(n&&target!=='only')toast(n+' file(s) uploaded. Press “Save & publish” to show them to students.');
+  if(onDone)onDone();else{paintLog()}};
+ dz.onclick=()=>inp.click();inp.onchange=()=>{run(inp.files);inp.value=''};
  ['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.style.background='var(--bg)'}));
  ['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.style.background=''}));
- dz.addEventListener('drop',e=>run(e.dataTransfer.files))}
+ dz.addEventListener('drop',e=>run(e.dataTransfer.files));
+ c.querySelector('#up-add').onclick=()=>{
+  const p=c.querySelector('#up-path').value.trim().replace(/^\/+/,'');const target=sel.value;
+  if(!p){st.textContent='Type the path of the file first.';return}
+  if(target==='only'){st.textContent='Pick a list in “What is this file for?” first.';return}
+  if(!src){st.textContent='Load your site first (Connect & publish → Load from GitHub).';return}
+  if(target==='items'&&!UP_VIDEO.test(p)){st.textContent='That path is not a video file (use .mp4).';return}
+  const added=upRegister(target,p,p.split('/').pop(),tt.value.trim(),target==='items'?grpSel.value:'');
+  if(!added){st.textContent='That file is already in the list.';return}
+  UP_PENDING++;mark();UP_LOG.push('✓ Added '+p);toast('Added. Press “Save & publish” to show it to students.');if(onDone)onDone();else paintLog()};
+ paintLog();return c}
+function addDropZone(k){
+ const v=$('#view'),old=$('#up-card');if(old)old.remove();
+ v.insertBefore(buildUploadCard(k,()=>go(k)),v.firstChild)}
+function uploadsView(){
+ setOn('uploads','Upload files');const v=$('#view');v.innerHTML='';
+ const redraw=()=>{const o=$('#up-card');const n=buildUploadCard(o&&o.querySelector('#up-for')?o.querySelector('#up-for').value:'items',redraw);if(o)o.replaceWith(n);else v.prepend(n)};
+ const intro=E('div',{className:'card'});
+ intro.innerHTML='<h3>Upload files</h3><p class="hint">One place to upload anything for the student site. Pick what the file is for in the drop-down below: it is stored in your GitHub site and added to the matching list automatically.</p>'+(LS.t?'':'<div class="cs27-callout">Connect to GitHub first (Connect &amp; publish) so uploads can be saved.</div>')+(src?'':'<div class="cs27-callout">Your site is not loaded yet. Open Connect &amp; publish and press “Load from GitHub”.</div>');
+ v.append(intro,buildUploadCard('items',redraw));
+ const nav=E('div',{className:'card'});nav.innerHTML='<h3>Open a list</h3>';const row=E('div',{className:'row'});
+ [['items','Screencast library'],['practice','Practice files'],['materials','Released materials']].forEach(([k,t])=>{const b=E('button',{className:'b',textContent:t});b.onclick=()=>go(k);row.append(b)});nav.append(row);v.append(nav)}
 function impBuiltInNotes(){
  if(!src)return 0;
  const doc=new DOMParser().parseFromString(src,'text/html');D.notes=D.notes||[];let n=0;
@@ -1974,12 +2077,12 @@ function impBuiltInNotes(){
 /* ---------- 5. Hook import into Quiz Studio / Assessment Studio, add nav entries ---------- */
 const prevGo=go;
 go=function(k){
- if(k==='roster')return rosterView();if(k==='phases')return phasesView();
+ if(k==='roster')return rosterView();if(k==='phases')return phasesView();if(k==='uploads')return uploadsView();
  const r=prevGo(k);
  try{if(k==='quizzes'){const v=$('#view');v.insertBefore(importBar('Import quiz questions (Read Me pop-out quiz, screencast quiz)',l=>{const t=$('#i28s').value;let key=$('#i28k').value.trim(),type=$('#i28y').value;if(t==='__new'){if(!key)throw new Error('Type the Read Me note id or screencast id for the new set.')}else{const[a,b]=t.split('|');type=a;key=b}
    let set=D.quizzes.find(x=>x.type===type&&x.key===key);if(!set){set={type,key,questions:[]};D.quizzes.push(set)}l.forEach(x=>set.questions.push({q:x.q,options:x.opts.slice(0,6),answer:Math.max(0,x.a)}));return l.length},o=>{o.innerHTML='<select id="i28s">'+D.quizzes.map(x=>'<option value="'+esc(x.type+'|'+x.key)+'">'+(x.type==='reading'?'Read Me pop-out':'Screencast quiz')+': '+esc(x.key)+' ('+(x.questions||[]).length+')</option>').join('')+'<option value="__new">New quiz set...</option></select><select id="i28y"><option value="reading">Read Me quiz</option><option value="video">Screencast quiz</option></select><input type="text" id="i28k" placeholder="note id / screencast id (new set only)">'}),v.children[1]||null)}
  if(k==='assessments'){const v=$('#view');v.insertBefore(importBar('Import Phase 1 assessment questions',l=>{const w=+$('#i28w').value||1;l.forEach(x=>{const o=x.opts.slice(0,4);while(o.length<4)o.push('');D.assessments.push({week:w,marks:1,q:x.q,opts:o,a:Math.min(3,Math.max(0,x.a))})});return l.length},o=>{o.innerHTML='<label style="margin:0">Source week</label><input type="number" id="i28w" value="1" min="1" max="16">'}),v.children[1]||null)}}catch(e){console.error(e)}
- try{if(src&&(k==='practice'||k==='materials'))addDropZone(k);if(k==='assessments'){const top=document.querySelector('#view .card');if(top){const bar=E('div',{className:'row',style:'margin:8px 0'});const b=E('button',{className:'b p',textContent:'Save & publish',style:'flex:none'});b.onclick=async()=>{b.disabled=true;b.textContent='Publishing…';await savePublish('Phase 1 assessment');b.disabled=false;b.textContent='Save & publish'};bar.append(b);top.insertBefore(bar,top.children[1]||null)}}}catch(e){console.error(e)}
+ try{if(src&&(k==='practice'||k==='materials'||k==='items'))addDropZone(k);if(k==='assessments'){const top=document.querySelector('#view .card');if(top){const bar=E('div',{className:'row',style:'margin:8px 0'});const b=E('button',{className:'b p',textContent:'Save & publish',style:'flex:none'});b.onclick=async()=>{b.disabled=true;b.textContent='Publishing…';await savePublish('Phase 1 assessment');b.disabled=false;b.textContent='Save & publish'};bar.append(b);top.insertBefore(bar,top.children[1]||null)}}}catch(e){console.error(e)}
  try{if(k==='notes'||k==='items'||k==='projects'){const top=document.querySelector('#view .card');if(top){const bar=E('div',{className:'row',style:'margin:8px 0;padding:10px;border:1px dashed var(--acc);border-radius:12px'});bar.innerHTML='<b style="flex:none">Previously published content</b>';
    if(k==='notes'){const x=E('button',{className:'b p',textContent:'Make built-in Read Me notes editable',style:'flex:none'});x.onclick=()=>{if(!confirm('Copy every built-in Read Me note that is not already in the editor, so you can edit it? Imported notes use the standard card layout (text and numbered steps). For pixel-exact edits use Site explorer instead.'))return;const n=impBuiltInNotes();toast(n?n+' note(s) imported - edit them below':'All built-in notes are already in the editor');go('notes')};bar.append(x)}
    if(k==='items'){const x=E('button',{className:'b p',textContent:'Load screencasts already on the site',style:'flex:none'});x.onclick=()=>{try{importSite(['screencasts']);go('items')}catch(e){toast(e.message)}};bar.append(x)}
@@ -2448,7 +2551,7 @@ function drawPanel(){if(!panel)return;panel.innerHTML='';const sel=LVs.sel,[n,i]
  panel.append(E('h4',{textContent:'Publish'}));panel.append(E('label',{textContent:'Commit message'}));const cm=E('input',{type:'text',id:'cm',placeholder:'Update course content from Course Studio'});panel.append(cm);
  const pr=E('div',{className:'le-row',style:'margin-top:8px'}),pb=E('button',{className:'b p',textContent:'Publish to students'}),sv=E('button',{className:'b',textContent:'Save a copy'}),dl=E('button',{className:'b',textContent:'Download'});
  pb.onclick=async()=>{if(!LS||!LS.t){toast('Connect to GitHub first (Connect & publish).');return}pb.disabled=true;lg.textContent='';try{await push()}catch(e){lg.textContent+='Error: '+e.message+'\n'}pb.disabled=false;drawStatus()};
- sv.onclick=async()=>{await window.__csSaveVersion($('#cm').value||'Saved from Live editor','Saved copy',true);toast('Saved a copy of the current site')};dl.onclick=()=>window.__csDownload(bake(),'index-'+new Date().toISOString().slice(0,10)+'.html');
+ sv.onclick=async()=>{await window.__csSaveVersion((($('#cm')||{}).value||'Saved from Live editor'),'Saved copy',true);toast('Saved a copy of the current site')};dl.onclick=()=>window.__csDownload(bake(),'index-'+new Date().toISOString().slice(0,10)+'.html');
  pr.append(pb,sv,dl);panel.append(pr);const lg=E('pre',{className:'le-pre',id:'lg'});panel.append(lg)}
 function drawStatus(){const s=document.getElementById('le-status');if(s){s.textContent=$('#st').textContent;s.className='chip'+(dirty?' dirty':'')}}
 function livePage(){
