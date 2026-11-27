@@ -14607,30 +14607,62 @@ render();var gate=document.getElementById('signInGate');if(gate&&window.Mutation
 })();
 </script>
 <style id="hm-cinema-css">
-#screencasts .cin{position:absolute;inset:0;background:#000;overflow:hidden;outline:0;-webkit-user-select:none;user-select:none;touch-action:manipulation;font-family:Inter,Arial,sans-serif}
+/* ===== CINEMA PLAYER v2 — big play icon, pause, seek, skip, speed, lights-down. No timers: everything is event/CSS driven. ===== */
+#screencasts .cin,#screencasts .cin-drive{position:absolute;inset:0;background:#000;overflow:hidden;outline:0;-webkit-user-select:none;user-select:none;touch-action:manipulation;font-family:Inter,Arial,sans-serif}
 #screencasts .cin video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:block}
+#screencasts .cin-drive iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent}
 #screencasts .cin-shade{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 38%,rgba(0,0,0,.5) 100%),linear-gradient(180deg,rgba(6,9,20,.18),rgba(6,9,20,.42));opacity:0;transition:opacity .3s ease;z-index:2}
 #screencasts .cin.is-paused .cin-shade{opacity:1}
-#screencasts .cin-big{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border:0;padding:0;border-radius:50%;background:rgba(255,255,255,.96);color:#e8590c;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 10px rgba(255,255,255,.14);transition:transform .2s ease,opacity .22s ease}
-#screencasts .cin-big svg{width:46px;height:46px;margin-left:5px;display:block}
+/* big centre play icon (used by the video player AND the Google Drive poster) */
+#screencasts .cin-big{position:absolute;left:50%;top:50%;width:104px;height:104px;margin:-52px 0 0 -52px;border:0;padding:0;border-radius:50%;background:rgba(255,255,255,.96);color:#e8590c;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 10px rgba(255,255,255,.14);transition:transform .2s ease,opacity .22s ease}
+#screencasts .cin-big svg{width:50px;height:50px;margin-left:6px;display:block}
 #screencasts .cin-big:hover{transform:scale(1.08)}
 #screencasts .cin.is-paused .cin-big{animation:cinPulse 2.2s ease-out infinite}
 #screencasts .cin.is-playing .cin-big,#screencasts .cin.is-wait .cin-big{opacity:0;pointer-events:none;transform:scale(.8);animation:none}
-@keyframes cinPulse{0%{box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 6px rgba(255,255,255,.28)}100%{box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 30px rgba(255,255,255,0)}}
+@keyframes cinPulse{0%{box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 6px rgba(255,255,255,.28)}100%{box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 32px rgba(255,255,255,0)}}
+/* spinner = loading state shown only while the browser is really buffering */
 #screencasts .cin-spin{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:4px solid rgba(255,255,255,.22);border-top-color:#fff;z-index:4;opacity:0;pointer-events:none;transition:opacity .2s}
-#screencasts .cin.is-wait .cin-spin{opacity:1;animation:cinSpin .8s linear infinite}
+#screencasts .cin.is-wait .cin-spin,#screencasts .cin-drive .cin-spin{opacity:1;animation:cinSpin .8s linear infinite}
 @keyframes cinSpin{to{transform:rotate(360deg)}}
-#screencasts .cin-ctl{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:40px 16px 14px;background:linear-gradient(0deg,rgba(0,0,0,.7),rgba(0,0,0,0));z-index:6;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}
-#screencasts .cin.is-paused .cin-ctl,#screencasts .cin.show-ctl .cin-ctl{opacity:1;transform:none;pointer-events:auto}
-#screencasts .cin.is-playing:not(.show-ctl){cursor:none}
-#screencasts .cin-b{width:48px;height:48px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .15s}
+/* quick play/pause flash when the picture is clicked */
+#screencasts .cin-flash{position:absolute;left:50%;top:50%;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;z-index:5}
+#screencasts .cin-flash svg{width:42px;height:42px;display:block}
+#screencasts .cin-flash.go{animation:cinFlash .55s ease-out}
+@keyframes cinFlash{0%{opacity:.95;transform:scale(.7)}100%{opacity:0;transform:scale(1.35)}}
+/* controls: visible while paused, or while the mouse is over the picture (pure CSS, no hide timer) */
+#screencasts .cin-ctl{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:2px;padding:46px 16px 12px;background:linear-gradient(0deg,rgba(0,0,0,.8),rgba(0,0,0,0));z-index:6;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}
+#screencasts .cin.is-paused .cin-ctl,#screencasts .cin:hover .cin-ctl,#screencasts .cin-ctl:has(:focus-visible){opacity:1;transform:none;pointer-events:auto}
+#screencasts .cin-row{display:flex;align-items:center;gap:8px}
+#screencasts .cin-sp{flex:1}
+#screencasts .cin-b{width:46px;height:46px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .15s;font:800 13px Inter,Arial,sans-serif}
 #screencasts .cin-b:hover{background:rgba(255,255,255,.32);transform:scale(1.06)}
 #screencasts .cin-b svg{width:24px;height:24px;display:block}
-#screencasts .cin-sp{flex:1}
+#screencasts .cin-pp{width:54px;height:54px;background:#ff6a2c}
+#screencasts .cin-pp:hover{background:#ff7f47}
+#screencasts .cin-pp svg{width:28px;height:28px}
+#screencasts .cin-sx{width:auto;min-width:50px;padding:0 14px;border-radius:24px}
+/* seek bar */
+#screencasts .cin-seek{-webkit-appearance:none;appearance:none;display:block;width:100%;height:22px;margin:0 0 4px;background:transparent;cursor:pointer;--p:0%}
+#screencasts .cin-seek:focus{outline:none}
+#screencasts .cin-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,#ff6a2c var(--p),rgba(255,255,255,.28) var(--p))}
+#screencasts .cin-seek::-moz-range-track{height:6px;border-radius:6px;background:rgba(255,255,255,.28)}
+#screencasts .cin-seek::-moz-range-progress{height:6px;border-radius:6px;background:#ff6a2c}
+#screencasts .cin-seek::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;margin-top:-5px;border-radius:50%;background:#fff;border:0;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#screencasts .cin-seek::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+/* Google Drive recordings: cinema poster with the big play icon */
+#screencasts .cin-poster{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;margin:0;cursor:pointer;display:block;overflow:hidden;background:linear-gradient(135deg,#111936,#24336b);font-family:Inter,Arial,sans-serif;text-align:left}
+#screencasts .cin-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.92}
+#screencasts .cin-poster:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 36%,rgba(0,0,0,.55) 100%),linear-gradient(180deg,rgba(6,9,20,.1),rgba(6,9,20,.55))}
+#screencasts .cin-poster .cin-big{pointer-events:none;animation:cinPulse 2.2s ease-out infinite}
+#screencasts .cin-poster:hover .cin-big,#screencasts .cin-poster:focus-visible .cin-big{transform:scale(1.08)}
+#screencasts .cin-poster:focus-visible{outline:3px solid #c4b5fd;outline-offset:-3px}
+#screencasts .cin-cap{position:absolute;left:18px;right:18px;bottom:14px;z-index:6;color:#fff;font:700 15px/1.3 Poppins,Inter,Arial,sans-serif;text-shadow:0 2px 10px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* lights down around the cinema while a recording is running or paused mid-way */
 #screencasts .scx-stage.cin-lights{box-shadow:0 0 0 100vmax rgba(3,5,12,.55),0 26px 70px rgba(0,0,0,.5)!important;transition:box-shadow .5s ease}
-@media(max-width:639px){#screencasts .cin-big{width:76px;height:76px;margin:-38px 0 0 -38px}#screencasts .cin-big svg{width:36px;height:36px}#screencasts .cin-b{width:42px;height:42px}}
+@media(max-width:639px){#screencasts .cin-big{width:78px;height:78px;margin:-39px 0 0 -39px}#screencasts .cin-big svg{width:38px;height:38px}#screencasts .cin-b{width:40px;height:40px}#screencasts .cin-pp{width:46px;height:46px}#screencasts .cin-ctl{padding:36px 10px 8px}#screencasts .cin-row{gap:6px}}
+@media(prefers-reduced-motion:reduce){#screencasts .cin-big,#screencasts .cin-poster .cin-big{animation:none!important}}
 </style>
-<script id="hm-cinema-v1">
+<script id="hm-cinema-v2">
 (function(){
   var $=function(i){return document.getElementById(i);};
   var IC={
@@ -14638,21 +14670,26 @@ render();var gate=document.getElementById('signInGate');if(gate&&window.Mutation
     pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
     vol:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>',
     mute:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.5 12A4.5 4.5 0 0 0 14 8v2.2l2.4 2.4c.1-.2.1-.4.1-.6zM19 12c0 .9-.2 1.8-.5 2.6l1.5 1.5A9 9 0 0 0 21 12a9 9 0 0 0-7-8.8v2.1A7 7 0 0 1 19 12zM4.3 3 3 4.3 7.7 9H3v6h4l5 5v-6.7l4.2 4.2c-.7.5-1.4.9-2.2 1.1v2.1a9 9 0 0 0 3.6-1.8l2.1 2.1 1.3-1.3L4.3 3zM12 4 9.9 6.1 12 8.2V4z"/></svg>',
-    full:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>'
+    full:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>',
+    back:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/><text x="12" y="16.2" text-anchor="middle" font-size="7" font-weight="800" fill="currentColor" font-family="Arial,sans-serif">10</text></svg>',
+    fwd:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/><text x="12" y="16.2" text-anchor="middle" font-size="7" font-weight="800" fill="currentColor" font-family="Arial,sans-serif">10</text></svg>'
   };
   function up(id){ return (window.HM_UPLOADED_VIDEOS||{})[id]||''; }
   function absUrl(u){ try{ return new URL(u,location.href).href; }catch(e){ return u; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function stage(){ return $('theaterStage'); }
   function lights(on){ var s=stage(); if(s){ s.classList.toggle('cin-lights',!!on); s.classList.toggle('is-playing',!!on); } }
+
+  /* stop whatever is in the cinema (pauses real video; removing the iframe stops a Drive recording) */
   function stop(){
     var w=$('theaterPlayerWrap'); if(!w) return;
-    var c=w.querySelector('.cin'); if(!c) return;
-    var v=c.querySelector('video');
+    var v=w.querySelector('.cin video');
     if(v){ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){} }
-    if(c.__off) c.__off();
-    c.remove(); lights(false);
+    lights(false);
   }
-  function mount(id,label,play){
+
+  /* ---------- uploaded MP4: full cinema player ---------- */
+  function mountVideo(id,label,play){
     var w=$('theaterPlayerWrap'); if(!w) return;
     var cur=w.querySelector('.cin');
     if(cur && cur.dataset.id===id){ if(play&&cur.__play) cur.__play(); return; }
@@ -14660,68 +14697,144 @@ render();var gate=document.getElementById('signInGate');if(gate&&window.Mutation
     var c=document.createElement('div'); c.className='cin is-paused'; c.dataset.id=id; c.tabIndex=0;
     c.setAttribute('role','group'); c.setAttribute('aria-label','Video player: '+label);
     c.innerHTML='<video playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>'
-      +'<div class="cin-shade"></div><div class="cin-spin"></div>'
+      +'<div class="cin-shade"></div><div class="cin-spin"></div><div class="cin-flash"></div>'
       +'<button type="button" class="cin-big" aria-label="Play">'+IC.play+'</button>'
-      +'<div class="cin-ctl"><button type="button" class="cin-b cin-pp" aria-label="Pause">'+IC.pause+'</button><span class="cin-sp"></span>'
-      +'<button type="button" class="cin-b cin-mu" aria-label="Sound off">'+IC.vol+'</button><button type="button" class="cin-b cin-fs" aria-label="Full screen">'+IC.full+'</button></div>';
+      +'<div class="cin-ctl">'
+        +'<input class="cin-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek">'
+        +'<div class="cin-row">'
+          +'<button type="button" class="cin-b cin-pp" aria-label="Play">'+IC.play+'</button>'
+          +'<button type="button" class="cin-b cin-bk" aria-label="Back 10 seconds">'+IC.back+'</button>'
+          +'<button type="button" class="cin-b cin-fw" aria-label="Forward 10 seconds">'+IC.fwd+'</button>'
+          +'<span class="cin-sp"></span>'
+          +'<button type="button" class="cin-b cin-sx" aria-label="Playback speed">1×</button>'
+          +'<button type="button" class="cin-b cin-mu" aria-label="Sound off">'+IC.vol+'</button>'
+          +'<button type="button" class="cin-b cin-fs" aria-label="Full screen">'+IC.full+'</button>'
+        +'</div></div>';
     w.appendChild(c);
-    var v=c.querySelector('video'),big=c.querySelector('.cin-big'),pp=c.querySelector('.cin-pp'),mu=c.querySelector('.cin-mu'),fs=c.querySelector('.cin-fs'),hideT=null;
+    var v=c.querySelector('video'),big=c.querySelector('.cin-big'),pp=c.querySelector('.cin-pp'),mu=c.querySelector('.cin-mu'),fs=c.querySelector('.cin-fs'),
+        bk=c.querySelector('.cin-bk'),fw=c.querySelector('.cin-fw'),sx=c.querySelector('.cin-sx'),seek=c.querySelector('.cin-seek'),fl=c.querySelector('.cin-flash');
+    var rates=[1,1.25,1.5,2,0.75], ri=0, dragging=false;
     v.src=absUrl(up(id))+'#t=0.1'; v.title=label;
+
     function paint(){
       var playing=!v.paused&&!v.ended;
       c.classList.toggle('is-playing',playing); c.classList.toggle('is-paused',!playing);
-      pp.innerHTML=playing?IC.pause:IC.play; pp.setAttribute('aria-label',playing?'Pause':'Play'); big.setAttribute('aria-label',playing?'Pause':'Play');
-      lights(playing);
+      pp.innerHTML=playing?IC.pause:IC.play; pp.setAttribute('aria-label',playing?'Pause':'Play'); big.setAttribute('aria-label','Play');
+      lights(playing||(!!c.__began&&!v.ended));
     }
-    function wake(){ c.classList.add('show-ctl'); clearTimeout(hideT); hideT=setTimeout(function(){ c.classList.remove('show-ctl'); },2400); }
+    function prog(){
+      var d=v.duration; if(!d||!isFinite(d)) return;
+      var pct=Math.min(100,Math.max(0,v.currentTime/d*100));
+      if(!dragging) seek.value=pct*10;
+      seek.style.setProperty('--p',pct+'%');
+    }
+    function flash(isPlay){ fl.innerHTML=isPlay?IC.play:IC.pause; fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go'); }
+    function skip(s){ try{ v.currentTime=Math.max(0,Math.min((v.duration||1e9),v.currentTime+s)); }catch(e){} }
     function doPlay(){
       c.classList.add('is-wait');
       var p; try{ p=v.play(); }catch(e){}
       if(p&&p.catch) p.catch(function(){ c.classList.remove('is-wait'); paint(); });
     }
-    function toggle(){ if(v.paused||v.ended){ doPlay(); } else { v.pause(); } wake(); }
-    c.__play=function(){ if(v.paused||v.ended) doPlay(); };
-    c.__off=function(){ clearTimeout(hideT); };
+    function toggle(){
+      var willPlay=v.paused||v.ended;
+      if(willPlay){
+        if(!c.__began){ c.__began=true; try{ theaterBeginPlayback(id,label); }catch(e){} }  /* counts the play + refreshes the list */
+        if(v.paused||v.ended) doPlay();
+      } else { v.pause(); }
+      flash(willPlay);
+    }
+    c.__play=function(){ c.__began=true; if(v.paused||v.ended) doPlay(); };
+
     v.addEventListener('playing',function(){ c.classList.remove('is-wait'); paint(); });
-    v.addEventListener('play',paint); v.addEventListener('pause',function(){ c.classList.remove('is-wait'); paint(); });
-    v.addEventListener('ended',function(){ c.classList.remove('is-wait'); try{ v.currentTime=0; }catch(e){} paint(); });
+    v.addEventListener('play',paint);
+    v.addEventListener('pause',function(){ c.classList.remove('is-wait'); paint(); });
+    v.addEventListener('ended',function(){ c.classList.remove('is-wait'); try{ v.currentTime=0; }catch(e){} paint(); prog(); });
     v.addEventListener('waiting',function(){ if(!v.paused) c.classList.add('is-wait'); });
     v.addEventListener('canplay',function(){ c.classList.remove('is-wait'); });
     v.addEventListener('error',function(){ c.classList.remove('is-wait'); });
+    v.addEventListener('timeupdate',prog); v.addEventListener('loadedmetadata',prog); v.addEventListener('durationchange',prog);
+
     big.addEventListener('click',function(e){ e.stopPropagation(); toggle(); });
     v.addEventListener('click',toggle);
+    v.addEventListener('dblclick',function(){ fs.click(); });
     pp.addEventListener('click',function(e){ e.stopPropagation(); toggle(); });
-    mu.addEventListener('click',function(e){ e.stopPropagation(); v.muted=!v.muted; mu.innerHTML=v.muted?IC.mute:IC.vol; mu.setAttribute('aria-label',v.muted?'Sound on':'Sound off'); wake(); });
+    bk.addEventListener('click',function(e){ e.stopPropagation(); skip(-10); });
+    fw.addEventListener('click',function(e){ e.stopPropagation(); skip(10); });
+    sx.addEventListener('click',function(e){ e.stopPropagation(); ri=(ri+1)%rates.length; v.playbackRate=rates[ri]; sx.textContent=rates[ri]+'×'; });
+    mu.addEventListener('click',function(e){ e.stopPropagation(); v.muted=!v.muted; mu.innerHTML=v.muted?IC.mute:IC.vol; mu.setAttribute('aria-label',v.muted?'Sound on':'Sound off'); });
     fs.addEventListener('click',function(e){
       e.stopPropagation();
-      var d=document, el=c;
+      var d=document;
       if(d.fullscreenElement||d.webkitFullscreenElement){ (d.exitFullscreen||d.webkitExitFullscreen).call(d); }
-      else if(el.requestFullscreen){ el.requestFullscreen(); }
-      else if(el.webkitRequestFullscreen){ el.webkitRequestFullscreen(); }
+      else if(c.requestFullscreen){ c.requestFullscreen(); }
+      else if(c.webkitRequestFullscreen){ c.webkitRequestFullscreen(); }
       else if(v.webkitEnterFullscreen){ v.webkitEnterFullscreen(); }
-      wake();
+    });
+    seek.addEventListener('pointerdown',function(){ dragging=true; });
+    ['pointerup','pointercancel','blur','change'].forEach(function(n){ seek.addEventListener(n,function(){ dragging=false; }); });
+    seek.addEventListener('input',function(){
+      var d=v.duration; if(!d||!isFinite(d)) return;
+      try{ v.currentTime=seek.value/1000*d; }catch(e){}
+      seek.style.setProperty('--p',(seek.value/10)+'%');
     });
     c.querySelector('.cin-ctl').addEventListener('click',function(e){ e.stopPropagation(); });
-    c.addEventListener('mousemove',wake); c.addEventListener('touchstart',wake,{passive:true});
     c.addEventListener('keydown',function(e){
       var k=e.key;
+      if((k===' '||k==='Enter')&&e.target&&e.target.tagName==='BUTTON') return;  /* let a focused button act on its own */
       if(k===' '||k==='k'||k==='K'){ e.preventDefault(); toggle(); }
-      else if(k==='ArrowRight'){ e.preventDefault(); try{ v.currentTime=Math.min((v.duration||1e9),v.currentTime+5); }catch(x){} }
-      else if(k==='ArrowLeft'){ e.preventDefault(); try{ v.currentTime=Math.max(0,v.currentTime-5); }catch(x){} }
+      else if(k==='ArrowRight'){ e.preventDefault(); skip(5); }
+      else if(k==='ArrowLeft'){ e.preventDefault(); skip(-5); }
+      else if(k==='l'||k==='L'){ skip(10); }
+      else if(k==='j'||k==='J'){ skip(-10); }
       else if(k==='m'||k==='M'){ mu.click(); }
       else if(k==='f'||k==='F'){ fs.click(); }
     });
     paint();
-    if(play) doPlay();
+    if(play){ c.__began=true; doPlay(); }
   }
-  var _load=window.theaterLoadIframe, _poster=window.theaterShowPoster;
-  window.theaterLoadIframe=function(id,label){ if(up(id)) return mount(id,label,true); stop(); return _load.apply(this,arguments); };
-  window.theaterShowPoster=function(id,label){ if(up(id)) return mount(id,label,false); stop(); return _poster.apply(this,arguments); };
-  /* sound must never keep running when the student leaves the Screencasts tab or the browser tab */
-  function pauseAway(){ var c=document.querySelector('#theaterPlayerWrap .cin video'); if(c&&!c.paused) c.pause(); }
+
+  /* ---------- Google Drive recordings ---------- */
+  function hasDrive(w,id){ var f=w.querySelector('iframe'); return !!(f&&f.dataset.id===id); }
+  /* poster: thumbnail + big play icon. The whole picture is the play button. */
+  function drivePoster(id,label){
+    var w=$('theaterPlayerWrap'); if(!w) return;
+    if(hasDrive(w,id)) return;                      /* already running — never restart it */
+    stop(); w.innerHTML='';
+    var b=document.createElement('button'); b.type='button'; b.className='cin-poster'; b.dataset.id=id;
+    b.setAttribute('aria-label','Play '+label);
+    b.innerHTML='<img alt="" referrerpolicy="no-referrer"><span class="cin-big" aria-hidden="true">'+IC.play+'</span><span class="cin-cap">'+esc(label)+'</span>';
+    var im=b.querySelector('img'), k=0;
+    var chain=(window.HMR&&HMR.thumbChain)?HMR.thumbChain(id,960):[driveThumbUrl(id)];
+    im.addEventListener('error',function(){ k++; if(k<chain.length){ im.src=chain[k]; } else { im.remove(); } });
+    im.addEventListener('load',function(){ if(im.naturalWidth&&im.naturalWidth<48){ k++; if(k<chain.length){ im.src=chain[k]; } else { im.remove(); } } });
+    im.src=chain[0];
+    b.addEventListener('click',function(){ theaterBeginPlayback(id,label); });   /* starts straight away, same click */
+    w.appendChild(b);
+  }
+  /* start: iframe is attached synchronously inside the click — no loading screen, no delay */
+  function driveStart(id,label){
+    var w=$('theaterPlayerWrap'); if(!w) return;
+    if(hasDrive(w,id)) return;
+    stop(); w.innerHTML='';
+    var d=document.createElement('div'); d.className='cin-drive'; d.innerHTML='<div class="cin-spin"></div>';
+    var f=document.createElement('iframe'); f.dataset.id=id; f.src=driveEmbedUrl(id,true); f.title=label;
+    f.setAttribute('allow','autoplay; fullscreen'); f.setAttribute('allowfullscreen','true');
+    d.appendChild(f); w.appendChild(d); lights(true);
+  }
+
+  window.theaterLoadIframe=function(id,label){ return up(id)?mountVideo(id,label,true):driveStart(id,label); };
+  window.theaterShowPoster=function(id,label){ return up(id)?mountVideo(id,label,false):drivePoster(id,label); };
+
+  /* sound must never keep running when the student leaves the Screencasts tab or the browser tab (event based, no polling) */
+  function pauseAway(){ var v=document.querySelector('#theaterPlayerWrap .cin video'); if(v&&!v.paused) v.pause(); }
   document.addEventListener('visibilitychange',function(){ if(document.hidden) pauseAway(); });
-  setInterval(function(){ if(!document.querySelector('#screencasts.active')) pauseAway(); },800);
-  window.__hmCinema={mount:mount,stop:stop};
+  var sc=$('screencasts');
+  if(sc&&window.MutationObserver){ new MutationObserver(function(){ if(!sc.classList.contains('active')) pauseAway(); }).observe(sc,{attributes:true,attributeFilter:['class']}); }
+
+  /* the page may already have a recording on screen from the earlier layer — redraw it with the new cinema */
+  try{ var cid=(typeof theaterCurrentId!=='undefined'&&theaterCurrentId)||(typeof allScreencasts!=='undefined'&&allScreencasts[0]&&allScreencasts[0].id);
+       if(cid){ var meta=allScreencasts.find(function(v){ return v.id===cid; }); var wrap=$('theaterPlayerWrap'); if(wrap){ wrap.innerHTML=''; theaterShowPoster(cid,meta?meta.label:''); } } }catch(e){}
+  window.__hmCinema={mount:mountVideo,stop:stop,poster:drivePoster,start:driveStart};
 })();
 </script>
 
